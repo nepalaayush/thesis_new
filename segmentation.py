@@ -224,7 +224,7 @@ pixelarray = open_nii(path)
 
 pix1 = open_nii(path1)
 #%%
-viewer = open_napari('/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-09/54_MK_Radial_Weight_CINE_30bpm/With weight comparison/data_aw3_up_5_to_27deg_14cycles.nii')
+viewer = open_napari()
 
 
 #%%
