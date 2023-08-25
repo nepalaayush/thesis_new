@@ -59,33 +59,97 @@ def find_extreme_points_on_secondary_axis(centroid, shape_coords, unit_vector_pe
     
     return shape_coords[max_index, 1:], shape_coords[min_index, 1:]
 
-def find_edges(centroid, shape_coords, unit_vector_perpendicular):
-    relative_positions = shape_coords[:, 1:] - centroid
-    scalar_projections = np.dot(relative_positions, unit_vector_perpendicular)
+
+
+def find_new_edges(centroid, shape_coords, unit_vector_perpendicular):
+    # Create an array to store the projections and original coordinates
+    projections_with_indices = []
     
-    max_index = np.argmax(scalar_projections)
-    min_index = np.argmin(scalar_projections)
+    for i, point in enumerate(shape_coords):
+        # Use point[1:] to get rid of the extra dimension
+        actual_point = point[1:]
+        
+        # Calculate the vector from the centroid to the current point
+        vector_to_point = actual_point - centroid
+        
+        # Find the scalar projection onto the unit_vector_perpendicular
+        t = np.dot(vector_to_point, unit_vector_perpendicular)
+        
+        # Find the closest point on the line defined by the centroid and unit_vector_perpendicular
+        closest_point_on_line = centroid + t * unit_vector_perpendicular
+        
+        # Store the projection value and index
+        distance_along_line = np.dot(unit_vector_perpendicular, (closest_point_on_line - centroid))
+        projections_with_indices.append((distance_along_line, i))
     
-    max_point = shape_coords[max_index, 1:]
-    min_point = shape_coords[min_index, 1:]
+    # Sort the projections and get the indices of the furthest apart projections
+    sorted_projections = sorted(projections_with_indices, key=lambda x: x[0])
+    min_point_index = sorted_projections[0][1]
+    max_point_index = sorted_projections[-1][1]
     
-    # The direction vector of the initial line
-    initial_vector = max_point - min_point
-    initial_unit_vector = initial_vector / np.linalg.norm(initial_vector)
+    # Retrieve the coordinates of the points with the minimum and maximum projections
+    min_point = shape_coords[min_point_index, 1:]
+    max_point = shape_coords[max_point_index, 1:]
     
-    # Calculate the angle between the initial unit vector and V
-    angle = np.arccos(np.dot(initial_unit_vector, unit_vector_perpendicular))
+    return max_point, min_point
+
+from shapely.geometry import LineString, Point
+
+def find_edges_new(centroid, shape_coords, unit_vector_perpendicular):
+    # Convert shape coordinates to LineString for easier intersection checks
+    shape_line = LineString(shape_coords[:, 1:])
     
-    # Now, we rotate the points around the centroid to make the line perpendicular to U
-    rotation_matrix = np.array([
-        [np.cos(angle), -np.sin(angle)],
-        [np.sin(angle), np.cos(angle)]
-    ])
+    # Define a sufficiently long line segment that is perpendicular to the PCA axis
+    # and passes through the centroid.
+    point_A = centroid - 1000 * unit_vector_perpendicular  # A point far away from the centroid along -V
+    point_B = centroid + 1000 * unit_vector_perpendicular  # A point far away from the centroid along V
+    perp_line = LineString([point_A, point_B])
     
-    rotated_max_point = np.dot(rotation_matrix, (max_point - centroid).T).T + centroid
-    rotated_min_point = np.dot(rotation_matrix, (min_point - centroid).T).T + centroid
+    # Find the intersection points between shape_line and perp_line
+    intersection = shape_line.intersection(perp_line)
     
-    return rotated_max_point, rotated_min_point
+    if intersection.geom_type == 'MultiPoint':
+        # If there are multiple intersection points, convert them to a numpy array
+        return np.array([list(pt.coords)[0] for pt in intersection.geoms])
+    elif intersection.geom_type == 'Point':
+        # If there's only one intersection point (unlikely, but possible), return it as a single-row numpy array
+        return np.array([list(intersection.coords)[0]])
+    else:
+        # If there's no intersection, or if the intersection is more complex (e.g., a LineString),
+        # this would require special handling.
+        return None
+
+
+
+from shapely.geometry import LineString, MultiPoint
+
+def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
+    # Parameterize long axis by the points U1 and U2
+    t_values = np.linspace(0, 1, num_points)
+    long_axis_points = np.array([(1-t)*U1 + t*U2 for t in t_values])
+
+    widest_distance = 0
+    widest_points = None
+
+    for point in long_axis_points:
+        # Create line segment perpendicular to the long axis
+        perp_line = LineString([point - 50 * V, point + 50 * V])
+
+        # Convert shape coordinates to LineString
+        shape_line = LineString(shape_coords[:, 1:])
+
+        # Find intersection
+        intersection = perp_line.intersection(shape_line)
+
+        if isinstance(intersection, MultiPoint):
+            points_list = intersection.geoms
+            if len(points_list) >= 2:
+                dist = points_list[0].distance(points_list[-1])
+                if dist > widest_distance:
+                    widest_distance = dist
+                    widest_points = [list(points_list[0].coords)[0], list(points_list[-1].coords)[0]]
+
+    return np.array(widest_points)
 
 
 def find_intersection(A, B, E, F):
@@ -111,11 +175,23 @@ def process_frame(viewer):
         # Get unit vectors
         U, V = get_uv_from_pca(line_points)
         
+        
+        # Debug Check 1: Check if U and V are perpendicular
+        is_perpendicular_uv = np.abs(np.dot(U, V)) < 1e-5
+        if not is_perpendicular_uv:
+           print(f"Debug Check 1: For shape {idx}, U and V are not perpendicular.")
         # Compute centroid
         centroid = np.mean(shape_coords[:, 1:], axis=0)
         
         # Find extreme points
-        extreme_points = np.array(find_edges(centroid, shape_coords, V))
+        #extreme_points = np.array(find_edges_new(centroid, shape_coords, V))
+        extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=100))
+        # Debug check 2: check if the extreme points line is indeed perpendicualr to U  
+        extreme_vector = extreme_points[1] - extreme_points[0]
+        is_perpendicular_extreme = np.abs(np.dot(extreme_vector, U)) < 1e-5
+        
+        if not is_perpendicular_extreme:
+            print(f'Debug Check 2: For shape {idx}, extreme poitns line is not perp to U ')
         #viewer.add_points(extreme_points) 
         # Compute intersection
         intersection = find_intersection(line_points[0], line_points[1], extreme_points[0], extreme_points[1])
@@ -131,6 +207,10 @@ def process_frame(viewer):
     return results
 
 
+
+# Sample usage (assuming you have centroid, shape_coords, and unit_vector_perpendicular)
+# max_point, min_point = find_edges(centroid, shape_coords, unit_vector_perpendicular)
+
 def open_napari(path):
     pixelarray = open_nii(path)
     viewer = napari.view_image(gradify(pixelarray))
@@ -144,16 +224,10 @@ pixelarray = open_nii(path)
 
 pix1 = open_nii(path1)
 #%%
-viewer = open_napari(path)
+viewer = open_napari('/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-09/54_MK_Radial_Weight_CINE_30bpm/With weight comparison/data_aw3_up_5_to_27deg_14cycles.nii')
 
 
 #%%
-# Assuming the shapes layer is the first layer
-shapes_layer = viewer.layers[1]                                                    
-# Assuming you're interested in the first shape
-viewer.add_shapes(shapes_layer.data) 
-#%%
-viewer.layers.append(shapes_layer)
 
 #%%
 fem_info = process_frame(viewer)
@@ -199,9 +273,9 @@ def show_stuff(frame_data, frame_name):
     
     
 #%%
-show_stuff(tib_info, 'CINE_Highres_tib')
+show_stuff(tib_info, 'tib_wt_30bpm')
 #%%            
-show_stuff(fem_info, 'data_aw3_up_4_to_31deg_12cycles_fem')             
+show_stuff(fem_info, 'fem_wt_30bpm')             
                                        
 #%%
 
@@ -266,6 +340,29 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     plt.show()
 
 #%%
+track_origin(tib_info, 'tibia_weight')
+#%%
+plot_angle_vs_frame(fem_info, tib_info, 'weight')
+#%%
+def plot_angle_vs_angle(femur_info , tibia_info, angle_list,  label):
+    frames = sorted(femur_info.keys())
+    angles = []
+    
+    for frame in frames:
+        femur_vector = femur_info[frame]['V']
+        tibia_vector = tibia_info[frame]['V']
+        angle = calculate_angle(femur_vector, tibia_vector)
+        angles.append(angle)
+    angles = (180 - np.array(angles) ) 
+    # Plot
+    plt.plot(angle_list, angles, label=f'{label}')
+    plt.xlabel("Angle from the device (degrees) ")
+    plt.ylabel("Angle Between bone (degrees)")
+    plt.title("Change in Angle Between Femur and Tibia Over Device angle")
+    plt.grid(True)
+    plt.legend()
+    plt.show()
 
-
-
+#%%
+angle_list = np.arange(5,28)
+plot_angle_vs_angle(fem_info, tib_info, angle_list, 'weight')
