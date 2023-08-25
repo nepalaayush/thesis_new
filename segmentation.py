@@ -129,18 +129,27 @@ def process_frame(viewer):
             "origin": intersection
         }
     return results
+
+
+def open_napari(path):
+    pixelarray = open_nii(path)
+    viewer = napari.view_image(gradify(pixelarray))
+    return viewer 
 #%%
-path = '/data/projects/ma-nepal-segmentation/scripts/git/thesis/data/CINE_HighRes.nii'
+path = '/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-09/53_MK_Radial_NoWeight_CINE_30bpm/CINE data/data_aw3_up_4_to_31deg_12cycles.nii'
+path1 = '/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-09/53_MK_Radial_NoWeight_CINE_30bpm/CINE data/data_aw3_down_4_to_31deg.nii'
 #%%
 #load the data and open napari viewer 
 pixelarray = open_nii(path)
 
+pix1 = open_nii(path1)
+#%%
+viewer = open_napari(path)
 
-viewer = napari.view_image(gradify(pixelarray)) 
-#viewer = napari.view_image(pixelarray[-2:]) 
+
 #%%
 # Assuming the shapes layer is the first layer
-shapes_layer = viewer.layers[1]
+shapes_layer = viewer.layers[1]                                                    
 # Assuming you're interested in the first shape
 viewer.add_shapes(shapes_layer.data) 
 #%%
@@ -192,7 +201,7 @@ def show_stuff(frame_data, frame_name):
 #%%
 show_stuff(tib_info, 'CINE_Highres_tib')
 #%%            
-show_stuff(fem_info, 'CINE_Highres_fem')             
+show_stuff(fem_info, 'data_aw3_up_4_to_31deg_12cycles_fem')             
                                        
 #%%
 
