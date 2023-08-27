@@ -41,6 +41,81 @@ def fit_pca_line(coordinates, n_points=2):
       
     return line_points
 
+from skimage.morphology import skeletonize
+from scipy.spatial import distance
+
+def find_medial_axis(coordinates, n_points=2):
+    # I'm assuming your coordinates are a binary mask. If not, make it so.
+    # Creating a bounding box around the segmented area for skeletonization
+    min_x, min_y = np.min(coordinates, axis=0).astype(int)
+    max_x, max_y = np.max(coordinates, axis=0).astype(int)
+    
+    # Initialize the bounding box to zeros
+    # Initialize the bounding box to zeros
+    box = np.zeros((int(max_x - min_x + 1), int(max_y - min_y + 1)))
+
+    
+    # Fill in the coordinates into the bounding box
+    for coord in coordinates:
+        x, y = map(int, coord)
+        box[x - min_x, y - min_y] = 1
+    
+    # Skeletonize the bounding box
+    skeleton = skeletonize(box).astype(np.uint16)
+    
+    # Find the endpoints of the skeleton
+    y, x = np.where(skeleton)
+    endpoints = np.column_stack((x + min_x, y + min_y))
+    
+    # Find the two most distant endpoints
+    dists = distance.cdist(endpoints, endpoints, 'euclidean')
+    i, j = np.unravel_index(np.argmax(dists), dists.shape)
+    
+    line_points = np.array([endpoints[i], endpoints[j]])
+    
+    if n_points == 2:
+        return line_points
+    else:
+        # Interpolate between the two points if you need more than 2 points.
+        t = np.linspace(0, 1, n_points)
+        return (1 - t)[:, None] * line_points[0] + t[:, None] * line_points[1]
+
+import cv2
+
+def find_long_axis_using_moments(coordinates, n_points=2):
+    # Create a black image
+    min_x, min_y = np.min(coordinates, axis=0).astype(int)
+    max_x, max_y = np.max(coordinates, axis=0).astype(int)
+    img = np.zeros((max_x - min_x + 1, max_y - min_y + 1), dtype=np.uint8)
+    
+    for coord in coordinates:
+        x, y = map(int, coord)
+        img[x - min_x, y - min_y] = 1
+    
+    # Calculate moments
+    M = cv2.moments(img)
+    
+    # Calculate orientation
+    x_centroid = int(M["m10"] / M["m00"])
+    y_centroid = int(M["m01"] / M["m00"])
+    
+    mu20 = M['mu20'] / M['m00']
+    mu02 = M['mu02'] / M['m00']
+    mu11 = M['mu11'] / M['m00']
+    
+    angle = 0.5 * np.arctan2(2 * mu11, mu20 - mu02)
+    
+    # Create points along the orientation
+    length = 100  # Or whatever length you want the line to be
+    x1 = int(x_centroid + length * np.cos(angle))
+    y1 = int(y_centroid + length * np.sin(angle))
+    x2 = int(x_centroid - length * np.cos(angle))
+    y2 = int(y_centroid - length * np.sin(angle))
+    
+    return np.array([[x1 + min_x, y1 + min_y], [x2 + min_x, y2 + min_y]])
+
+
+
 def get_uv_from_pca(line_points):
     A = np.array(line_points[0])
     B = np.array(line_points[1])
@@ -59,69 +134,7 @@ def find_extreme_points_on_secondary_axis(centroid, shape_coords, unit_vector_pe
     
     return shape_coords[max_index, 1:], shape_coords[min_index, 1:]
 
-
-
-def find_new_edges(centroid, shape_coords, unit_vector_perpendicular):
-    # Create an array to store the projections and original coordinates
-    projections_with_indices = []
-    
-    for i, point in enumerate(shape_coords):
-        # Use point[1:] to get rid of the extra dimension
-        actual_point = point[1:]
-        
-        # Calculate the vector from the centroid to the current point
-        vector_to_point = actual_point - centroid
-        
-        # Find the scalar projection onto the unit_vector_perpendicular
-        t = np.dot(vector_to_point, unit_vector_perpendicular)
-        
-        # Find the closest point on the line defined by the centroid and unit_vector_perpendicular
-        closest_point_on_line = centroid + t * unit_vector_perpendicular
-        
-        # Store the projection value and index
-        distance_along_line = np.dot(unit_vector_perpendicular, (closest_point_on_line - centroid))
-        projections_with_indices.append((distance_along_line, i))
-    
-    # Sort the projections and get the indices of the furthest apart projections
-    sorted_projections = sorted(projections_with_indices, key=lambda x: x[0])
-    min_point_index = sorted_projections[0][1]
-    max_point_index = sorted_projections[-1][1]
-    
-    # Retrieve the coordinates of the points with the minimum and maximum projections
-    min_point = shape_coords[min_point_index, 1:]
-    max_point = shape_coords[max_point_index, 1:]
-    
-    return max_point, min_point
-
-from shapely.geometry import LineString, Point
-
-def find_edges_new(centroid, shape_coords, unit_vector_perpendicular):
-    # Convert shape coordinates to LineString for easier intersection checks
-    shape_line = LineString(shape_coords[:, 1:])
-    
-    # Define a sufficiently long line segment that is perpendicular to the PCA axis
-    # and passes through the centroid.
-    point_A = centroid - 1000 * unit_vector_perpendicular  # A point far away from the centroid along -V
-    point_B = centroid + 1000 * unit_vector_perpendicular  # A point far away from the centroid along V
-    perp_line = LineString([point_A, point_B])
-    
-    # Find the intersection points between shape_line and perp_line
-    intersection = shape_line.intersection(perp_line)
-    
-    if intersection.geom_type == 'MultiPoint':
-        # If there are multiple intersection points, convert them to a numpy array
-        return np.array([list(pt.coords)[0] for pt in intersection.geoms])
-    elif intersection.geom_type == 'Point':
-        # If there's only one intersection point (unlikely, but possible), return it as a single-row numpy array
-        return np.array([list(intersection.coords)[0]])
-    else:
-        # If there's no intersection, or if the intersection is more complex (e.g., a LineString),
-        # this would require special handling.
-        return None
-
-
-
-from shapely.geometry import LineString, MultiPoint
+from shapely.geometry import LineString, Point, MultiPoint
 
 def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
     # Parameterize long axis by the points U1 and U2
@@ -171,7 +184,6 @@ def process_frame(viewer):
     for idx, shape_coords in enumerate(sorted_data):
         # Calculate PCA line points
         line_points = fit_pca_line(shape_coords[:, 1:])
-        
         # Get unit vectors
         U, V = get_uv_from_pca(line_points)
         
@@ -216,19 +228,22 @@ def open_napari(path):
     viewer = napari.view_image(gradify(pixelarray))
     return viewer 
 #%%
-path = '/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-09/53_MK_Radial_NoWeight_CINE_30bpm/CINE data/data_aw3_up_4_to_31deg_12cycles.nii'
-path1 = '/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-09/53_MK_Radial_NoWeight_CINE_30bpm/CINE data/data_aw3_down_4_to_31deg.nii'
+path = 'C:/Users/MSI/Documents/data/90bpm_nowt_06-25/data_aw3_up_3_to_26deg.nii'
 #%%
 #load the data and open napari viewer 
 pixelarray = open_nii(path)
 
-pix1 = open_nii(path1)
-#%%
-viewer = open_napari()
-
 
 #%%
-
+viewer = open_napari(path)
+#%%
+viewer = napari.view_image(pixelarray[:2]) 
+#%%
+tib_layer = viewer.layers[1]
+#%%
+viewer.add_image(tib_layer) 
+#%%
+fem_layer = viewer.layers[1]
 #%%
 fem_info = process_frame(viewer)
 #%%
@@ -273,10 +288,11 @@ def show_stuff(frame_data, frame_name):
     
     
 #%%
-show_stuff(tib_info, 'tib_wt_30bpm')
+show_stuff(tib_info, 'tib_nowt')
 #%%            
-show_stuff(fem_info, 'fem_wt_30bpm')             
-                                       
+show_stuff(fem_info, 'fem_nowt')             
+#%%
+show_stuff(check_info, 'checking_shape')                                        
 #%%
 
 def axis_check (bone_info ,ind): 
@@ -340,9 +356,11 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     plt.show()
 
 #%%
-track_origin(tib_info, 'tibia_weight')
+track_origin(tib_info, 'tibia__no_weight')
 #%%
-plot_angle_vs_frame(fem_info, tib_info, 'weight')
+track_origin(fem_info, 'femur_no_weight') 
+#%%
+plot_angle_vs_frame(fem_info, tib_info, 'no_weight')
 #%%
 def plot_angle_vs_angle(femur_info , tibia_info, angle_list,  label):
     frames = sorted(femur_info.keys())
@@ -364,5 +382,5 @@ def plot_angle_vs_angle(femur_info , tibia_info, angle_list,  label):
     plt.show()
 
 #%%
-angle_list = np.arange(5,28)
-plot_angle_vs_angle(fem_info, tib_info, angle_list, 'weight')
+angle_list = np.arange(3,27)
+plot_angle_vs_angle(fem_info, tib_info, angle_list, 'no_weight')
