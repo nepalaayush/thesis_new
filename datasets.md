@@ -25,6 +25,13 @@ data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-
 
 
 
+/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-06-25/235_MK_Radial_Weight_CINE_60bpm_MS_NoWeight/data_aw3_up_5deg_sum_and_individual_gating.nii
+./Maggioni^Marta_Brigid/2021-06-25/235_MK_Radial_Weight_CINE_60bpm_MS_NoWeight
+
+/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-06-25/236_MK_Radial_Weight_CINE_60bpm_MS_Weight/data_up_aw3_5-32deg.nii
+./Maggioni^Marta_Brigid/2021-06-25/236_MK_Radial_Weight_CINE_60bpm_MS_Weight
+
+
 
 /data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-10-15/58_MK_Radial_NoWeight_CINE_60bpm_HighRes_NormalGA/flexion 25deg aw2 CINE.nii
 ./Maggioni^Marta_Brigid/2021-10-15/58_MK_Radial_NoWeight_CINE_60bpm_HighRes_NormalGA
@@ -44,14 +51,7 @@ data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-04-
 
 
 
-
 ./Maggioni^Marta_Brigid/2021-04-09/65_MK_Radial_Weight_CINE_30bpm_HighRes
-
-/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-06-25/235_MK_Radial_Weight_CINE_60bpm_MS_NoWeight/data_aw3_up_5deg_sum_and_individual_gating.nii
-./Maggioni^Marta_Brigid/2021-06-25/235_MK_Radial_Weight_CINE_60bpm_MS_NoWeight
-
-/data/projects/ma-alieksev-cine-knee-dynamics/data/Maggioni^Marta_Brigid/2021-06-25/236_MK_Radial_Weight_CINE_60bpm_MS_Weight/data_up_aw3_5-32deg.nii
-./Maggioni^Marta_Brigid/2021-06-25/236_MK_Radial_Weight_CINE_60bpm_MS_Weight
 
 
 
