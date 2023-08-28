@@ -237,7 +237,7 @@ pixelarray = open_nii(path)
 #%%
 viewer = open_napari(path)
 #%%
-viewer = napari.view_image(pixelarray[:2]) 
+viewer = napari.view_image(pixelarray) 
 #%%
 tib_layer = viewer.layers[1]
 #%%
