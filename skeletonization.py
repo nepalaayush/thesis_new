@@ -12,6 +12,7 @@ import nibabel as nib
 import matplotlib.pyplot as plt 
 from scipy.ndimage import gaussian_filter, zoom
 from skimage.morphology import skeletonize, binary_erosion, square, erosion, dilation, remove_small_objects
+from sklearn.neighbors import NearestNeighbors
 #%%
 def open_nii(path):
     ''' Input: Path of nifti file (.nii) Output: pixelarray  ''' 
@@ -252,9 +253,9 @@ viewer1.add_shapes(transformed_A, shape_type='polygon', name='H.dot.A')
 
 setB = grouped_coords[20][:,1:]
 #%%
-from sklearn.neighbors import NearestNeighbors
-nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(setA)
-distances, indices = nbrs.kneighbors(setB)
+
+nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(setA) # Fit nearest neighbors model to setA
+distances, indices = nbrs.kneighbors(setB) # Find indices of closest points in setA for each point in setB
 
 # Extract the corresponding points
 A_corresponding = setA[indices.flatten()]
@@ -271,6 +272,41 @@ transformed_A = transformed_A_homogeneous[:, :2] / transformed_A_homogeneous[:, 
 #%%
 
 viewer.add_points(transformed_A, name='transformed_A')
+#%%
+def find_corres(setA, setB):
+    if (len(setA) > len(setB) ):
+        nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(setA)
+        distances, indices = nbrs.kneighbors(setB)
+        A_corresponding = setA[indices.flatten()]
+        return A_corresponding
+
+setB = grouped_coords[17][:,1:]
+sub_A_17 = find_corres(setA, setB)
+
+#%%
+viewer1 = napari.view_image(image)
+viewer1.add_shapes(setA, name='setA', shape_type='polygon')
+#%%
+viewer1.add_shapes(sub_A_17, name='sub_A', shape_type='polygon', face_color='yellow' )
+#%%
+def find_homography(setA, setB):
+    H, mask = cv2.findHomography(setA, setB, cv2.RANSAC)
+    homogeneous_A = np.hstack([setA, np.ones((setA.shape[0], 1))])
+
+    # Transform the points
+    transformed_A_homogeneous = homogeneous_A @ H.T  # Note the transpose of H
+
+    # Convert back to 2D coordinates
+    transformed_A = transformed_A_homogeneous[:, :2] / transformed_A_homogeneous[:, 2, np.newaxis]
+    
+    return transformed_A
+
+#%%
+trans_A = find_homography(sub_A_17, setB)
+
+viewer1.add_shapes(trans_A, shape_type='polygon', name='transformed_A', face_color='red')
+
+
 #%%
 dilated_image = dilation(canny_edge[0], square(3))
 eroded_image = erosion(dilated_image, square(3))
@@ -335,8 +371,6 @@ snake = [ active_contour(image, ini_contours) ]
 
 #%%
 
-#%%
-
 smooth_array = np.zeros_like(image)
 low_pass_filter = create_low_pass_filter(image[0].shape, sigma=80)
 for i in range(image.shape[0]):
@@ -379,20 +413,3 @@ for i, frame in enumerate(image):
 viewer.add_shapes(auto_contours_list, shape_type='polygon', name='Automated Contours')
 
 #%%
-from skimage.filters import threshold_otsu
-
-thresh_value = 0.7
-bin_array = gradient_smooth < thresh_value 
-
-viewer.add_image(bin_array, name='thresholded')
-#%%
-viewer.add_image(gradient_smooth, name='gradient_smooth')
-#%%
-''' looking at canny on the gradient smooth ''' 
-single_frame = gradient_smooth[0]
-
-from skimage import feature 
-
-canny_img = feature.canny(single_frame, sigma=3, low_threshold=0.4, high_threshold=2.17)
-
-viewer.add_image(canny_img)
