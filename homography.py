@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 from skimage.measure import label, regionprops
 from skimage.feature import canny
+from skimage.morphology import skeletonize
 import cv2
 from scipy.ndimage import gaussian_filter
 #%%
@@ -60,7 +61,7 @@ smooth_image = gaussian_filter(image, 2)
 grad_smooth = gradify(smooth_image)
 viewer.add_image(grad_smooth, name='gradient_smooth')
 #%%
-canny_edge = apply_canny(grad_smooth, low=0.1, high=1) # 
+canny_edge = apply_canny(grad_smooth, low=1, high=10) # 
 viewer.add_image(canny_edge, name= 'canny')
 #%%
 single_grad_smooth = grad_smooth[0]
@@ -80,52 +81,47 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (1, 1)
-high_range = (2, 10)
+low_range = (0.1, 1)
+high_range = (1, 10)
 num_steps = 10
 
 
 canny_multi_edge = apply_canny_multiple_thresholds(grad_smooth, low_range, high_range, num_steps)
 #%%
-viewer.add_image(canny_multi_edge, name='4d_canny')
+viewer3 = napari.Viewer() 
 #%%
-fem_canny = canny_multi_edge[6]
+viewer3.add_image(canny_multi_edge, name='4d_canny')
+#%%
+fem_canny = canny_multi_edge[0]
+#%%
+viewer = napari.Viewer()
 #%%
 viewer.add_image(fem_canny, name='fem_canny')
 #%%
+fem_canny = canny_edge
+#%%
+
 labeled_image, num_features = label(fem_canny, return_num=True, connectivity=1)
+
+viewer.add_image(labeled_image, name='labeled_fem')                                                                        
 #%%
-viewer.add_image(labeled_image, name='labeled_fem')
+fem_label = labeled_image == 27                                                                                                 
+viewer.add_image(fem_label, name='one_label')
 #%%
-viewer.add_image((labeled_image == 18), name='one_label')
+one_frame_uint8 = (fem_canny[0] * 255).astype('uint8')
+kernel = np.ones((1, 1), np.uint8)
 #%%
-fem_label = labeled_image == 18 
-z, y, x = np.where(fem_label)
-
-# Stack them into an N x 3 NumPy array
-coords = np.column_stack((z, y, x))    
+# Apply dilation
+dilated_frame = cv2.dilate(one_frame_uint8, kernel, iterations=1)
+viewer.add_image(dilated_frame, name='dilated')
 #%%
-props = regionprops(fem_label.astype(int))
-coords1 = props[0].coords 
+eroded_frame = cv2.erode(one_frame_uint8, kernel, iterations=1)
+viewer.add_image(eroded_frame, name='eroded' )
 #%%
-def find_corrs_list(grouped_coords, choice):
-    # Set your 'choice' frame as setA
-    setA = grouped_coords[choice][:, 1:]
+sk = skeletonize(fem_canny)
+viewer.add_image(sk, name= 'skeleton')
 
-    # Initialize an empty list to hold the corresponding coordinate sets for each frame
-    corrs_list = []
-
-    for setB in grouped_coords:
-        # Only keep the y and x coordinates (assuming z, y, x)
-        setB = setB[:, 1:]
-
-        # Find corresponding points
-        A_corresponding = find_corres(setA, setB)
-
-        corrs_list.append(A_corresponding)
-
-    return corrs_list
-
+#%%
 def find_corres(setA, setB):
     if len(setA) > len(setB):
         nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(setA)
@@ -138,64 +134,213 @@ def find_corres(setA, setB):
         B_corresponding = setB[indices.flatten()]
         return B_corresponding
 
+''' for the record this function works.. but for template frame having more points, it just returns the target frame as is
+the issue being we cannot get H when this happens. so below, this function is modified to choose the least points frame by default ''' 
+def find_corres_for_all_frames(fem_label):
+    template_index = np.argmin([np.sum(frame) for frame in fem_label])
+    print('template is frame: ', template_index)
+    # Get the coordinates for the template
+    template_set = fem_label[template_index]
+    template_props = regionprops(template_set.astype(int))
+    template_cords = template_props[0].coords
+
+    all_subsets = []  # This list will hold all the subsets for each frame
+
+    # Loop over all frames in fem_label
+    for i in range(len(fem_label)):
+        # Skip the template frame itself
+        if i == template_index:
+            all_subsets.append(template_cords)
+            continue  # skip the rest of the loop for this iteration
+
+        test_set = fem_label[i]
+        test_props = regionprops(test_set.astype(int))
+        test_cords = test_props[0].coords
+
+        if len(template_cords) >= len(test_cords):
+            all_subsets.append(test_cords)
+        else:
+            # Use your find_corres function to find the corresponding points
+            subset_cords = find_corres(template_cords, test_cords)
+
+            # Add these corresponding points to all_subsets list
+            all_subsets.append(subset_cords)
+
+    return all_subsets
+
+all_subsets = find_corres_for_all_frames(fem_label)
+
 #%%
-def group_the_coords(image, coords):
-    num_frames = image.shape[0]
+viewer0 = napari.view_image(fem_label)
+#%%
+''' all_points is just for visual purposes to show in naapari. the H is obtained from the list 'all_subsets' ''' 
+all_points = []
+frame_ids = []
 
-    # Initialize an empty list to store the grouped arrays
-    grouped_coords = []
+for i, subset in enumerate(all_subsets):
+    frame_id_column = np.full((subset.shape[0], 1), i)
+    frame_subset = np.hstack([frame_id_column, subset])
+    all_points.append(frame_subset)
 
-    # Loop through each frame to group the coordinates
-    for frame in range(num_frames):
-        grouped_array = coords[coords[:, 0] == frame]
-        grouped_coords.append(grouped_array)
+all_points = np.vstack(all_points)
+#%%
+viewer0.add_points(all_points, size=1)
+
+#%%
+def calculate_homography_matrices(all_subsets, template_index):
+    all_H_list = []
     
-    return grouped_coords
+    template_set = all_subsets[template_index]
+    
+    for i, target_set in enumerate(all_subsets):
+        if i == template_index:
+            # Add the identity matrix for the template index
+            all_H_list.append(np.eye(3))
+            continue
+            
+        H, _ = cv2.findHomography(template_set, target_set, cv2.RANSAC)
         
-grouped_coords = group_the_coords(fem_label, coords)
-#%%
-fem_cords = find_corrs_list(grouped_coords, 10)
-#%%
-final_points = []
-# Initialize an empty list to hold the 3D coordinates
-for t, arr in enumerate(fem_cords):
-    frame_annotated = np.hstack([arr, np.full((arr.shape[0], 1), t)])
-    final_points.append(frame_annotated)
-
-# Stack all the annotated points
-final_points = np.vstack(final_points)
-#%%
-viewer0 = napari.Viewer()
-#%%
-transposed_points = np.transpose(final_points)
-
-viewer0.add_points(transposed_points)
-#%%
-dummy = np.array([[ 13.        , 265.04950248, 281.19690652],
-       [ 13.        , 291.33595552, 273.68649136],
-       [ 13.        , 322.87969918, 287.95628016],
-       [ 13.        , 316.87136705, 318.7489823 ],
-       [ 12.        , 319.87553311, 358.55418263],
-       [ 12.        , 205.71722561, 257.91461954],
-       [ 12.        , 283.82554323, 351.04376747],
-       [ 12.        , 204.96618409, 321.75314836]])
-
-#%%
-''' this works  ''' 
-final_points = []
-
-# Iterate through each frame, getting the frame number and the array of points for that frame
-for frame_number, points_in_frame in enumerate(fem_cords):
-    # Create an array of the same length as points_in_frame, filled with the frame_number
-    frame_numbers = np.full((len(points_in_frame), 1), frame_number)
+        all_H_list.append(H)
     
-    # Horizontally stack the frame_numbers array and the points_in_frame array
-    annotated_points = np.hstack([frame_numbers, points_in_frame])
-    
-    # Append the annotated points to final_points
-    final_points.append(annotated_points)
+    return all_H_list
 
-# Vertically stack all the annotated points to create a single array
-final_array = np.vstack(final_points)
+# Example usage:
+all_H_list = calculate_homography_matrices(all_subsets, 23)
 #%%
-viewer.add_points(final_array)
+def transform_points_cv2(points, H):
+    points_cv2_format = np.array([points], dtype=np.float32)
+    transformed_points_cv2_format = cv2.perspectiveTransform(points_cv2_format, H)
+    transformed_points = transformed_points_cv2_format[0]
+    return transformed_points
+
+# Assuming all_H_list contains your homography matrices
+# and template_set contains the points of your template set
+
+transformed_all_subsets = []
+
+template_set = all_subsets[23]
+
+for H in all_H_list:
+    transformed_set = transform_points_cv2(template_set, H)
+    transformed_all_subsets.append(transformed_set)
+    
+#%%
+def points_in_napari(list_points):
+    all_points = []
+
+    for i, subset in enumerate(list_points):
+        frame_id_column = np.full((subset.shape[0], 1), i)
+        frame_subset = np.hstack([frame_id_column, subset])
+        all_points.append(frame_subset)
+
+    all_points = np.vstack(all_points)
+    return all_points    
+#%%
+transformed_points = points_in_napari(transformed_all_subsets)
+
+#%%
+viewer0.add_points(transformed_points, size=1, face_color='yellow')
+#%%
+viewer1 = napari.view_image(grad_smooth)
+#viewer1.add_shapes(all_subsets[23], shape_type='polygon')
+#%%
+viewer1.add_points(all_subsets[23], size=1)                                    
+
+#%%
+''' after using the template points to draw the actual segmented bone '''
+segmented_points = viewer1.layers['Points'].data
+#%%
+def transform_segmented_points(segmented_points, all_H_list):
+    # Function to transform points using cv2.perspectiveTransform
+    def transform_points_cv2(points, H):
+        points_cv2_format = np.array([points], dtype=np.float32)
+        transformed_points_cv2_format = cv2.perspectiveTransform(points_cv2_format, H)
+        transformed_points = transformed_points_cv2_format[0]
+        return transformed_points
+
+    transformed_all_points = []
+    for H in all_H_list:
+        transformed_points = transform_points_cv2(segmented_points, H)
+        transformed_all_points.append(transformed_points)
+        
+    return transformed_all_points
+
+transformed_all_points = transform_segmented_points(segmented_points, all_H_list)
+
+#%%
+transformed_points_in_napari = points_in_napari(transformed_all_points)
+
+viewer1.add_points(transformed_points_in_napari, name='ultimate_check', size=1)
+#%%
+def transform_segmented_points_manual(segmented_points, all_H_list):
+    transformed_all_points = []
+    
+    # Loop over all H matrices
+    for H in all_H_list:
+        # Convert points to homogeneous coordinates
+        homogeneous_points = np.column_stack([segmented_points, np.ones(segmented_points.shape[0])])
+        
+        # Perform the transformation in homogeneous coordinates
+        transformed_homogeneous_points = np.dot(H, homogeneous_points.T).T
+        
+        # Convert back to Cartesian coordinates
+        transformed_points = transformed_homogeneous_points[:, :2] / transformed_homogeneous_points[:, 2, np.newaxis]
+        
+        # Add the transformed points to the list
+        transformed_all_points.append(transformed_points)
+        
+    return transformed_all_points
+
+transformed_all_points1 = transform_segmented_points_manual(segmented_points, all_H_list)
+
+#%%
+''' homography did not work  ''' 
+def calculate_euclidean_matrices(all_subsets, template_index):
+    all_E_list = []  # This list will hold all the Euclidean transformation matrices
+    
+    template_set = all_subsets[template_index]
+    
+    for i, target_set in enumerate(all_subsets):
+        if i == template_index:
+            # Add the identity matrix for the template index
+            all_E_list.append(np.eye(3))
+            continue
+            
+        E, _ = cv2.estimateAffinePartial2D(template_set, target_set)
+        
+        # Convert to a 3x3 matrix for consistency
+        E = np.vstack([E, [0, 0, 1]])
+
+        all_E_list.append(E)
+    
+    return all_E_list
+# Sample usage
+# fem_label is your 3D array with shape (26, y, x)
+# template_index is the index of the template frame you want to use
+all_E_list = calculate_euclidean_matrices(all_subsets, template_index=23)
+#%%
+
+def transform_segmented_points_manual(segmented_points, all_E_list):
+    transformed_all_points = []
+    
+    # Loop over all E matrices
+    for E in all_E_list:
+        # Convert points to homogeneous coordinates
+        homogeneous_points = np.column_stack([segmented_points, np.ones(segmented_points.shape[0])])
+        
+        # Perform the transformation in homogeneous coordinates
+        transformed_homogeneous_points = np.dot(E, homogeneous_points.T).T  # E is already a 3x3 matrix including rotation and translation
+        
+        # Convert back to Cartesian coordinates
+        transformed_points = transformed_homogeneous_points[:, :2] / transformed_homogeneous_points[:, 2, np.newaxis]
+        
+        # Add the transformed points to the list
+        transformed_all_points.append(transformed_points)
+        
+    return transformed_all_points
+
+transformed_points_list = transform_segmented_points_manual(segmented_points, all_E_list)
+#%%
+ultimate_test = points_in_napari(transformed_points_list)
+#%%
+viewer1.add_points(ultimate_test, size=1)
