@@ -338,8 +338,6 @@ def remove_scaling_from_affine_matrices(affine_matrices):
         
     return new_matrices
 #%%
-new_matrices = remove_scaling_from_affine_matrices(transformation_matrices)
-#%%
 ref_points = viewer.layers['Points'].data[:,1:]
 #%%
 ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
