@@ -56,7 +56,7 @@ def apply_remove(pixelarray, size, connectivity):
         removed_3d[i] = removed_image
     return removed_3d
 
-def points_in_napari(list_points):
+def points_for_napari(list_points):
     all_points = []
 
     for i, subset in enumerate(list_points):
@@ -226,7 +226,7 @@ def find_corres_for_all_frames(fem_label):
             all_subsets.append(subset_cords)
 
     return all_subsets
-
+#%%
 all_subsets = find_corres_for_all_frames(tib_label)
 #%%
 tib_label_napari = points_in_napari(all_subsets)
@@ -247,27 +247,6 @@ fem_label_napari = points_in_napari(all_subsets)
 #%%
 viewer.add_points(fem_label_napari, name='fem_subsets', size = 2, face_color='red')
 #%%
-def calculate_transform_matrices(all_coords, reference_index):
-    num_frames = len(all_coords)
-    transformation_matrices = []
-
-    # Initialize the identity matrix for the reference frame
-    identity_matrix = np.array([[1.0, 0.0, 0.0],
-                                [0.0, 1.0, 0.0]])
-
-    # Get the coordinates of the reference frame
-    reference_coords = all_coords[reference_index]
-
-    for i in range(num_frames):
-        if i == reference_index:
-            # Add the identity matrix for the reference frame
-            transformation_matrices.append(identity_matrix)
-        else:
-            # Estimate the transformation matrix for the current frame
-            mtx,ret = cv2.estimateAffinePartial2D(reference_coords, all_coords[i])
-            transformation_matrices.append(mtx)
-
-    return transformation_matrices
 
 from skimage.transform import estimate_transform
 def calculate_transform_matrices_skimage(all_coords, reference_index):
@@ -287,12 +266,12 @@ def calculate_transform_matrices_skimage(all_coords, reference_index):
             transformation_matrices.append(identity_matrix)
         else:
             # Estimate the transformation matrix for the current frame
-            tform = estimate_transform('similarity', reference_coords, all_coords[i])
+            tform = estimate_transform('euclidean', reference_coords, all_coords[i])
             transformation_matrices.append(tform.params[:2, :])  # Extract the 2x3 matrix
 
     return transformation_matrices
 
-
+#%%
 transformation_matrices = calculate_transform_matrices_skimage(all_subsets, 2)
 
 #%%
@@ -316,37 +295,22 @@ def apply_transformation_all_frames(reference_set, transformation_matrices):
     return transformed_subsets
 # Now `transformed_subsets` should contain the transformed points for each 
 
-def remove_scaling_from_affine_matrices(affine_matrices):
-    new_matrices = []
-    for affine_matrix in affine_matrices:
-        # Extract rotation and scaling by performing SVD on the upper-left 2x2 matrix
-        upper_left = affine_matrix[:, :2]
-        U, S, Vt = np.linalg.svd(upper_left)
-        
-        # Reconstruct the rotation matrix
-        R = np.dot(U, Vt)
-        
-        # Extract translation
-        T = affine_matrix[:, 2]
-        
-        # Create a new 2x3 matrix with only rotation and translation
-        rot_trans_matrix = np.zeros((2, 3))
-        rot_trans_matrix[:, :2] = R
-        rot_trans_matrix[:, 2] = T
-        
-        new_matrices.append(rot_trans_matrix)
-        
-    return new_matrices
 #%%
 ref_points = viewer.layers['Points'].data[:,1:]
 #%%
 ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
 #%%
+ref_points = all_subsets[2]
+#%%
 transformed_subsets = apply_transformation_all_frames(ref_points, transformation_matrices)
 #%%
 shapes_in_napari = shapes_for_napari(transformed_subsets)
 
-viewer.add_shapes(shapes_in_napari, shape_type='polygon') 
+viewer.add_shapes(shapes_in_napari, shape_type='polygon', face_color='red') 
+#%%
+points_in_napari = points_for_napari(transformed_subsets) 
+viewer.add_points(points_in_napari, face_color='green', size= 1) 
+
 #%%
 np.save('all_subsets', all_subsets) 
 #
@@ -359,63 +323,177 @@ np.save('all_subsets', all_subsets)
 
 
 #%%
+''' using subsequent frames   ''' 
+def calculate_transform_matrices_subsequent(all_coords):
+    num_frames = len(all_coords)
+    transformation_matrices = []
 
+    # Initialize the identity matrix for the first frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+    transformation_matrices.append(identity_matrix)
 
-#%%
-grad_smooth = gradify(smooth_image)
-viewer.add_image(grad_smooth, name='gradient_image') 
-#%%
-reference_shape = all_subsets[22] 
-viewer.add_shapes(reference_shape, shape_type='polygon')
-
-#%%
-ref_shape = viewer.layers['Shapes'].data[0][:,1:] 
-#%%
-viewer.add_points(ref_shape) 
-#%%
-#%%
-
-final_output = apply_transformation_all_frames(ref_points)
-
-final_napari = points_in_napari(final_output) 
-
-viewer.add_points(final_napari, name='final_output')
-#%%
-
-
-
-''' all_points is just for visual purposes to show in naapari. the H is obtained from the list 'all_subsets' ''' 
-all_points = []
-frame_ids = []
-
-for i, subset in enumerate(all_subsets):
-    frame_id_column = np.full((subset.shape[0], 1), i)
-    frame_subset = np.hstack([frame_id_column, subset])
-    all_points.append(frame_subset)
-
-all_points = np.vstack(all_points)
-#%%
-
-#%%
-def calculate_homography_matrices(all_subsets, template_index):
-    all_H_list = []
-    
-    template_set = all_subsets[template_index]
-    
-    for i, target_set in enumerate(all_subsets):
-        if i == template_index:
-            # Add the identity matrix for the template index
-            all_H_list.append(np.eye(3))
-            continue
-            
-        H, _ = cv2.findHomography(template_set, target_set, cv2.RANSAC)
+    for i in range(1, num_frames):
+        # Find corresponding points between frame i-1 and frame i
+        coords_i_minus_1 = all_coords[i-1]
+        coords_i = all_coords[i]
         
-        all_H_list.append(H)
-    
-    return all_H_list
+        if len(coords_i_minus_1) >= len(coords_i):
+            corres_coords_i = coords_i
+            corres_coords_i_minus_1 = find_corres(coords_i, coords_i_minus_1)
+        else:
+            corres_coords_i = find_corres(coords_i_minus_1, coords_i)
+            corres_coords_i_minus_1 = coords_i_minus_1
 
-# Example usage:
-all_H_list = calculate_homography_matrices(all_subsets, 23)
+        # Estimate the transformation matrix for the current frame relative to the previous frame
+        tform = estimate_transform('euclidean', corres_coords_i_minus_1, corres_coords_i)
+        transformation_matrices.append(tform.params[:2, :])  # Extract the 2x3 matrix
+
+    return transformation_matrices
+
+def apply_transformation_all_frames_subsequent(initial_set, transformation_matrices):
+    transformed_subsets = [initial_set]  # Start with the initial set
+    current_set = initial_set
+
+    for matrix in transformation_matrices[1:]:  # Skip the identity matrix
+        transformed_points = apply_transformation(matrix, current_set)
+        transformed_subsets.append(transformed_points)
+        current_set = transformed_points  # Update the current set for the next iteration
+
+    return transformed_subsets
+
+def extract_coords_from_frames(label_frames):
+    all_coords = []  # This list will hold the coordinates for each frame
+    for frame in label_frames:
+        coords = np.argwhere(frame)  # Find the coordinates of True pixels
+        all_coords.append(coords)
+    return all_coords
 
 #%%
+tib_subsets = extract_coords_from_frames(tib_label)
+#%%
+transformation_matrices_subsequent = calculate_transform_matrices_subsequent(tib_subsets)
+#%%
+transformed_subsets_subsequent = apply_transformation_all_frames_subsequent(tib_subsets[0], transformation_matrices_subsequent)
+#%%
+tib_subsets_napari = points_for_napari(tib_subsets) 
+transformed_tib_subsets_napari = points_for_napari(transformed_subsets_subsequent) 
+viewer.add_points(tib_subsets_napari, face_color='blue', size= 1) 
+viewer.add_points(transformed_tib_subsets_napari, face_color='yellow', size=1) 
+''' verdict, once again the drifting is very prominent ''' 
 
+#%%
+mini_tib = tib_subsets[15:] 
+mini_matrices = calculate_transform_matrices_subsequent(mini_tib)
+mini_transformed = apply_transformation_all_frames_subsequent(mini_tib[0], mini_matrices)
+#%%
+viewer = napari.Viewer() 
+#%%
+label_array = np.load('C:/Users/MSI/Documents/new_cloud/Jena/Books_For_MedPho/thesis/label_array.npy') 
+#%%
+viewer.add_image(label_array) 
+#%%
+tibia_array = label_array == 2
+viewer.add_image(tibia_array) 
+#%%
+tib_subsets = find_corres_for_all_frames(tibia_array)
+#%%
+tib_label_napari = points_for_napari(tib_subsets)
+viewer.add_points(tib_label_napari, name='tib_subsets', size = 2, face_color='red')
+#%%
+from scipy.ndimage import binary_erosion
+
+def find_outline_3d(pixelarray):
+    # Initialize an empty array to store the outlines
+    outline_array = np.zeros_like(pixelarray, dtype=bool)
+    
+    # Define a 3x3x3 structuring element for 3D erosion
+    selem = np.ones((3, 3), dtype=bool)
+    
+    # Loop through each 2D frame in the 3D array
+    for i in range(pixelarray.shape[0]):
+        # Erode the current frame
+        eroded = binary_erosion(pixelarray[i], structure=selem)
+        
+        # Find the outline by subtracting the eroded image from the original image
+        outline = pixelarray[i] & ~eroded
+        
+        # Store the result in the corresponding slice of the output array
+        outline_array[i] = outline
+
+    return outline_array
+
+
+# Find the outline of the tibia
+tibia_outline = find_outline_3d(tibia_array)
+#%%
+tib_subsets = find_corres_for_all_frames(tibia_outline)
+tib_label_napari = points_for_napari(tib_subsets)
+viewer.add_points(tib_label_napari, name='tib_subsets', size = 2, face_color='red')
+#%%
+transformation_matrices = calculate_transform_matrices_skimage(tib_subsets, 15) 
+#%%
+transformed_subsets = apply_transformation_all_frames(tib_subsets[-1], transformation_matrices)
+#%%
+points_in_napari = points_for_napari(transformed_subsets) 
+viewer.add_points(points_in_napari, face_color='green', size= 1)
+
+#%%
+def procrustes(X, Y):
+    X = X.astype(float)  # Ensure X is float
+    Y = Y.astype(float)
+    centroid_X = np.mean(X, axis=0)
+    centroid_Y = np.mean(Y, axis=0)
+    X -= centroid_X
+    Y -= centroid_Y
+    U, _, Vt = np.linalg.svd(np.dot(Y.T, X))
+    R = np.dot(U, Vt)
+    t = centroid_Y - np.dot(R, centroid_X)
+    return R, t
+
+def calculate_transform_matrices_procrustes(all_coords, reference_index):
+    num_frames = len(all_coords)
+    transformation_matrices = []
+
+    # Initialize the identity matrix for the reference frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+
+    # Get the coordinates of the reference frame
+    reference_coords = all_coords[reference_index]
+
+    for i in range(num_frames):
+        if i == reference_index:
+            # Add the identity matrix for the reference frame
+            transformation_matrices.append(identity_matrix)
+        else:
+            # Estimate the transformation matrix using Procrustes
+            R, t = procrustes(reference_coords, all_coords[i])
+            transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
+            transformation_matrices.append(transformation_matrix)
+
+    return transformation_matrices
+
+transformation_matrices_proscrutes = calculate_transform_matrices_procrustes(tib_subsets, 15)
+#%%
+transformed_subsets_proscrutes = apply_transformation_all_frames(tib_subsets[15], transformation_matrices_proscrutes)
+#%%
+points_in_napari = points_for_napari(transformed_subsets_proscrutes) 
+viewer.add_points(points_in_napari, face_color='green', size= 1)
+#%%
+''' trying to do this with shapes layer. .. proscrutes seems kinda promising  ''' 
+shape_data = viewer.layers['Shapes'].data
+new_array_list = [arr[:, 1:] for arr in shape_data]
+#%%
+transformation_matrices_proscrutes = calculate_transform_matrices_procrustes(new_array_list, 0)
+#%%
+transformed_subsets_proscrutes = apply_transformation_all_frames(new_array_list[0], transformation_matrices_proscrutes)
+#%%
+points_in_napari = points_for_napari(transformed_subsets_proscrutes) 
+viewer.add_points(points_in_napari, face_color='green', size= 1)
+''' for a self chosen coarsely sampled points, it is perfect  '''
+#%%
+ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
+transformed_expanded = apply_transformation_all_frames(ref_points, transformation_matrices_proscrutes) 
+transformed_shapes = shapes_for_napari(transformed_expanded)
+viewer.add_shapes(transformed_shapes, shape_type='polygon') 
