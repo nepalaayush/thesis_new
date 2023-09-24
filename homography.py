@@ -147,7 +147,7 @@ num_steps = 5  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 
 # Assuming smooth_image is your 3D image array
-removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, connectivity)
+removed_4d = apply_remove_multiple_sizes(canny_edge, size_range, num_steps, connectivity)
 #%%
 viewer3.add_image(removed_4d, name='tib_remove')
 #%%
@@ -172,7 +172,7 @@ viewer.add_labels(labeled_image, name='labeled_tib')
 fem_label = labeled_image == 2                                                                                                 
 viewer.add_image(fem_label, name='one_label')
 #%%
-tib_label = labeled_image == 11                                                                                                 
+tib_label = labeled_image == 16                                                                                                 
 viewer.add_image(tib_label, name='one_label')
 
 
@@ -226,6 +226,15 @@ def find_corres_for_all_frames(fem_label):
             all_subsets.append(subset_cords)
 
     return all_subsets
+#%%
+def extract_cords_from_boolean(boolean_array):
+    ''' Input a 3d boolean array obtained from choosing a label from label array. Output: a list that stores the coordinates for each frame  ''' 
+    all_subsets = []
+    for frame in boolean_array:
+        coords = np.argwhere(frame) 
+        all_subsets.append(coords) 
+    return all_subsets 
+all_subsets = extract_cords_from_boolean(tib_label)
 #%%
 all_subsets = find_corres_for_all_frames(tib_label)
 #%%
@@ -392,6 +401,7 @@ viewer = napari.Viewer()
 label_array = np.load('C:/Users/MSI/Documents/new_cloud/Jena/Books_For_MedPho/thesis/label_array.npy') 
 #%%
 viewer.add_image(label_array) 
+
 #%%
 tibia_array = label_array == 2
 viewer.add_image(tibia_array) 
@@ -473,7 +483,7 @@ def calculate_transform_matrices_procrustes(all_coords, reference_index):
             transformation_matrices.append(transformation_matrix)
 
     return transformation_matrices
-
+#%%
 transformation_matrices_proscrutes = calculate_transform_matrices_procrustes(tib_subsets, 15)
 #%%
 transformed_subsets_proscrutes = apply_transformation_all_frames(tib_subsets[15], transformation_matrices_proscrutes)
@@ -495,5 +505,93 @@ viewer.add_points(points_in_napari, face_color='green', size= 1)
 #%%
 ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
 transformed_expanded = apply_transformation_all_frames(ref_points, transformation_matrices_proscrutes) 
+transformed_shapes = shapes_for_napari(transformed_expanded)
+viewer.add_shapes(transformed_shapes, shape_type='polygon') 
+
+
+#%%
+
+''' using the all_subsets from way up above, the real data for a labeled segment. The approach below tries to impose a metric to the points obtained  '''
+
+def resample_curve(curve, n_points=25):
+    # Calculate the total length of the curve
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    total_length = np.sum(dists)
+    
+    # Calculate step distance
+    step = total_length / (n_points - 1)
+    
+    # Initialize variables
+    new_curve = [curve[0]]  # Start with the first point
+    dist_covered = 0.0
+    j = 0  # Index for the original curve
+    
+    for _ in range(1, n_points - 1):
+        dist_needed = step
+        
+        while dist_needed > 0:
+            segment_remaining = dists[j] - dist_covered
+            if segment_remaining > dist_needed:
+                # Get the next point from the current segment
+                ratio = dist_needed / dists[j]
+                next_point = curve[j] + ratio * (curve[j+1] - curve[j])
+                new_curve.append(next_point)
+                
+                # Update the distance covered on the current segment
+                dist_covered += dist_needed
+                dist_needed = 0.0
+            else:
+                # Move to the next segment
+                dist_needed -= segment_remaining
+                dist_covered = 0.0
+                j += 1
+                
+    new_curve.append(curve[-1])  # End with the last point
+    return np.array(new_curve)
+
+# For each frame in all_subsets, apply the function
+all_subsets_resampled = [resample_curve(curve) for curve in all_subsets]
+
+#%%
+resampled_napari = points_for_napari(all_subsets_resampled) 
+#%%
+viewer.add_points(resampled_napari) 
+#%%
+original_napari = points_for_napari(all_subsets) 
+viewer.add_points(original_napari, edge_color='red') 
+#%%
+transformation_matrices_proscrutes = calculate_transform_matrices_procrustes(all_subsets_resampled, 0)
+transformed_resampled = apply_transformation_all_frames(all_subsets_resampled[0], transformation_matrices_proscrutes)
+#%%
+resampled_trans_napari = points_for_napari(transformed_resampled) 
+viewer.add_points(resampled_trans_napari, edge_color = 'green' ) 
+
+''' -- -- surprisingly enough, by not using nearest neighbors, instead resampling, it worked really good for a few frames. like 3 out of 26. 
+What follows is an attempt to integrate the nrs too  ''' 
+#%%
+all_subsets = find_corres_for_all_frames(tib_label)
+#%%
+nrs_resampled = [resample_curve(curve) for curve in all_subsets]
+#%%
+nrs_resampled_napari = points_for_napari(nrs_resampled) 
+
+viewer.add_points(nrs_resampled_napari, face_color='blue') 
+#%%
+matrices_list = calculate_transform_matrices_procrustes(nrs_resampled, 2)
+post_transformation = apply_transformation_all_frames(nrs_resampled[2], matrices_list)
+#%%
+viewer.add_points(points_for_napari(post_transformation), face_color='orange') 
+
+''' ---- fantastic results! what follows is applying this transformation to handmade segmentation  ''' 
+#%%
+viewer = napari.Viewer() 
+#%%
+viewer.add_image(grad_smooth) 
+#%%
+viewer.add_shapes(nrs_resampled[2], shape_type='polygon') 
+#%%
+ref_points = viewer.layers['expanded_shape'].data[0]
+transformed_expanded = apply_transformation_all_frames(ref_points, matrices_list) 
 transformed_shapes = shapes_for_napari(transformed_expanded)
 viewer.add_shapes(transformed_shapes, shape_type='polygon') 
