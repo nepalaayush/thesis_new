@@ -9,7 +9,7 @@ Created on Mon Sep 25 15:15:32 2023
 import numpy as np
 import napari
 import nibabel as nib 
-#import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt 
 from sklearn.neighbors import NearestNeighbors
 from skimage.measure import label, regionprops
 from skimage.feature import canny
@@ -80,13 +80,14 @@ def shapes_for_napari(list_shapes):
 
     return all_shapes
 #%%
-image = open_nii('C:/Users/Aayush/Documents/thesis_files/CINE_HighRes.nii')
+image = open_nii('/data/projects/ma-nepal-segmentation/data/CINE_HighRes.nii')
 image = normalize(image)
 #%%
 viewer = napari.view_image(image)
 #%%
 smooth_image = gaussian_filter(image, 3)
-
+viewer.add_image(smooth_image , name='smooooth')
+#%%
 viewer.add_image(smooth_image, name='smooth_image3')
 #%%
 grad_smooth = gradify(smooth_image)[0]
@@ -126,9 +127,9 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (1,2) # 3,4 for fem
-high_range = (2.5, 3) # 4,4.2 for fem 
-num_steps = 25
+low_range = (3.0, 3.1) # 
+high_range = (3.1, 3.2) # 
+num_steps = 10
 
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
@@ -145,7 +146,7 @@ viewer3.add_image(canny_multi_edge, name='4d_canny_s_level_3')
 #%%
 fem_canny = canny_multi_edge[1]
 #%%
-tib_canny = canny_multi_edge[5]
+tib_canny = canny_multi_edge[-1]
 viewer.add_image(tib_canny, name='edge_smooth_5')
 #%%
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
@@ -161,8 +162,8 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (10, 50)  # 100 min and 200 max size for femur 
-num_steps = 50  # Number of steps for size parameter
+size_range = (100, 200)  # 100 min and 200 max size for femur 
+num_steps = 10  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
 # Assuming smooth_image is your 3D image array
@@ -171,15 +172,42 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 
 #%%
-tib_canny = removed_4d[0] 
+tib_canny = removed_4d[-1] 
 viewer.add_image(tib_canny, name='tibia_edge_image') 
 #%%
 labeled_image, num_features = label(tib_canny, return_num=True, connectivity=2)
 
 viewer.add_labels(labeled_image, name='labeled_tib')    
 #%%
-tib_label = labeled_image == 17                                                                                                 
+tib_label = labeled_image == 1                                                                                                 
 viewer.add_image(tib_label, name='one_label')
+#%%
+'''
+What follows in this cell is an attempt to somehow threshold the labeled region in such a way that we only get the nice straight line. since it follows the dark edge of the gradient smooth quite well, this is will be used as reference.
+the goal here is to create a plot of the pixel intensity vs coordinate?  
+'''
+one_frame_bool = tib_label[11]
+one_frame_ori = grad_smooth[11]
+#%%
+flat_bool = one_frame_bool.flatten() 
+flat_ori = one_frame_ori.flatten() 
+
+ori_masked = flat_ori[flat_bool] # shape (296,1) 
+
+ori_masked0 = one_frame_ori[one_frame_bool] # same as ori_masked.  
+
+seriel_num = np.where(flat_bool)[0]
+
+plt.plot(seriel_num, ori_masked) 
+''' so far i have something. what i have is the threshold for the location. out of 640*640. seriel numbers greater than 180k should be set to false  '''
+
+flat_bool[180000:] = False 
+
+new_bool = flat_bool.reshape(one_frame_bool.shape)
+
+''' ok so the thresholding for a single frame works, but it is not very efficient. maybe using distance transform is better 
+nah tried it but did not work  '''
+
 #%%
 def find_corres(setA, setB):
     if len(setA) == len(setB):
