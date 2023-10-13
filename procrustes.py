@@ -80,37 +80,37 @@ def shapes_for_napari(list_shapes):
 
     return all_shapes
 #%%
-image = open_nii('/data/projects/ma-nepal-segmentation/data/CINE_HighRes.nii')
+# Step 1: load the image from directory and normalize it
+image = open_nii('C:/Users/Aayush/Documents/thesis_files/data_zf1_admm_tgv=1e-1/data_zf1_admm_tgv=1e-0.nii')
 image = normalize(image)
+image = np.moveaxis(image, 1, 0)
 #%%
+#add the original image to napari
 viewer = napari.view_image(image)
 #%%
+# Step 2: apply gaussian blur to the original image and add it in napari. 
 smooth_image = gaussian_filter(image, 3)
 viewer.add_image(smooth_image , name='smooooth')
+
 #%%
-viewer.add_image(smooth_image, name='smooth_image3')
-#%%
+smooth_image = image # when using regularized, it is already smooth
+# Step 3: take the gradient of the smooth image, both magnitude as well as direction
 grad_smooth = gradify(smooth_image)[0]
 grad_direction = gradify(smooth_image)[1]
 viewer.add_image(grad_smooth, name='gradient_smooth')
 viewer.add_image(grad_direction, name='direction')
 #%%
-canny_direction = apply_canny(grad_direction, low=0, high=2)
+# apply canny edge directly
+canny_direction = apply_canny(grad_direction, low=2.5, high=3.2)
 viewer.add_image(canny_direction, name='edge_direction')
-#%%
 canny_edge = apply_canny(grad_smooth, low=0, high=1) # 
 viewer.add_image(canny_edge, name= 'canny')
 #%%
-from scipy.ndimage import binary_dilation, binary_erosion
-
-dilated = binary_dilation(canny_edge, iterations=2) 
-opened = binary_erosion(dilated, iterations=2)
-viewer.add_image(opened, name='morph_opened')
+inverted = 255 - image
 #%%
-skeleton = skeletonize(opened)
-viewer.add_image(skeleton, name='skeleton')
+viewer.add_image(inverted)
 #%%
-
+# Step 4: find the best suitable low and high range for edge detection
 start_time = time.time() 
 
 def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps):
@@ -127,28 +127,29 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (3.0, 3.1) # 
-high_range = (3.1, 3.2) # 
-num_steps = 10
+low_range = (0,25) # 
+high_range = (25, 50) # 
+num_steps = 20
 
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
-canny_multi_edge = apply_canny_multiple_thresholds(grad_direction, low_range, high_range, num_steps)
+canny_multi_edge = apply_canny_multiple_thresholds(inverted, low_range, high_range, num_steps)
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
 
 #%%
+# add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
 #%%
-viewer3.add_image(canny_multi_edge, name='4d_canny_s_level_3')
+viewer3.add_image(canny_multi_edge, name='4d_canny_regularized')
 #%%
-fem_canny = canny_multi_edge[1]
+#Step 5: pick the right index and add it to viewer
+tib_canny = canny_multi_edge[10]
+viewer.add_image(tib_canny, name='edge_10')
 #%%
-tib_canny = canny_multi_edge[-1]
-viewer.add_image(tib_canny, name='edge_smooth_5')
-#%%
+#Step 6: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
     size_values = np.linspace(size_range[0], size_range[1], num_steps).astype(int)
     print(size_values) 
@@ -162,24 +163,30 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (100, 200)  # 100 min and 200 max size for femur 
-num_steps = 10  # Number of steps for size parameter
+size_range = (55, 75)  # 100 min and 200 max size for femur 
+num_steps = 20  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
 # Assuming smooth_image is your 3D image array
 removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, connectivity)
-#%%
+
+
+# add it to the 4d viewer
 viewer3.add_image(removed_4d, name='multi_remove_small')
 
 #%%
-tib_canny = removed_4d[-1] 
-viewer.add_image(tib_canny, name='tibia_edge_image') 
+# pick the right index
+bone_canny = removed_4d[4] 
+viewer.add_image(bone_canny, name='after_remove_small') 
 #%%
-labeled_image, num_features = label(tib_canny, return_num=True, connectivity=2)
+# 
+# Step 7 find labels of connected regions from the edge image
+labeled_image, num_features = label(bone_canny, return_num=True, connectivity=2)
 
 viewer.add_labels(labeled_image, name='labeled_tib')    
 #%%
-tib_label = labeled_image == 1                                                                                                 
+# pick a suitable label that represents one long edge of the bone
+tib_label = labeled_image == 6                                                                                                 
 viewer.add_image(tib_label, name='one_label')
 #%%
 '''
@@ -188,26 +195,45 @@ the goal here is to create a plot of the pixel intensity vs coordinate?
 '''
 one_frame_bool = tib_label[11]
 one_frame_ori = grad_smooth[11]
-#%%
+
 flat_bool = one_frame_bool.flatten() 
 flat_ori = one_frame_ori.flatten() 
 
 ori_masked = flat_ori[flat_bool] # shape (296,1) 
 
-ori_masked0 = one_frame_ori[one_frame_bool] # same as ori_masked.  
+#ori_masked0 = one_frame_ori[one_frame_bool] # same as ori_masked.  
 
 seriel_num = np.where(flat_bool)[0]
 
 plt.plot(seriel_num, ori_masked) 
-''' so far i have something. what i have is the threshold for the location. out of 640*640. seriel numbers greater than 180k should be set to false  '''
+''' so far i have something. what i have is the threshold    for the location. out of 640*640. seriel numbers greater than 180k should be set to false  '''
 
-flat_bool[180000:] = False 
-
+flat_bool[171000:] = False 
+#%%
 new_bool = flat_bool.reshape(one_frame_bool.shape)
 
+plt.imshow(new_bool)
 ''' ok so the thresholding for a single frame works, but it is not very efficient. maybe using distance transform is better 
 nah tried it but did not work  '''
+#%%
+modified_tib_label = np.copy(tib_label)
 
+for frame_index in range(grad_smooth.shape[0]):
+    one_frame_bool = tib_label[frame_index]
+    one_frame_ori = grad_smooth[frame_index]
+
+    flat_bool = one_frame_bool.flatten()
+    flat_ori = one_frame_ori.flatten()
+
+    # Apply the threshold condition
+    flat_bool[150000:] = False
+
+    # Reshape the modified boolean array
+    new_bool = flat_bool.reshape(one_frame_bool.shape)
+
+    # Update the modified_tib_label with the new_bool
+    modified_tib_label[frame_index] = new_bool
+viewer.add_image(modified_tib_label)
 #%%
 def find_corres(setA, setB):
     if len(setA) == len(setB):
@@ -296,5 +322,71 @@ all_subsets_resampled = [resample_curve(curve) for curve in all_subsets]
 #%%
 resampled_napari = points_for_napari(all_subsets_resampled) 
 viewer.add_points(resampled_napari) 
+#%%
+def apply_transformation(matrix, points):
+    # Convert points to homogeneous coordinates
+    homogeneous_points = np.hstack([points, np.ones((points.shape[0], 1))])
+    
+    # Apply the transformation
+    transformed_points = np.dot(homogeneous_points, matrix.T)
+    
+    return transformed_points[:, :2]  # Convert back to Cartesian coordinates
+
+def apply_transformation_all_frames(reference_set, transformation_matrices):
+    transformed_subsets = []
+# Assuming `transformation_matrices` is your list of 2x3 transformation matrices
+# and `reference_coords` is the coordinates of your reference frame
+    for matrix in transformation_matrices:
+        transformed_points = apply_transformation(matrix, reference_set)
+        print(transformed_points.shape) 
+        transformed_subsets.append(transformed_points)
+    return transformed_subsets
+
+
+def procrustes(X, Y):
+    X = X.astype(float)  # Ensure X is float
+    Y = Y.astype(float)
+    centroid_X = np.mean(X, axis=0)
+    centroid_Y = np.mean(Y, axis=0)
+    X -= centroid_X
+    Y -= centroid_Y
+    U, _, Vt = np.linalg.svd(np.dot(Y.T, X))
+    R = np.dot(U, Vt)
+    t = centroid_Y - np.dot(R, centroid_X)
+    return R, t
+
+def calculate_transform_matrices_procrustes(all_coords, reference_index):
+    num_frames = len(all_coords)
+    transformation_matrices = []
+
+    # Initialize the identity matrix for the reference frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+
+    # Get the coordinates of the reference frame
+    reference_coords = all_coords[reference_index]
+
+    for i in range(num_frames):
+        if i == reference_index:
+            # Add the identity matrix for the reference frame
+            transformation_matrices.append(identity_matrix)
+        else:
+            # Estimate the transformation matrix using Procrustes
+            R, t = procrustes(reference_coords, all_coords[i])
+            transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
+            transformation_matrices.append(transformation_matrix)
+
+    return transformation_matrices
+
+matrices_list = calculate_transform_matrices_procrustes(all_subsets_resampled, 1)
+post_transformation = apply_transformation_all_frames(all_subsets_resampled[1], matrices_list)
+#%%
+viewer.add_points(points_for_napari(post_transformation), face_color='orange') 
+
+#%%
+ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
+transformed_expanded = apply_transformation_all_frames(ref_points, matrices_list) 
+transformed_shapes = shapes_for_napari(transformed_expanded)
+viewer.add_shapes(transformed_shapes, shape_type='polygon') 
 
 

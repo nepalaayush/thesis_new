@@ -14,7 +14,7 @@ from sklearn.neighbors import NearestNeighbors
 from skimage.measure import label, regionprops
 from skimage.feature import canny
 from skimage.morphology import skeletonize, remove_small_objects
-import cv2
+#import cv2
 from scipy.ndimage import gaussian_filter
 #%%
 def open_nii(path):
@@ -77,10 +77,49 @@ def shapes_for_napari(list_shapes):
 
     return all_shapes
 #%%
-image = open_nii('C:/Users/MSI/Documents/thesis/data/CINE_HighRes.nii')
-image = normalize(image)
+image = open_nii('C:/Users/Aayush/Documents/thesis_files/CINE_HighRes.nii')
+image_norm = normalize(image)
+padded_fft = np.load('C:/Users/Aayush/Documents/thesis_files/padded_fft.npy')
 #%%
-viewer = napari.view_image(image)
+padded_fft = np.moveaxis(padded_fft, -1, 0)
+padded_real = np.fft.ifft2(padded_fft).real
+#%%
+def zero_pad_fft(image, padding_factor):
+    """
+    Zero-pads the FFT of an image and returns the image from the padded FFT.
+
+    Parameters:
+        image (numpy.ndarray): Input MRI image as a 2D NumPy array.
+        padding_factor (int): Factor by which to pad the FFT. A factor of 2 doubles the dimensions.
+
+    Returns:
+        numpy.ndarray: Zero-padded image.
+    """
+    # Compute the 2D FFT of the image
+    fft_image = np.fft.fft2(image)
+
+    # Calculate the new dimensions for zero-padding
+    padded_shape = (image.shape[0] * padding_factor, image.shape[1] * padding_factor)
+
+    # Create an array of zeros with the new shape
+    zero_padded_fft = np.zeros(padded_shape, dtype=complex)
+
+    # Copy the FFT data into the zero-padded array
+    zero_padded_fft[:image.shape[0], :image.shape[1]] = fft_image
+
+    # Compute the inverse FFT to get the zero-padded image
+    zero_padded_image = np.fft.ifft2(zero_padded_fft).real
+
+    return zero_padded_image
+
+two_pad = zero_pad_fft(image[0], 2)
+
+#%%
+norm_two_pad = normalize(two_pad)
+#%%
+viewer = napari.view_image(image[0])
+#%%
+viewer0 = napari.view_image(two_pad)
 #%%
 smooth_image = gaussian_filter(image, 2)
 viewer.add_image(smooth_image, name='smooth_image')
@@ -89,8 +128,11 @@ grad_smooth = gradify(smooth_image)
 
 viewer.add_image(grad_smooth, name='gradient_smooth')
 #%%
-canny_edge = apply_canny(smooth_image, low=1, high=10) # 
-viewer.add_image(canny_edge, name= 'canny')
+viewer0.add_image(norm_two_pad)
+#%%
+canny_edge = canny(two_pad, low_threshold=50, high_threshold=150) # 
+
+viewer0.add_image(canny_edge, name= 'canny')
 
 #%%
 def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps):
