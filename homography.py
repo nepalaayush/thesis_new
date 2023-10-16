@@ -637,3 +637,193 @@ ref_points = viewer.layers['expanded_shape'].data[0]
 transformed_expanded = apply_transformation_all_frames(ref_points, matrices_list) 
 transformed_shapes = shapes_for_napari(transformed_expanded)
 viewer.add_shapes(transformed_shapes, shape_type='polygon') 
+#%%
+viewer = napari.view_image(image)
+#%%
+viewer.add_image(bone_canny)
+#%%
+viewer.add_image(tib_label)
+#%%
+viewer.add_points(resampled_napari) 
+#%%
+viewer.add_shapes(transformed_shapes, shape_type='polygon')
+#%%
+viewer.add_points(points_for_napari(all_subsets), name = 'label_points')
+#%%
+all_coordinates = []
+
+# Loop through each frame and grab the coordinates
+for frame in tib_label:
+    coords = np.argwhere(frame)
+    all_coordinates.append(coords)
+#%%
+viewer.add_points(points_for_napari(all_coordinates), name='all_coords')
+#%%
+def resample_curve(curve, n_points=25):
+    # Calculate the total length of the curve
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    total_length = np.sum(dists)
+    
+    # Calculate step distance
+    step = total_length / (n_points - 1)
+    
+    # Initialize variables
+    new_curve = [curve[0]]  # Start with the first point
+    dist_covered = 0.0
+    j = 0  # Index for the original curve
+    
+    for _ in range(1, n_points - 1):
+        dist_needed = step
+        
+        while dist_needed > 0:
+            segment_remaining = dists[j] - dist_covered
+            if segment_remaining > dist_needed:
+                # Get the next point from the current segment
+                ratio = dist_needed / dists[j]
+                next_point = curve[j] + ratio * (curve[j+1] - curve[j])
+                new_curve.append(next_point)
+                
+                # Update the distance covered on the current segment
+                dist_covered += dist_needed
+                dist_needed = 0.0
+            else:
+                # Move to the next segment
+                dist_needed -= segment_remaining
+                dist_covered = 0.0
+                j += 1
+                
+    new_curve.append(curve[-1])  # End with the last point
+    new_curve = np.array(new_curve)  # Convert list to NumPy array for easy calculations
+    resampled_diff = np.diff(new_curve, axis=0)
+    resampled_dists = np.sqrt((resampled_diff ** 2).sum(axis=1))
+    print("Distances between resampled points:", resampled_dists)
+    return np.array(new_curve)
+#%%
+# For each frame in all_subsets, apply the function
+all_coordinates_resampled = [resample_curve(curve) for curve in all_coordinates]
+#%%
+viewer.add_points(points_for_napari(all_coordinates_resampled), name='direct resampling', face_color='red', size=5)
+#%%
+def sort_and_isolate(points):
+    # Sort points based on y-coordinate in descending order
+    sorted_points = points[points[:, 1].argsort()[::-1]]
+    
+    # Initialize list to hold the isolated segment
+    isolated_points = []
+    
+    # Start with the point having the highest y-coordinate
+    last_y = sorted_points[0, 1]
+    isolated_points.append(sorted_points[0])
+    
+    # Traverse, stop when y starts to increase
+    for point in sorted_points[1:]:
+        curr_y = point[1]
+        if curr_y > last_y:
+            break
+        isolated_points.append(point)
+        last_y = curr_y
+    
+    return np.array(isolated_points)
+
+all_coordinates = []
+isolated_coordinates = []
+
+for frame in tib_label:
+    coords = np.argwhere(frame)
+    all_coordinates.append(coords)
+    isolated_coords = sort_and_isolate(coords) 
+    isolated_coordinates.append(isolated_coords)
+#%%
+viewer.add_points(points_for_napari(isolated_coordinates), name='isolated')
+#%%
+sorted_curve_resampled= [resample_curve(curve) for curve in isolated_coordinates]
+viewer.add_points(points_for_napari(sorted_curve_resampled), name='sorted resampling', face_color='blue', size=5)
+#%%
+def resample_curve_with_original_points(curve, n_points=25):
+    # Calculate the total length of the curve
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    total_length = np.sum(dists)
+    
+    # Calculate the approximate distance between points
+    step = total_length / (n_points - 1)
+    
+    # Initialize variables
+    new_curve = [curve[0]]  # Start with the first point
+    dist_covered = 0.0
+    j = 0  # Index for the original curve
+    
+    for _ in range(1, n_points - 1):
+        dist_needed = step
+        while dist_needed > 0:
+            segment_remaining = dists[j] - dist_covered
+            if segment_remaining > dist_needed:
+                # Find the point in the original curve that's closest to the target distance
+                closest_point = curve[j] if abs(dists[j] - dist_needed) < abs(dists[j+1] - dist_needed) else curve[j+1]
+                new_curve.append(closest_point)
+                
+                # Update the distance covered
+                dist_covered += dist_needed
+                dist_needed = 0.0
+            else:
+                # Move to the next segment
+                dist_needed -= segment_remaining
+                dist_covered = 0.0
+                j += 1
+    
+    new_curve.append(curve[-1])  # End with the last point
+    return np.array(new_curve)
+
+sorted_curve_resampled= [resample_curve_with_original_points(curve) for curve in isolated_coordinates]
+#%%
+viewer.add_points(points_for_napari(sorted_curve_resampled), name='method_3')
+#%%
+
+
+# Calculate the differences between consecutive points
+diffs = np.diff(all_coordinates[8], axis=0)
+
+# Calculate the distances between consecutive points
+distances = np.sqrt((diffs ** 2).sum(axis=1))
+
+print("Distances between consecutive points:", distances)
+#%%
+curve = all_coordinates[8]  # Replace with the actual curve you want to check
+
+plt.scatter(curve[:, 0], curve[:, 1])
+
+# Annotate each point with its index
+for i, (x, y) in enumerate(curve):
+    plt.annotate(str(i), (x, y))
+
+plt.show()
+
+#%%
+skeleton = skeletonize(tib_label)
+#%%
+all_coordinates = []
+
+# Loop through each frame and grab the coordinates
+for frame in skeleton:
+    coords = np.argwhere(frame)
+    all_coordinates.append(coords)
+#%%
+viewer.add_points(points_for_napari(all_coordinates), name='skeleton')
+viewer.add_image(skeleton, name='skeletonized')
+
+#%%
+disp_layer = viewer.layers["transformed_shapes"].to_labels(image.shape)
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
+xrange=slice(100,410)
+yrange=slice(150,400)
+for ax, idi in zip(axes.flatten(), range(0,12,2)):
+    ax.imshow(image[idi,xrange,yrange], cmap="gray")
+    ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
+    ax.imshow(tib_label[idi,xrange,yrange], alpha=(tib_label[idi,xrange,yrange] > 0).astype(float), cmap='autumn')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(f"Frame {idi}", color='white')
+    
+plt.tight_layout()
+plt.savefig('test.svg')
