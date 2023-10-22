@@ -49,6 +49,13 @@ def apply_canny(pixelarray, low, high):
         canny_edge[i] = canny_image
     return canny_edge.astype(dtype=bool)
 
+def apply_skeleton(pixelarray):
+    skeletonized = np.zeros_like(pixelarray)
+    for i in range(pixelarray.shape[0]):
+        skel_frame = skeletonize(pixelarray[i])
+        skeletonized[i] = skel_frame
+    return skeletonized
+
 def apply_remove(pixelarray, size, connectivity):
     removed_3d = np.zeros_like(pixelarray)
     for i in range(pixelarray.shape[0]):
@@ -76,6 +83,18 @@ def shapes_for_napari(list_shapes):
         all_shapes.append(frame_subset)
 
     return all_shapes
+
+def boolean_to_coords(boolean_array):
+    all_coordinates = []
+    ''' Input: a 3d boolean array, like a label image 
+    Output: the coordinates where array is true, as a list, each list is a frame'''
+    # Loop through each frame and grab the coordinates
+    for frame in tib_label:
+        coords = np.argwhere(frame)
+        all_coordinates.append(coords)
+    return all_coordinates
+#%%
+viewer = napari.Viewer() 
 #%%
 image = open_nii('C:/Users/Aayush/Documents/thesis_files/CINE_HighRes.nii')
 image_norm = normalize(image)
@@ -490,41 +509,7 @@ transformed_subsets = apply_transformation_all_frames(tib_subsets[-1], transform
 points_in_napari = points_for_napari(transformed_subsets) 
 viewer.add_points(points_in_napari, face_color='green', size= 1)
 
-#%%
-def procrustes(X, Y):
-    X = X.astype(float)  # Ensure X is float
-    Y = Y.astype(float)
-    centroid_X = np.mean(X, axis=0)
-    centroid_Y = np.mean(Y, axis=0)
-    X -= centroid_X
-    Y -= centroid_Y
-    U, _, Vt = np.linalg.svd(np.dot(Y.T, X))
-    R = np.dot(U, Vt)
-    t = centroid_Y - np.dot(R, centroid_X)
-    return R, t
 
-def calculate_transform_matrices_procrustes(all_coords, reference_index):
-    num_frames = len(all_coords)
-    transformation_matrices = []
-
-    # Initialize the identity matrix for the reference frame
-    identity_matrix = np.array([[1.0, 0.0, 0.0],
-                                [0.0, 1.0, 0.0]])
-
-    # Get the coordinates of the reference frame
-    reference_coords = all_coords[reference_index]
-
-    for i in range(num_frames):
-        if i == reference_index:
-            # Add the identity matrix for the reference frame
-            transformation_matrices.append(identity_matrix)
-        else:
-            # Estimate the transformation matrix using Procrustes
-            R, t = procrustes(reference_coords, all_coords[i])
-            transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
-            transformation_matrices.append(transformation_matrix)
-
-    return transformation_matrices
 #%%
 transformation_matrices_proscrutes = calculate_transform_matrices_procrustes(tib_subsets, 15)
 #%%
@@ -649,13 +634,7 @@ viewer.add_points(resampled_napari)
 viewer.add_shapes(transformed_shapes, shape_type='polygon')
 #%%
 viewer.add_points(points_for_napari(all_subsets), name = 'label_points')
-#%%
-all_coordinates = []
 
-# Loop through each frame and grab the coordinates
-for frame in tib_label:
-    coords = np.argwhere(frame)
-    all_coordinates.append(coords)
 #%%
 viewer.add_points(points_for_napari(all_coordinates), name='all_coords')
 #%%
@@ -704,78 +683,13 @@ def resample_curve(curve, n_points=25):
 all_coordinates_resampled = [resample_curve(curve) for curve in all_coordinates]
 #%%
 viewer.add_points(points_for_napari(all_coordinates_resampled), name='direct resampling', face_color='red', size=5)
-#%%
-def sort_and_isolate(points):
-    # Sort points based on y-coordinate in descending order
-    sorted_points = points[points[:, 1].argsort()[::-1]]
-    
-    # Initialize list to hold the isolated segment
-    isolated_points = []
-    
-    # Start with the point having the highest y-coordinate
-    last_y = sorted_points[0, 1]
-    isolated_points.append(sorted_points[0])
-    
-    # Traverse, stop when y starts to increase
-    for point in sorted_points[1:]:
-        curr_y = point[1]
-        if curr_y > last_y:
-            break
-        isolated_points.append(point)
-        last_y = curr_y
-    
-    return np.array(isolated_points)
 
-all_coordinates = []
-isolated_coordinates = []
-
-for frame in tib_label:
-    coords = np.argwhere(frame)
-    all_coordinates.append(coords)
-    isolated_coords = sort_and_isolate(coords) 
-    isolated_coordinates.append(isolated_coords)
 #%%
 viewer.add_points(points_for_napari(isolated_coordinates), name='isolated')
 #%%
 sorted_curve_resampled= [resample_curve(curve) for curve in isolated_coordinates]
 viewer.add_points(points_for_napari(sorted_curve_resampled), name='sorted resampling', face_color='blue', size=5)
-#%%
-def resample_curve_with_original_points(curve, n_points=25):
-    # Calculate the total length of the curve
-    diff = np.diff(curve, axis=0)
-    dists = np.sqrt((diff ** 2).sum(axis=1))
-    total_length = np.sum(dists)
-    
-    # Calculate the approximate distance between points
-    step = total_length / (n_points - 1)
-    
-    # Initialize variables
-    new_curve = [curve[0]]  # Start with the first point
-    dist_covered = 0.0
-    j = 0  # Index for the original curve
-    
-    for _ in range(1, n_points - 1):
-        dist_needed = step
-        while dist_needed > 0:
-            segment_remaining = dists[j] - dist_covered
-            if segment_remaining > dist_needed:
-                # Find the point in the original curve that's closest to the target distance
-                closest_point = curve[j] if abs(dists[j] - dist_needed) < abs(dists[j+1] - dist_needed) else curve[j+1]
-                new_curve.append(closest_point)
-                
-                # Update the distance covered
-                dist_covered += dist_needed
-                dist_needed = 0.0
-            else:
-                # Move to the next segment
-                dist_needed -= segment_remaining
-                dist_covered = 0.0
-                j += 1
-    
-    new_curve.append(curve[-1])  # End with the last point
-    return np.array(new_curve)
 
-sorted_curve_resampled= [resample_curve_with_original_points(curve) for curve in isolated_coordinates]
 #%%
 viewer.add_points(points_for_napari(sorted_curve_resampled), name='method_3')
 #%%
@@ -788,19 +702,11 @@ diffs = np.diff(all_coordinates[8], axis=0)
 distances = np.sqrt((diffs ** 2).sum(axis=1))
 
 print("Distances between consecutive points:", distances)
-#%%
-curve = all_coordinates[8]  # Replace with the actual curve you want to check
-
-plt.scatter(curve[:, 0], curve[:, 1])
-
-# Annotate each point with its index
-for i, (x, y) in enumerate(curve):
-    plt.annotate(str(i), (x, y))
-
-plt.show()
 
 #%%
-skeleton = skeletonize(tib_label)
+viewer.add_image(tib_label)
+
+
 #%%
 all_coordinates = []
 
@@ -809,8 +715,9 @@ for frame in skeleton:
     coords = np.argwhere(frame)
     all_coordinates.append(coords)
 #%%
-viewer.add_points(points_for_napari(all_coordinates), name='skeleton')
-viewer.add_image(skeleton, name='skeletonized')
+viewer.add_points(points_for_napari(skeleton), name='skeleton')
+#%%
+
 
 #%%
 disp_layer = viewer.layers["transformed_shapes"].to_labels(image.shape)
@@ -827,3 +734,372 @@ for ax, idi in zip(axes.flatten(), range(0,12,2)):
     
 plt.tight_layout()
 plt.savefig('test.svg')
+
+
+
+#%%
+
+curve = sorted_coordinates[8]  # Replace with the actual curve you want to check
+
+plt.scatter(curve[:, 0], curve[:, 1])
+
+# Annotate each point with its index
+for i, (x, y) in enumerate(curve):
+    plt.annotate(str(i), (x, y))
+
+plt.show()
+
+#%%
+all_coordinates_resampled = [resample_curve(curve) for curve in sorted_coordinates]
+#%%
+viewer.add_image(points_for_napari(all_coordinates_resampled), name='resampled_sorted')
+#%%
+
+viewer.add_image(points_for_napari(sorted_coordinates) , name='sor' ) 
+#%%
+''' starting from the tib spy data.  '''
+viewer = napari.Viewer() 
+viewer.add_image(tib_label, name='tib_label')
+#%%
+
+skeleton_label = apply_skeleton(tib_label)
+
+viewer.add_image(skeleton_label, name='2d_skeletonized')
+#%%
+all_coordinates = boolean_to_coords(skeleton_label)
+
+viewer.add_points(points_for_napari(all_coordinates), name='skeleton_all_points' ) 
+''' now go all the way down  '''
+
+#%%
+sorted_resampled = [resample_curve(curve) for curve in sorted_coordinates]
+#%%
+viewer.add_points(points_for_napari(sorted_resampled), name='sorted_resampled')
+#%%
+transformation_matrices_proscrutes = calculate_transform_matrices_procrustes(sorted_resampled, 0)
+
+#%%
+viewer.add_points(points_for_napari(post_transformation), face_color='orange') 
+#%%
+#method 1: finding corres first. 
+
+def coords_to_boolean(sorted_coordinates, shape=tib_label.shape):
+    # Initialize the 3D array
+    new_array = np.zeros(shape, dtype=bool)
+    
+    # Go through each frame
+    for frame_index, frame_coords in enumerate(sorted_coordinates):
+        for y, x in frame_coords:
+            try:
+                new_array[frame_index, int(y), int(x)] = True
+            except IndexError as e:
+                print(f"IndexError at frame {frame_index} with coordinates ({x}, {y}). Shape is {shape}")
+                raise e
+    
+    return new_array
+
+#%%
+def find_corres(setA, setB):
+    if len(setA) == len(setB):
+        return setB  # or return setA, since they are of equal length
+
+    nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(setB)
+    distances, indices = nbrs.kneighbors(setA)
+    B_corresponding = setB[indices.flatten()]
+    return B_corresponding
+
+''' for the record this function works.. but for template frame having more points, it just returns the target frame as is
+the issue being we cannot get H when this happens. so below, this function is modified to choose the least points frame by default ''' 
+def find_corres_for_all_frames(fem_label):
+    template_index = np.argmin([np.sum(frame) for frame in fem_label])
+    print('template is frame: ', template_index)
+    # Get the coordinates for the template
+    template_set = fem_label[template_index]
+    template_props = regionprops(template_set.astype(int))
+    template_cords = template_props[0].coords
+
+    all_subsets = []  # This list will hold all the subsets for each frame
+
+    # Loop over all frames in fem_label
+    for i in range(len(fem_label)):
+        # Skip the template frame itself
+        if i == template_index:
+            all_subsets.append(template_cords)
+            continue  # skip the rest of the loop for this iteration
+
+        test_set = fem_label[i]
+        test_props = regionprops(test_set.astype(int))
+        test_cords = test_props[0].coords
+
+        if len(template_cords) >= len(test_cords):
+            all_subsets.append(test_cords)
+        else:
+            # Use your find_corres function to find the corresponding points
+            subset_cords = find_corres(template_cords, test_cords)
+
+            # Add these corresponding points to all_subsets list
+            all_subsets.append(subset_cords)
+
+    return all_subsets
+#%%
+all_subsets = find_corres_for_all_frames(tib_label)
+#%%
+sorted_corresponding = find_corres_for_all_frames(sorted_bool)
+#%%
+viewer= napari.Viewer()
+viewer.add_points(points_for_napari(sorted_corresponding), name='sorted_corresponding')
+#%%
+# Try 2: resample and THEN try to find correspondance. 
+viewer.add_image(sorted_bool, name='sorted_bool')
+#%%
+all_coordinates_resampled = [resample_curve(curve, 15) for curve in sorted_coordinates]
+viewer.add_points(points_for_napari(all_coordinates_resampled), name='resampled_sorted')
+#%%
+comparision = [resample_curve(curve, 15) for curve in all_subsets]
+viewer.add_points(points_for_napari(comparision), name='comapre', face_color='green')
+#%%
+def resample_curve2(curve, n_points=25):
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    total_length = np.sum(dists)
+    step = total_length / (n_points - 1)
+    new_curve = [curve[0]]
+    dist_covered = 0.0
+    j = 0
+
+    for _ in range(1, n_points - 1):
+        dist_needed = step
+        
+        while dist_needed > 0:
+            # Add this check to break the loop if j goes out of bounds
+            if j >= len(dists):
+                break
+                
+            segment_remaining = dists[j] - dist_covered
+            if segment_remaining > dist_needed:
+                ratio = dist_needed / dists[j]
+                next_point = curve[j] + ratio * (curve[j+1] - curve[j])
+                
+                if np.all(curve[j] <= next_point) and np.all(next_point <= curve[j+1]):
+                    new_curve.append(next_point)
+                    dist_covered += dist_needed
+                    dist_needed = 0.0
+                else:
+                    new_curve.append(curve[j+1])
+                    dist_needed -= segment_remaining
+                    dist_covered = 0.0
+                    j += 1
+            else:
+                dist_needed -= segment_remaining
+                dist_covered = 0.0
+                j += 1
+
+    new_curve.append(curve[-1])
+    new_curve = np.array(new_curve)
+    resampled_diff = np.diff(new_curve, axis=0)
+    resampled_dists = np.sqrt((resampled_diff ** 2).sum(axis=1))
+    print("Distances between resampled points:", resampled_dists)
+
+    return np.array(new_curve)
+#%%
+resampled_2 = [resample_curve2(curve, 25) for curve in sorted_coordinates]
+viewer.add_points(points_for_napari(resampled_2), name='sorted_version', face_color='blue', size = 2)
+#%%
+''' ok so, by sorting, there is a clear improvement,two pictures i have saved for future reference too. the function that works is this resample_curve2. Now trying modifications below '''
+def resample_curve3(curve, n_points=25):
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    cumulative_dists = np.insert(np.cumsum(dists), 0, 0)
+    total_length = cumulative_dists[-1]
+    step = total_length / (n_points - 1)
+    new_curve = [curve[0]]
+
+    for i in range(1, n_points - 1):
+        target_dist = i * step
+
+        # Find the segment where the target distance lies
+        idx = np.searchsorted(cumulative_dists, target_dist, side='right') - 1
+
+        # Find the fraction of the way the target is between the two points of the segment
+        segment_start_dist = cumulative_dists[idx]
+        segment_end_dist = cumulative_dists[idx + 1]
+        segment_fraction = (target_dist - segment_start_dist) / (segment_end_dist - segment_start_dist)
+        
+        next_point = curve[idx] + segment_fraction * (curve[idx+1] - curve[idx])
+        new_curve.append(next_point)
+
+    new_curve.append(curve[-1])
+    return np.array(new_curve) 
+
+#%%
+''' check if the sorting works or not, compare one of the frames from all_coordinates and sorted_coordinates later. '''
+def show_order(curve):
+    plt.scatter(curve[:, 0], curve[:, 1])
+
+    # Annotate each point with its index
+    for i, (x, y) in enumerate(curve):
+        plt.annotate(str(i), (x, y))
+
+    plt.show()
+
+show_order(all_coordinates[7])
+#%%
+
+
+
+def sort_curve_points_manually(points, frame_number):
+    points = np.array(points, dtype=np.float32)  # Ensure it's float or int for arithmetic operations
+    
+    # Find starting point
+    starting_point = points[np.argmax(points[:, 0])]  # Highest row value
+    sorted_points = [starting_point]
+    remaining_points = [p for p in points.tolist() if not np.array_equal(p, starting_point)]
+
+    while remaining_points:
+        current_point = sorted_points[-1]
+        distances = [np.linalg.norm(np.array(current_point) - np.array(p)) for p in remaining_points]
+        next_point = remaining_points[np.argmin(distances)]
+        
+        # Check if the distance is much larger than average
+        if len(sorted_points) > 1:
+            avg_distance = np.mean([np.linalg.norm(np.array(sorted_points[i+1]) - np.array(sorted_points[i])) for i in range(len(sorted_points)-1)])
+            large_jump = np.linalg.norm(np.array(next_point) - np.array(current_point)) > 2 * avg_distance
+            if large_jump:
+               print(f"Warning: Large distance jump detected in frame {frame_number} between point {current_point} and point {next_point}")  # Modified print statement
+               break
+        
+        
+        sorted_points.append(next_point)
+        remaining_points.remove(next_point)
+
+    return np.array(sorted_points)
+
+def sort_curve_for_all_frames2(frames):
+    sorted_frames = []
+    for frame_number, frame in enumerate(frames):  # Enumerate to get the frame number
+        sorted_frame = sort_curve_points_manually(frame, frame_number)  # Pass frame number
+        sorted_frames.append(sorted_frame)
+    return sorted_frames
+
+#%%
+sorted_coordinates = sort_curve_for_all_frames2(all_coordinates)
+#%%
+viewer.add_points(points_for_napari(sorted_coordinates), name='sorted_corresponding')
+
+#%%
+show_order(sorted_coordinates[2])
+#%%
+''' trying to see if the sorting works. so, no find corres. direct resampling.  '''
+resampled_3 = [resample_curve3(curve, 25) for curve in sorted_coordinates]
+viewer.add_points(points_for_napari(resampled_3), name='sorted_version4', face_color='green', size = 2)
+
+''' after a brutish approach of removing the last point, it works, because consistently the same issue was happening, last point being in a random place. removing it solves thing.  '''
+#%%
+def average_distance_between_consecutive_points(curve):
+    distances = [np.linalg.norm(curve[i+1] - curve[i]) for i in range(len(curve)-1)]
+    return np.mean(distances)
+
+def compute_average_distances_for_all_frames(sorted_frames):
+    return [average_distance_between_consecutive_points(frame) for frame in sorted_frames]
+
+#%%
+average_distances = compute_average_distances_for_all_frames(sorted_coordinates)
+print(average_distances)
+#%%
+''' ok, now that we have solved the sorting issue. the resampling works. Now the question is to find transformations using resampled? or do we still need the find corress. maybe resample in a much finer way, and do coarser??  '''
+# the check below attempts to directly apply transformation on the resampled points. 
+sorted_bool = coords_to_boolean(sorted_coordinates, shape=tib_label.shape)
+#%%
+def apply_transformation(matrix, points):
+    # Convert points to homogeneous coordinates
+    homogeneous_points = np.hstack([points, np.ones((points.shape[0], 1))])
+    
+    # Apply the transformation
+    transformed_points = np.dot(homogeneous_points, matrix.T)
+    
+    return transformed_points[:, :2]  # Convert back to Cartesian coordinates
+
+def apply_transformation_all_frames(reference_set, transformation_matrices):
+    transformed_subsets = []
+# Assuming `transformation_matrices` is your list of 2x3 transformation matrices
+# and `reference_coords` is the coordinates of your reference frame
+    for matrix in transformation_matrices:
+        transformed_points = apply_transformation(matrix, reference_set)
+        print(transformed_points.shape) 
+        transformed_subsets.append(transformed_points)
+    return transformed_subsets
+
+
+def procrustes(X, Y):
+    X = X.astype(float)  # Ensure X is float
+    Y = Y.astype(float)
+    centroid_X = np.mean(X, axis=0)
+    centroid_Y = np.mean(Y, axis=0)
+    X -= centroid_X
+    Y -= centroid_Y
+    U, _, Vt = np.linalg.svd(np.dot(Y.T, X))
+    R = np.dot(U, Vt)
+    t = centroid_Y - np.dot(R, centroid_X)
+    return R, t
+
+def calculate_transform_matrices_procrustes(all_coords, reference_index):
+    num_frames = len(all_coords)
+    transformation_matrices = []
+
+    # Initialize the identity matrix for the reference frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+
+    # Get the coordinates of the reference frame
+    reference_coords = all_coords[reference_index]
+
+    for i in range(num_frames):
+        if i == reference_index:
+            # Add the identity matrix for the reference frame
+            transformation_matrices.append(identity_matrix)
+        else:
+            # Estimate the transformation matrix using Procrustes
+            R, t = procrustes(reference_coords, all_coords[i])
+            transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
+            transformation_matrices.append(transformation_matrix)
+
+    return transformation_matrices
+#%%
+# maybe we dont need the bool? I think bool is only needed if we want to do the nearest neighbor thing. 
+matrices_list = calculate_transform_matrices_procrustes(resampled_3, 1)
+post_transformation = apply_transformation_all_frames(resampled_3[1], matrices_list)
+
+viewer.add_points(points_for_napari(post_transformation), face_color='violet', size=1) 
+''' Verdict: Wayyyy off. doesnt even work. so need to do find nearest anyhow. so need to downsample somehow??  '''
+#%%
+''' try: use 100 points for resample, but use 25 points for nearest neighbours.  '''
+resample_100 = [resample_curve3(curve, 100) for curve in sorted_coordinates]
+viewer.add_points(points_for_napari(resample_100), name='resampled_100', face_color='green', size = 2)
+#%%
+sorted_bool = coords_to_boolean(resample_100, shape=tib_label.shape)
+
+resampled_subsets =  find_corres_for_all_frames(sorted_bool)
+
+viewer.add_points(points_for_napari(resampled_subsets), name='after_nearest_neighbors', face_color='red', size = 2)
+
+''' verdict: as expected, resampling first will not allow us to downsample. find corres only works by assuming the frame with least number of points, and trying to find the closest frame to this frame in all the frames 
+but, when we resample, every frame has the same number of points, so doesnt make anysense. therefore, i think i should do the find corres at the top. and then resample. so find corres in the rawest boolean. then get sorted_coordinates after that .  '''
+#%%
+raw_subsets = find_corres_for_all_frames(tib_label)
+
+viewer.add_points(points_for_napari(raw_subsets), name='raw_subsets', face_color='magenta', size = 2)
+
+''' the problem here is that find corres doesnt work that well. leads to these large gaps. how to resample? just ignore all the points that have large gaps?? '''
+#%%
+sorted_raw = sort_curve_for_all_frames2(raw_subsets)
+viewer.add_points(points_for_napari(sorted_raw), name='sorted_raw')
+''' the sorting totally breaks down in this raw format.  '''
+#%%
+resample_100 = [resample_curve3(curve, 100) for curve in sorted_coordinates]
+viewer.add_points(points_for_napari(resample_100), name='resampled_100', face_color='green', size = 2)
+#%%
+''' NEW IDEA!! Lets resample just the frame with the least number of points. as in, sort it, resample it. AND THEN apply find corresponding, for just these points! i should be able to get it right i think. find corres will just use this frame, since it has the lowest.  '''
+
+base_frame = sorted_coordinates[1]
+resampled_base = resample_curve3(base_frame, 100)
+viewer.add_points(resampled_base, name='resampled_base', size=2, face_color='indigo') 

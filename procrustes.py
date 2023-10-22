@@ -83,10 +83,12 @@ def shapes_for_napari(list_shapes):
 # Step 1: load the image from directory and normalize it
 image = open_nii('C:/Users/Aayush/Documents/thesis_files/data_zf1_admm_tgv=1e-1/data_zf1_admm_tgv=1e-0.nii')
 image = normalize(image)
-image = np.moveaxis(image, 1, 0)
+image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
 viewer = napari.view_image(image)
+#%%
+viewer.add_image(image)
 #%%
 # Step 2: apply gaussian blur to the original image and add it in napari. 
 smooth_image = gaussian_filter(image, 3)
@@ -127,14 +129,14 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (0,25) # 
-high_range = (25, 50) # 
+low_range = (8,10) # 
+high_range = (38, 40) # 
 num_steps = 20
 
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
-canny_multi_edge = apply_canny_multiple_thresholds(inverted, low_range, high_range, num_steps)
+canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range, num_steps)
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
@@ -145,9 +147,10 @@ viewer3 = napari.Viewer()
 #%%
 viewer3.add_image(canny_multi_edge, name='4d_canny_regularized')
 #%%
+
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[10]
-viewer.add_image(tib_canny, name='edge_10')
+tib_canny = canny_multi_edge[13]
+viewer.add_image(tib_canny, name='edge_13')
 #%%
 #Step 6: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
@@ -176,7 +179,7 @@ viewer3.add_image(removed_4d, name='multi_remove_small')
 
 #%%
 # pick the right index
-bone_canny = removed_4d[4] 
+bone_canny = removed_4d[19] 
 viewer.add_image(bone_canny, name='after_remove_small') 
 #%%
 # 
@@ -186,7 +189,7 @@ labeled_image, num_features = label(bone_canny, return_num=True, connectivity=2)
 viewer.add_labels(labeled_image, name='labeled_tib')    
 #%%
 # pick a suitable label that represents one long edge of the bone
-tib_label = labeled_image == 6                                                                                                 
+tib_label = labeled_image == 5                                                                                                 
 viewer.add_image(tib_label, name='one_label')
 #%%
 '''
@@ -279,6 +282,44 @@ def find_corres_for_all_frames(fem_label):
     return all_subsets
 
 all_subsets = find_corres_for_all_frames(tib_label)
+viewer.add_points(points_for_napari(all_subsets), name='all_subsets', size=2, face_color='brown')
+#%%
+''' this sorts the points '''
+def sort_curve_points_manually(points, frame_number):
+    points = np.array(points, dtype=np.float32)  # Ensure it's float or int for arithmetic operations
+    
+    # Find starting point
+    starting_point = points[np.argmax(points[:, 0])]  # Highest row value
+    sorted_points = [starting_point]
+    remaining_points = [p for p in points.tolist() if not np.array_equal(p, starting_point)]
+
+    while remaining_points:
+        current_point = sorted_points[-1]
+        distances = [np.linalg.norm(np.array(current_point) - np.array(p)) for p in remaining_points]
+        next_point = remaining_points[np.argmin(distances)]
+        
+        # Check if the distance is much larger than average
+        if len(sorted_points) > 1:
+            avg_distance = np.mean([np.linalg.norm(np.array(sorted_points[i+1]) - np.array(sorted_points[i])) for i in range(len(sorted_points)-1)])
+            large_jump = np.linalg.norm(np.array(next_point) - np.array(current_point)) > 5 * avg_distance
+            if large_jump:
+               print(f"Warning: Large distance jump detected in frame {frame_number} between point {current_point} and point {next_point}")  # Modified print statement
+               #break
+        
+        
+        sorted_points.append(next_point)
+        remaining_points.remove(next_point)
+
+    return np.array(sorted_points)
+
+def sort_curve_for_all_frames2(frames):
+    sorted_frames = []
+    for frame_number, frame in enumerate(frames):  # Enumerate to get the frame number
+        sorted_frame = sort_curve_points_manually(frame, frame_number)  # Pass frame number
+        sorted_frames.append(sorted_frame)
+    return sorted_frames
+
+sorted_subsets = sort_curve_for_all_frames2(all_subsets)
 #%%
 def resample_curve(curve, n_points=25):
     # Calculate the total length of the curve
@@ -318,10 +359,9 @@ def resample_curve(curve, n_points=25):
     return np.array(new_curve)
 
 # For each frame in all_subsets, apply the function
-all_subsets_resampled = [resample_curve(curve) for curve in all_subsets]
+all_subsets_resampled = [resample_curve(curve,50) for curve in sorted_subsets]
 #%%
-resampled_napari = points_for_napari(all_subsets_resampled) 
-viewer.add_points(resampled_napari) 
+viewer.add_points(points_for_napari(all_subsets_resampled), name='resampled_subsets', size=2, face_color='blue') 
 #%%
 def apply_transformation(matrix, points):
     # Convert points to homogeneous coordinates
@@ -378,15 +418,150 @@ def calculate_transform_matrices_procrustes(all_coords, reference_index):
 
     return transformation_matrices
 
-matrices_list = calculate_transform_matrices_procrustes(all_subsets_resampled, 1)
-post_transformation = apply_transformation_all_frames(all_subsets_resampled[1], matrices_list)
+matrices_list = calculate_transform_matrices_procrustes(all_subsets_resampled, 0)
+post_transformation = apply_transformation_all_frames(all_subsets_resampled[0], matrices_list)
 #%%
-viewer.add_points(points_for_napari(post_transformation), face_color='orange') 
+viewer.add_points(points_for_napari(post_transformation), face_color='orange', size=2) 
 
 #%%
 ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
 transformed_expanded = apply_transformation_all_frames(ref_points, matrices_list) 
 transformed_shapes = shapes_for_napari(transformed_expanded)
 viewer.add_shapes(transformed_shapes, shape_type='polygon') 
+#%%
+def resample_curve4(curve, n_points, target_length):
+    # Calculate the total length of the curve
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    total_length = np.sum(dists)
 
+    # Adjust the curve length to the target length by trimming or stretching
+    length_ratio = target_length / total_length
+    dists *= length_ratio  # adjust segment lengths
+    total_length = target_length  # update total length to target
+    
+    # Calculate step distance
+    step = total_length / (n_points - 1)
 
+    # Initialize variables
+    new_curve = [curve[0]]  # Start with the first point
+    dist_covered = 0.0
+    j = 0  # Index for the original curve
+
+    for _ in range(1, n_points):
+        dist_needed = step
+        
+        while dist_needed > 0 and j < len(dists):
+            segment_remaining = dists[j] - dist_covered
+            if segment_remaining > dist_needed:
+                # Get the next point from the current segment
+                ratio = dist_needed / dists[j]
+                next_point = curve[j] + ratio * diff[j]
+                new_curve.append(next_point)
+                
+                # Update the distance covered on the current segment
+                dist_covered += dist_needed
+                dist_needed = 0.0
+            else:
+                # Move to the next segment
+                dist_needed -= segment_remaining
+                dist_covered = 0.0
+                j += 1
+
+        # In case we run out of original points before filling the new curve
+        if j == len(dists) and len(new_curve) < n_points:
+            new_curve.append(curve[-1])
+            break
+
+    return np.array(new_curve)
+#%%
+shortest_length = min(np.sum(np.sqrt(np.sum(np.diff(curve, axis=0) ** 2, axis=1))) for curve in sorted_subsets)
+#%%
+all_subsets_resampled = [resample_curve4(curve, 50, shortest_length) for curve in sorted_subsets]
+viewer.add_points(points_for_napari(all_subsets_resampled), name='resampled_target_length', size=2, face_color='green') 
+#%%
+def print_total_lengths(resampled_curves):
+    for i, curve in enumerate(resampled_curves):
+        # Calculate the total length of the curve
+        diff = np.diff(curve, axis=0)
+        dists = np.sqrt((diff ** 2).sum(axis=1))
+        total_length = np.sum(dists)
+        
+        print(f"Total length of curve in frame {i}: {total_length}")
+
+# Assuming all_subsets_resampled is your list of resampled curves
+# Call the function like this:
+print_total_lengths(all_subsets_resampled)
+
+#%%
+def resample_curve6(curve, n_points, target_length):
+    # Calculate the total length of the curve
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    total_length = np.sum(dists)
+    
+    if total_length < target_length:
+        raise ValueError("Total length of the curve is less than the target length.")
+    
+    # Calculate step distance
+    step = target_length / (n_points - 1)
+    
+    # Initialize variables
+    new_curve = [curve[0]]  # Start with the first point
+    dist_covered = 0.0
+    j = 0  # Index for the original curve
+    
+    for _ in range(1, n_points):
+        dist_needed = step
+        
+        while dist_needed > 0:
+            if j >= len(dists):  # Exit condition
+                break
+            
+            segment_remaining = dists[j] - dist_covered
+            if segment_remaining > dist_needed:
+                # Get the next point from the current segment
+                ratio = dist_needed / dists[j]
+                next_point = curve[j] + ratio * diff[j]
+                new_curve.append(next_point)
+                
+                # Update the distance covered on the current segment
+                dist_covered += dist_needed
+                dist_needed = 0.0
+            else:
+                # Move to the next segment
+                dist_needed -= segment_remaining
+                dist_covered = 0.0
+                j += 1
+                
+    return np.array(new_curve)
+
+# Calculate the shortest length among all curves
+shortest_length = min(
+    np.sum(np.sqrt(np.sum(np.diff(curve, axis=0)**2, axis=1)))
+    for curve in sorted_subsets
+)
+
+# Resample each curve to have the same number of points and the same total length
+all_subsets_resampled = [resample_curve6(curve, 50, shortest_length) for curve in sorted_subsets]
+#%%
+print_total_lengths(all_subsets_resampled)
+viewer.add_points(points_for_napari(all_subsets_resampled), name='resampled_target_length', size=2, face_color='green') 
+#%%
+def scale_to_length(curve, target_length):
+    # Calculate the current total length of the curve
+    diff = np.diff(curve, axis=0)
+    dists = np.sqrt((diff ** 2).sum(axis=1))
+    total_length = np.sum(dists)
+    
+    # Calculate the scaling factor and scale the curve
+    scaling_factor = target_length / total_length
+    scaled_curve = curve * scaling_factor
+    
+    return scaled_curve
+
+# Post-process to ensure each curve has exactly the same total length
+all_subsets_resampled_scaled = [scale_to_length(curve, shortest_length) for curve in all_subsets_resampled]
+#%%
+print_total_lengths(all_subsets_resampled_scaled)
+viewer.add_points(points_for_napari(all_subsets_resampled_scaled), name='scaled', size=2, face_color='orange') 
