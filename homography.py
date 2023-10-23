@@ -238,9 +238,51 @@ viewer.add_image(tib_label, name='one_label')
 
 
 #%%
-# try dilation 
-# try erosion 
-#
+#%%
+'''
+What follows in this cell is an attempt to somehow threshold the labeled region in such a way that we only get the nice straight line. since it follows the dark edge of the gradient smooth quite well, this is will be used as reference.
+the goal here is to create a plot of the pixel intensity vs coordinate?  
+'''
+one_frame_bool = tib_label[11]
+one_frame_ori = grad_smooth[11]
+
+flat_bool = one_frame_bool.flatten() 
+flat_ori = one_frame_ori.flatten() 
+
+ori_masked = flat_ori[flat_bool] # shape (296,1) 
+
+#ori_masked0 = one_frame_ori[one_frame_bool] # same as ori_masked.  
+
+seriel_num = np.where(flat_bool)[0]
+
+plt.plot(seriel_num, ori_masked) 
+''' so far i have something. what i have is the threshold    for the location. out of 640*640. seriel numbers greater than 180k should be set to false  '''
+
+flat_bool[171000:] = False 
+#%%
+new_bool = flat_bool.reshape(one_frame_bool.shape)
+
+plt.imshow(new_bool)
+''' ok so the thresholding for a single frame works, but it is not very efficient. maybe using distance transform is better 
+nah tried it but did not work  '''
+#%%
+modified_tib_label = np.copy(tib_label)
+
+for frame_index in range(grad_smooth.shape[0]):
+    one_frame_bool = tib_label[frame_index]
+    one_frame_ori = grad_smooth[frame_index]
+
+    flat_bool = one_frame_bool.flatten()
+    flat_ori = one_frame_ori.flatten()
+
+    # Apply the threshold condition
+    flat_bool[150000:] = False
+
+    # Reshape the modified boolean array
+    new_bool = flat_bool.reshape(one_frame_bool.shape)
+
+    # Update the modified_tib_label with the new_bool
+    modified_tib_label[frame_index] = new_bool
 #
 #
 #
