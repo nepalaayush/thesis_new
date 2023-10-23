@@ -227,7 +227,7 @@ viewer.add_points(points_for_napari(post_transformation), face_color='blue', siz
 ''' here is where we are at the moment, the matrix tries its best to match, but if the assumptions themselves are not true, then it wont work. 
 so, trying it one more time, but this time taking frame 9 as the base  ''' 
 
-base_frame9 = tib_label[9]
+base_frame0 = tib_label[0]
 
 base_points9 = np.argwhere(base_frame9)
 #show_order(base_points9)
@@ -245,7 +245,7 @@ for x,y in resampled_base_sorted9:
     
 #%%
 
-tib_label[9] = base_boolean 
+tib_label[0] = base_boolean 
 
 viewer.add_image(tib_label, name='base_frame_resampled9')    
 #%%
@@ -402,3 +402,25 @@ It literally follows the small edge, and following this is not really enough to 
 But i have identified a major issue. 1. the resampling DOES NOT place points at equidistance. THere is always an error. Which should not be the case. 
 2. Because the points are not equidistant, the length of the curve for each frame is also not the same, then, if I try to find transformation, that is 
 supposed to be rigid, it will not work, because the points themselves are morphing.  '''
+tib_label = np.load('tib_label.npy')
+#%%
+print(viewer.layers['Points'].data)
+min_row = 331
+max_row = 396
+
+cropped_frame = np.array(tib_label[0])
+
+# Set all pixels outside your vertical range to false.
+cropped_frame[0:min_row, :] = False
+cropped_frame[max_row+1:, :] = False
+#%%
+viewer.add_image(cropped_frame)
+#%%
+# now to replace this with the roginal array 
+new_label = tib_label 
+new_label[0] = cropped_frame 
+viewer.add_image(new_label, name='new_label')
+#%%
+all_subsets = find_corres_for_all_frames(new_label)
+
+viewer.add_points(points_for_napari(all_subsets), name= 'cropped_subsets' ,  face_color='orange', size=2) 

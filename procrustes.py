@@ -81,17 +81,17 @@ def shapes_for_napari(list_shapes):
     return all_shapes
 #%%
 # Step 1: load the image from directory and normalize it
-image = open_nii('C:/Users/Aayush/Documents/thesis_files/data_zf1_admm_tgv=1e-1/data_zf1_admm_tgv=1e-0.nii')
+image = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/reco_zero_test2.nii')
 image = normalize(image)
-image = np.moveaxis(image, 1, 0)[1:]
+#image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image)
+viewer1 = napari.view_image(image,  name='riesleing_non')
 #%%
-viewer.add_image(image)
+viewer1.add_image(image, name='reco_riseling_non')
 #%%
 # Step 2: apply gaussian blur to the original image and add it in napari. 
-smooth_image = gaussian_filter(image, 3)
+smooth_image = gaussian_filter(image, 2)
 viewer.add_image(smooth_image , name='smooooth')
 
 #%%
@@ -129,14 +129,14 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (8,10) # 
-high_range = (38, 40) # 
+low_range = (0,10) # 
+high_range = (10, 20) # 
 num_steps = 20
 
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
-canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range, num_steps)
+canny_multi_edge = apply_canny_multiple_thresholds(smooth_image, low_range, high_range, num_steps)
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
@@ -145,12 +145,12 @@ print(f"Elapsed Time: {end_time - start_time} seconds")
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
 #%%
-viewer3.add_image(canny_multi_edge, name='4d_canny_regularized')
+viewer3.add_image(canny_multi_edge, name='high_res_2')
 #%%
 
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[13]
-viewer.add_image(tib_canny, name='edge_13')
+tib_canny = canny_multi_edge[10]
+viewer.add_image(tib_canny, name='edge_10')
 #%%
 #Step 6: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
@@ -179,7 +179,7 @@ viewer3.add_image(removed_4d, name='multi_remove_small')
 
 #%%
 # pick the right index
-bone_canny = removed_4d[19] 
+bone_canny = removed_4d[7] 
 viewer.add_image(bone_canny, name='after_remove_small') 
 #%%
 # 
@@ -189,54 +189,9 @@ labeled_image, num_features = label(bone_canny, return_num=True, connectivity=2)
 viewer.add_labels(labeled_image, name='labeled_tib')    
 #%%
 # pick a suitable label that represents one long edge of the bone
-tib_label = labeled_image == 5                                                                                                 
+tib_label = labeled_image == 13                                                                                               
 viewer.add_image(tib_label, name='one_label')
-#%%
-'''
-What follows in this cell is an attempt to somehow threshold the labeled region in such a way that we only get the nice straight line. since it follows the dark edge of the gradient smooth quite well, this is will be used as reference.
-the goal here is to create a plot of the pixel intensity vs coordinate?  
-'''
-one_frame_bool = tib_label[11]
-one_frame_ori = grad_smooth[11]
 
-flat_bool = one_frame_bool.flatten() 
-flat_ori = one_frame_ori.flatten() 
-
-ori_masked = flat_ori[flat_bool] # shape (296,1) 
-
-#ori_masked0 = one_frame_ori[one_frame_bool] # same as ori_masked.  
-
-seriel_num = np.where(flat_bool)[0]
-
-plt.plot(seriel_num, ori_masked) 
-''' so far i have something. what i have is the threshold    for the location. out of 640*640. seriel numbers greater than 180k should be set to false  '''
-
-flat_bool[171000:] = False 
-#%%
-new_bool = flat_bool.reshape(one_frame_bool.shape)
-
-plt.imshow(new_bool)
-''' ok so the thresholding for a single frame works, but it is not very efficient. maybe using distance transform is better 
-nah tried it but did not work  '''
-#%%
-modified_tib_label = np.copy(tib_label)
-
-for frame_index in range(grad_smooth.shape[0]):
-    one_frame_bool = tib_label[frame_index]
-    one_frame_ori = grad_smooth[frame_index]
-
-    flat_bool = one_frame_bool.flatten()
-    flat_ori = one_frame_ori.flatten()
-
-    # Apply the threshold condition
-    flat_bool[150000:] = False
-
-    # Reshape the modified boolean array
-    new_bool = flat_bool.reshape(one_frame_bool.shape)
-
-    # Update the modified_tib_label with the new_bool
-    modified_tib_label[frame_index] = new_bool
-viewer.add_image(modified_tib_label)
 #%%
 def find_corres(setA, setB):
     if len(setA) == len(setB):
@@ -428,52 +383,7 @@ ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
 transformed_expanded = apply_transformation_all_frames(ref_points, matrices_list) 
 transformed_shapes = shapes_for_napari(transformed_expanded)
 viewer.add_shapes(transformed_shapes, shape_type='polygon') 
-#%%
-def resample_curve4(curve, n_points, target_length):
-    # Calculate the total length of the curve
-    diff = np.diff(curve, axis=0)
-    dists = np.sqrt((diff ** 2).sum(axis=1))
-    total_length = np.sum(dists)
 
-    # Adjust the curve length to the target length by trimming or stretching
-    length_ratio = target_length / total_length
-    dists *= length_ratio  # adjust segment lengths
-    total_length = target_length  # update total length to target
-    
-    # Calculate step distance
-    step = total_length / (n_points - 1)
-
-    # Initialize variables
-    new_curve = [curve[0]]  # Start with the first point
-    dist_covered = 0.0
-    j = 0  # Index for the original curve
-
-    for _ in range(1, n_points):
-        dist_needed = step
-        
-        while dist_needed > 0 and j < len(dists):
-            segment_remaining = dists[j] - dist_covered
-            if segment_remaining > dist_needed:
-                # Get the next point from the current segment
-                ratio = dist_needed / dists[j]
-                next_point = curve[j] + ratio * diff[j]
-                new_curve.append(next_point)
-                
-                # Update the distance covered on the current segment
-                dist_covered += dist_needed
-                dist_needed = 0.0
-            else:
-                # Move to the next segment
-                dist_needed -= segment_remaining
-                dist_covered = 0.0
-                j += 1
-
-        # In case we run out of original points before filling the new curve
-        if j == len(dists) and len(new_curve) < n_points:
-            new_curve.append(curve[-1])
-            break
-
-    return np.array(new_curve)
 #%%
 shortest_length = min(np.sum(np.sqrt(np.sum(np.diff(curve, axis=0) ** 2, axis=1))) for curve in sorted_subsets)
 #%%
