@@ -79,16 +79,46 @@ def shapes_for_napari(list_shapes):
         all_shapes.append(frame_subset)
 
     return all_shapes
+
+def show_order(curve):
+    plt.scatter(curve[:, 0], curve[:, 1])
+
+    # Annotate each point with its index
+    for i, (x, y) in enumerate(curve):
+        plt.annotate(str(i), (x, y))
+
+    plt.show()
+    
+def pairwise_distances(points):
+    """
+    Calculate the distances between consecutive pairs of points in the given array.
+    
+    Args:
+    - points (numpy.ndarray): An array of shape (N, 2) representing the points.
+    
+    Returns:
+    - distances (numpy.ndarray): An array of shape (N-1,) representing the distances between consecutive points.
+    """
+    # Calculate the Euclidean distances between consecutive points
+    distances = np.linalg.norm(points[1:] - points[:-1], axis=1)
+    return distances
+
+def extract_coords_from_frames(label_frames):
+    all_coords = []  # This list will hold the coordinates for each frame
+    for frame in label_frames:
+        coords = np.argwhere(frame)  # Find the coordinates of True pixels
+        all_coords.append(coords)
+    return all_coords
 #%%
 # Step 1: load the image from directory and normalize it
-image = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/reco_zero_test2.nii')
+image = open_nii('C:/Users/Aayush/Documents/thesis_files/data_zf1_admm_tgv=1e-1/data_zf1_admm_tgv=1e-1.nii')
 image = normalize(image)
-#image = np.moveaxis(image, 1, 0)[1:]
+image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer1 = napari.view_image(image,  name='riesleing_non')
+viewer = napari.view_image(image,  name='riesleing_e-1')
 #%%
-viewer1.add_image(image, name='reco_riseling_non')
+viewer.add_image(image, name='reco_riseling_non')
 #%%
 # Step 2: apply gaussian blur to the original image and add it in napari. 
 smooth_image = gaussian_filter(image, 2)
@@ -130,13 +160,13 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     return canny_multi_edge
 
 low_range = (0,10) # 
-high_range = (10, 20) # 
+high_range = (10, 30) # 
 num_steps = 20
 
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
-canny_multi_edge = apply_canny_multiple_thresholds(smooth_image, low_range, high_range, num_steps)
+canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range, num_steps)
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
@@ -149,8 +179,8 @@ viewer3.add_image(canny_multi_edge, name='high_res_2')
 #%%
 
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[10]
-viewer.add_image(tib_canny, name='edge_10')
+tib_canny = canny_multi_edge[11]
+viewer.add_image(tib_canny, name='tgv_1e-1')
 #%%
 #Step 6: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
@@ -179,8 +209,10 @@ viewer3.add_image(removed_4d, name='multi_remove_small')
 
 #%%
 # pick the right index
-bone_canny = removed_4d[7] 
-viewer.add_image(bone_canny, name='after_remove_small') 
+bone_canny = removed_4d[5] 
+viewer.add_image(bone_canny, name='after_remove_small') #%%
+#%%
+np.save('after_remove_small', bone_canny)
 #%%
 # 
 # Step 7 find labels of connected regions from the edge image
@@ -189,9 +221,14 @@ labeled_image, num_features = label(bone_canny, return_num=True, connectivity=2)
 viewer.add_labels(labeled_image, name='labeled_tib')    
 #%%
 # pick a suitable label that represents one long edge of the bone
-tib_label = labeled_image == 13                                                                                               
+tib_label = labeled_image == 7                                                                                               
 viewer.add_image(tib_label, name='one_label')
+#%%
+np.save('tib_label_1', tib_label)
 
+#%%
+tib_label = tib_label
+viewer.add_image(tib_label, name='one_label')
 #%%
 def find_corres(setA, setB):
     if len(setA) == len(setB):
@@ -237,7 +274,7 @@ def find_corres_for_all_frames(fem_label):
     return all_subsets
 
 all_subsets = find_corres_for_all_frames(tib_label)
-viewer.add_points(points_for_napari(all_subsets), name='all_subsets', size=2, face_color='brown')
+viewer.add_points(points_for_napari(all_subsets), name='all_subsets', size=1, face_color='brown')
 #%%
 ''' this sorts the points '''
 def sort_curve_points_manually(points, frame_number):
@@ -275,6 +312,9 @@ def sort_curve_for_all_frames2(frames):
     return sorted_frames
 
 sorted_subsets = sort_curve_for_all_frames2(all_subsets)
+#%%
+viewer.add_points(points_for_napari(sorted_subsets), name='sorted_subsets', size=1, face_color='blue')
+
 #%%
 def resample_curve(curve, n_points=25):
     # Calculate the total length of the curve
@@ -316,7 +356,52 @@ def resample_curve(curve, n_points=25):
 # For each frame in all_subsets, apply the function
 all_subsets_resampled = [resample_curve(curve,50) for curve in sorted_subsets]
 #%%
-viewer.add_points(points_for_napari(all_subsets_resampled), name='resampled_subsets', size=2, face_color='blue') 
+viewer.add_points(points_for_napari(all_subsets_resampled), name='resampled_subsets', size=2, face_color='red') 
+
+#%%
+''' Oct 29: applying the all_subsets_resampled directly yielded terrible results. Perhaps fixing them a bit will be better ''' 
+from scipy.interpolate import CubicSpline
+
+def adjust_downsampled_points(downsampled, original_curve):
+    """
+    Adjust the positions of downsampled points to make them equidistant 
+    while ensuring they remain on the original curve.
+
+    Parameters:
+    - downsampled: np.array of shape (30,2) representing downsampled points.
+    - original_curve: np.array of shape (100,2) representing the original curve.
+
+    Returns:
+    - np.array of shape (30,2) representing the adjusted downsampled points.
+    """
+
+    # Compute the desired equidistant length
+    pairwise_distances = [np.linalg.norm(downsampled[i] - downsampled[i - 1]) for i in range(1, len(downsampled))]
+    desired_distance = sum(pairwise_distances) / len(pairwise_distances)
+
+    # Cubic spline interpolation of the original curve
+    t = np.linspace(0, 1, len(original_curve))
+    cs_x = CubicSpline(t, original_curve[:, 0])
+    cs_y = CubicSpline(t, original_curve[:, 1])
+
+    # Adjust the downsampled points
+    adjusted_points = [downsampled[0]]  # Start with the first point as anchor
+    t_last = 0  # To keep track of the last position on t to avoid backtracking
+    for i in range(1, len(downsampled)):
+        # Search along the curve for the next position using a fine resolution
+        search_t = np.linspace(t_last, 1, 1000)
+        for ti in search_t:
+            potential_point = np.array([cs_x(ti), cs_y(ti)])
+            if np.linalg.norm(potential_point - adjusted_points[-1]) >= desired_distance:
+                adjusted_points.append(potential_point)
+                t_last = ti
+                break
+
+    return np.array(adjusted_points)
+
+#%%
+adjusted_1 = adjust_downsampled_points(all_subsets_resampled[0], sorted_subsets[0])
+viewer.add_points(adjusted_1, name='adjusted_frame_0', size=2, face_color='violet' )
 #%%
 def apply_transformation(matrix, points):
     # Convert points to homogeneous coordinates
@@ -372,11 +457,11 @@ def calculate_transform_matrices_procrustes(all_coords, reference_index):
             transformation_matrices.append(transformation_matrix)
 
     return transformation_matrices
-
+#%%
 matrices_list = calculate_transform_matrices_procrustes(all_subsets_resampled, 0)
 post_transformation = apply_transformation_all_frames(all_subsets_resampled[0], matrices_list)
 #%%
-viewer.add_points(points_for_napari(post_transformation), face_color='orange', size=2) 
+viewer.add_points(points_for_napari(post_transformation), face_color='green', size=2) 
 
 #%%
 ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
@@ -475,3 +560,11 @@ all_subsets_resampled_scaled = [scale_to_length(curve, shortest_length) for curv
 #%%
 print_total_lengths(all_subsets_resampled_scaled)
 viewer.add_points(points_for_napari(all_subsets_resampled_scaled), name='scaled', size=2, face_color='orange') 
+#%%
+
+
+new_list = extract_coords_from_frames(new_label)
+#%%
+''' now that we have resampled frame 1, convert the tib_label to coordinates and then stick this in.  '''
+new_list[0] = adjusted_points
+viewer.add_points(points_for_napari(new_list))
