@@ -354,6 +354,30 @@ tib_label = np.load('C:/Users/Aayush/Documents/thesis_files/tib_label.npy')
 #%%
 viewer = napari.Viewer() 
 #%%
+def points_for_napari(list_points):
+    all_points = []
+
+    for i, subset in enumerate(list_points):
+        frame_id_column = np.full((subset.shape[0], 1), i)
+        frame_subset = np.hstack([frame_id_column, subset])
+        all_points.append(frame_subset)
+
+    all_points = np.vstack(all_points)
+    return all_points 
+
+def show_order(curve):
+    plt.scatter(curve[:, 0], curve[:, 1])
+
+    # Annotate each point with its index
+    for i, (x, y) in enumerate(curve):
+        plt.annotate(str(i), (x, y))
+
+    plt.show()
+
+
+#%%
+
+
 print(viewer.layers['Points'].data)
 min_row = 331
 max_row = 396
@@ -372,17 +396,7 @@ new_label[0] = cropped_frame
 viewer.add_image(new_label, name='new_label')
 #%%
 all_subsets = find_corres_for_all_frames(new_label)
-#%%
-def points_for_napari(list_points):
-    all_points = []
 
-    for i, subset in enumerate(list_points):
-        frame_id_column = np.full((subset.shape[0], 1), i)
-        frame_subset = np.hstack([frame_id_column, subset])
-        all_points.append(frame_subset)
-
-    all_points = np.vstack(all_points)
-    return all_points 
 #%%
 viewer.add_points(points_for_napari(all_subsets), name= 'cropped_subsets' ,  face_color='orange', size=2) 
 #%%
@@ -392,16 +406,8 @@ cropped_points = np.argwhere(cropped_frame)
 resampled_base_sorted = resample_curve3(cropped_points, n_points=100)
 viewer.add_points(resampled_base_sorted, name='resampled_base', face_color='red', size = 2)
 
+
 #%%
-def show_order(curve):
-    plt.scatter(curve[:, 0], curve[:, 1])
-
-    # Annotate each point with its index
-    for i, (x, y) in enumerate(curve):
-        plt.annotate(str(i), (x, y))
-
-    plt.show()
-
 show_order(cropped_points)
 #%%
 sorted_cropped = sort_points_single_frame(cropped_points)[:-1]
@@ -771,7 +777,7 @@ def calculate_transform_matrices_procrustes(all_coords, reference_index):
             transformation_matrices.append(transformation_matrix)
 
     return transformation_matrices
-
+#%%
 matrices_list = calculate_transform_matrices_procrustes(snapped_selected, 0)
 post_transformation = apply_transformation_all_frames(snapped_selected[0], matrices_list)
 
@@ -830,7 +836,7 @@ def coords_to_boolean(sorted_coordinates, shape=tib_label.shape):
                 raise e
     
     return new_array
-
+#%%
 unsorted_skeleton[0] = adjusted_downsampled
 new_skeleton = coords_to_boolean(unsorted_skeleton)
 #%%
@@ -863,7 +869,7 @@ def calculate_relative_distance_and_angle(pointA, pointB, pointC):
     return relative_distance, angle
 
 def find_corres_advanced(setA, setB):
-    nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(setB)
+    nbrs = NearestNeighbors(n_neighbors=20, algorithm='ball_tree').fit(setB)
     
     # Initialize the first two points using simple nearest neighbors
     distances, indices = nbrs.kneighbors(setA[0:2])
@@ -885,8 +891,8 @@ def find_corres_advanced(setA, setB):
             candidate_relative_distance, candidate_angle = calculate_relative_distance_and_angle(B_corresponding[-2], B_corresponding[-1], candidate)
             
             # Score the candidate based on how closely these metrics match
-            score = abs(relative_distance - candidate_relative_distance) + abs(angle - candidate_angle)
-            
+            #score = abs(relative_distance - candidate_relative_distance) + abs(angle - candidate_angle)
+            score = abs(relative_distance - candidate_relative_distance) # commented out the angle condition, just to check 
             if score < best_score:
                 best_score = score
                 best_candidate = candidate
@@ -919,15 +925,93 @@ def find_corres_for_all_frames5(fem_label):
 
     return all_subsets
 
-all_subsets_advanced = find_corres_for_all_frames5(new_new_skeleton)
+def find_corres_consecutive(fem_label):
+    template_index = np.argmin([np.sum(frame) for frame in fem_label])
+    print('template is frame:', template_index)
+    
+    template_set = fem_label[template_index]
+    template_props = regionprops(template_set.astype(int))
+    template_cords = template_props[0].coords
+
+    all_subsets = []
+
+    for i in range(len(fem_label)):
+        test_set = fem_label[i]
+        test_props = regionprops(test_set.astype(int))
+        test_cords = test_props[0].coords
+
+        subset_cords = find_corres_advanced(template_cords, test_cords)
+        all_subsets.append(subset_cords)
+        
+        template_cords = subset_cords  # Set the found subset as the new template
+
+    return all_subsets
+
+triple_new_label = coords_to_boolean(sorted_skeleton)
+all_subsets_advanced = find_corres_consecutive(triple_new_label)
 #%%
-viewer.add_points(points_for_napari(all_subsets_advanced), name='all_subsets_advanced', size=2, face_color='green')
+viewer.add_points(points_for_napari(all_subsets_advanced), name='all_subsets_advanced', size=2, face_color='red')
+#%%
+viewer.add_image(label_skeleton)
 #%%
 matrices_list = calculate_transform_matrices_procrustes(all_subsets_advanced, 0)
 post_transformation = apply_transformation_all_frames(all_subsets_advanced[0], matrices_list)
 
 viewer.add_points(points_for_napari(post_transformation), face_color='purple', size=1) 
+#%%
+def calculate_transform_matrices_procrustes_consecutive(all_coords):
+    num_frames = len(all_coords)
+    transformation_matrices = []
+    
+    # Initialize the identity matrix for the first frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+    
+    # Add the identity matrix for the first frame
+    transformation_matrices.append(identity_matrix)
 
+    for i in range(1, num_frames):
+        # Estimate the transformation matrix using Procrustes
+        # between the i-th frame and the (i-1)-th frame
+        R, t = procrustes(all_coords[i-1], all_coords[i])
+        transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
+        transformation_matrices.append(transformation_matrix)
+        
+    return transformation_matrices
+
+def apply_transformation_all_frames_consecutive(initial_set, transformation_matrices):
+    transformed_subsets = []
+    
+    # Initialize with the initial set of points
+    current_points = initial_set
+    transformed_subsets.append(current_points)
+    
+    # Apply each transformation matrix in sequence
+    for matrix in transformation_matrices[1:]:  # Skip the first identity matrix
+        transformed_points = apply_transformation(matrix, current_points)
+        transformed_subsets.append(transformed_points)
+        
+        # Update current_points for the next iteration
+        current_points = transformed_points
+        
+    return transformed_subsets
+
+matrices_list = calculate_transform_matrices_procrustes_consecutive(all_subsets_advanced)
+post_transformation = apply_transformation_all_frames_consecutive(all_subsets_advanced[0], matrices_list)
+
+viewer.add_points(points_for_napari(post_transformation), face_color='green', size=1) 
+''' using non consecutive nearest neighbor somehow does better job than consecutive one. even though the transformation matrices is also found consecutively.  '''
+#%%
+ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
+transformed_expanded = apply_transformation_all_frames_consecutive(ref_points, matrices_list) 
+transformed_shapes = shapes_for_napari(transformed_expanded)
+viewer.add_shapes(transformed_shapes, shape_type='polygon') 
+
+
+#%%
+
+
+viewer = napari.Viewer()
 #%%
 ''' making angle and distance did not create as big of an advantage as expected. So, going back to the basics again, and trying to use fixed distance as the info.  '''
 
@@ -974,75 +1058,6 @@ viewer.add_points(points_for_napari(all_subsets_6), name='all_subsets_6', size=2
 def pairwise_distances(points):
     distances = np.linalg.norm(points[1:] - points[:-1], axis=1)
     return distances
-
-def find_corres7(setA, setB, global_target_distance):
-    tolerance = 0.1  # Set some tolerance value, adjust this accordingly
-    nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(setB)
-    _, indices = nbrs.kneighbors(setA)
-    B_corresponding = []
-    used_points = set()
-
-    # Use the nearest neighbor to the last template point as a starting point
-    start_point = setB[indices[-1]][0]
-    B_corresponding.append(start_point)
-    used_points.add(tuple(start_point))
-
-    for _ in range(1, len(setA)):
-        min_diff = float('inf')
-        best_point = None
-
-        # Sort remaining points by distance to the start_point
-        sorted_remaining_points = sorted(setB, key=lambda point: np.linalg.norm(start_point - np.array(point)))
-
-        for point in sorted_remaining_points:
-            if tuple(point) in used_points:
-                continue
-
-            current_distance = np.linalg.norm(start_point - np.array(point))
-            diff = abs(current_distance - global_target_distance)
-
-            # Check within tolerance
-            if global_target_distance - tolerance <= current_distance <= global_target_distance + tolerance:
-                if diff < min_diff:
-                    min_diff = diff
-                    best_point = point
-
-        if best_point is not None:
-            B_corresponding.append(best_point)
-            used_points.add(tuple(best_point))
-            start_point = best_point  # Update the starting point for the next iteration
-
-    return np.array(B_corresponding)
-
-
-
-
-def find_all7(fem_label_coords):
-    template_index = 0
-    print('template is frame: ', template_index)
-    template_cords = fem_label_coords[template_index]
-    all_subsets = []
-
-    # Compute pairwise distances for template and then find the mean
-    template_distances = pairwise_distances(template_cords)
-    print(template_distances)
-    global_target_distance = np.mean(template_distances)
-
-    for i, test_cords in enumerate(fem_label_coords):
-        if i == template_index:
-            all_subsets.append(template_cords)
-            continue
-
-        if len(template_cords) >= len(test_cords):
-            all_subsets.append(test_cords)
-        else:
-            subset_cords = find_corres7(template_cords, test_cords, global_target_distance)
-            all_subsets.append(subset_cords)
-
-    return all_subsets
-
-all_subsets_7 = find_all7(sorted_skeleton)
-viewer.add_points(points_for_napari(all_subsets_7), name='all_subsets_7', size=2, face_color='yellow')
 #%%
 def find_fixed_distance_subsets(arr_list, fixed_distance=8, tolerance=0.1):
     new_arr_list = []
@@ -1180,50 +1195,3 @@ post_transformation = apply_transformation_all_frames(equalized_list[0], matrice
 
 viewer.add_points(points_for_napari(post_transformation), face_color='purple', size=1) 
 #%%
-def calculate_transform_matrices_procrustes_consecutive(all_coords):
-    num_frames = len(all_coords)
-    transformation_matrices = []
-    
-    # Initialize the identity matrix for the first frame
-    identity_matrix = np.array([[1.0, 0.0, 0.0],
-                                [0.0, 1.0, 0.0]])
-    
-    # Add the identity matrix for the first frame
-    transformation_matrices.append(identity_matrix)
-
-    for i in range(1, num_frames):
-        # Estimate the transformation matrix using Procrustes
-        # between the i-th frame and the (i-1)-th frame
-        R, t = procrustes(all_coords[i-1], all_coords[i])
-        transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
-        transformation_matrices.append(transformation_matrix)
-        
-    return transformation_matrices
-
-def apply_transformation_all_frames_consecutive(initial_set, transformation_matrices):
-    transformed_subsets = []
-    
-    # Initialize with the initial set of points
-    current_points = initial_set
-    transformed_subsets.append(current_points)
-    
-    # Apply each transformation matrix in sequence
-    for matrix in transformation_matrices[1:]:  # Skip the first identity matrix
-        transformed_points = apply_transformation(matrix, current_points)
-        transformed_subsets.append(transformed_points)
-        
-        # Update current_points for the next iteration
-        current_points = transformed_points
-        
-    return transformed_subsets
-
-matrices_list = calculate_transform_matrices_procrustes_consecutive(all_subsets_advanced)
-post_transformation = apply_transformation_all_frames_consecutive(all_subsets_advanced[0], matrices_list)
-
-viewer.add_points(points_for_napari(post_transformation), face_color='red', size=1) 
-
-#%%
-ref_points = viewer.layers['expanded_shape'].data[0][:,1:]
-transformed_expanded = apply_transformation_all_frames_consecutive(ref_points, matrices_list) 
-transformed_shapes = shapes_for_napari(transformed_expanded)
-viewer.add_shapes(transformed_shapes, shape_type='polygon') 
