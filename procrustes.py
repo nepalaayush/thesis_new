@@ -568,3 +568,6 @@ new_list = extract_coords_from_frames(new_label)
 ''' now that we have resampled frame 1, convert the tib_label to coordinates and then stick this in.  '''
 new_list[0] = adjusted_points
 viewer.add_points(points_for_napari(new_list))
+#%%
+''' the idea here is to plot the components of the transformation matrices  ''' 
+

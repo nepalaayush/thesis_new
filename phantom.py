@@ -375,4 +375,39 @@ matrices_list_result = calculate_transform_matrices_procrustes_consecutive(equal
 post_transformation_result = apply_transformation_all_frames_consecutive(equalized_result[0], matrices_list_result)
 
 viewer.add_points(points_for_napari(post_transformation_result), face_color='red', size=1) 
- 
+#%%
+def find_angles_from_matrices(matrices_list):
+    angles = [0]
+    # Extract the angles from the transformation matrices
+    for matrix in matrices_list[1:]:  # Skip the first identity matrix
+        angle = np.arctan2(matrix[1, 0], matrix[0, 0])
+        angles.append(np.degrees(angle))  # Appending the angle in degrees 
+        
+        
+    plt.scatter(range (1, len(matrices_list) + 1 ), angles )
+    plt.xlabel('frame number')
+    plt.ylabel('angle between first frame')
+    plt.grid() 
+#%%
+def to_global_transformations(consecutive_transformations):
+    # Identity matrix in 3x3 homogenous form
+    global_transformation = np.array([[1, 0, 0],
+                                      [0, 1, 0],
+                                      [0, 0, 1]])
+
+    # This will hold the global transformations
+    global_transformations = [global_transformation[:2, :].copy()]
+
+    for trans in consecutive_transformations[1:]:  # Skip the first identity matrix
+        # Convert (2,3) to (3,3) by appending [0, 0, 1]
+        trans_3x3 = np.vstack((trans, [0, 0, 1]))
+        # Multiply the last global transformation by the new transformation
+        global_transformation = global_transformation.dot(trans_3x3)
+        # Append the new transformation to the list, converting back to (2,3)
+        global_transformations.append(global_transformation[:2, :])
+
+    return global_transformations
+
+global_transformations = to_global_transformations(matrices_list)
+
+find_angles_from_matrices(global_transformations)
