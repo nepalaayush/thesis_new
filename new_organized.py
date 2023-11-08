@@ -185,7 +185,7 @@ def sort_points_single_frame(points):
     points = np.array(points, dtype=np.float32)  # Ensure it's float or int for arithmetic operations
     
     # Find starting point
-    starting_point = points[np.argmax(points[:, 0])]  # Highest row value
+    starting_point = points[np.argmin(points[:, 0])]  # Highest row value
     sorted_points = [starting_point]
     remaining_points = [p for p in points.tolist() if not np.array_equal(p, starting_point)]
 
@@ -226,16 +226,16 @@ def equalize_lengths(points_list):
     return equalized_list
 #%%
 # Step 1: load the image from directory and normalize it
-image = open_nii('C:/Users/Aayush/Documents/thesis_files/more_data/aw1_rieseling_admm_tgv_5e-2.nii')
+image = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-3.nii')
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='aw1_rieseling_admm_tgv_5e-2.nii')
+viewer = napari.view_image(image,  name='aw2')
 #%%
 viewer.add_image(image)
 #%%
-# Step 2: apply gaussian blur to the original image and add it in napari. 
+# Step 2: apply gaussian blur to the original image and add it in napari. - probably never needed as canny has a built in gaussian blurring. 
 smooth_image = gaussian_filter(image, 2)
 viewer.add_image(smooth_image , name='smooooth')
 
@@ -268,9 +268,9 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (11,15) # 
-high_range = (15,18 ) # 
-num_steps = 15
+low_range = (15,25) # 
+high_range = (20,30 ) # 
+num_steps = 10
 sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
@@ -284,7 +284,7 @@ print(f"Elapsed Time: {end_time - start_time} seconds")
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
 #%%
-viewer3.add_image(canny_multi_edge, name='inverted_sigma2')
+viewer3.add_image(canny_multi_edge, name='aw3_5e-2_sigma2')
 #%%
 #Step 5: pick the right index and add it to viewer
 tib_canny = canny_multi_edge[0]
@@ -304,7 +304,7 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (55, 75)  # 100 min and 200 max size for femur 
+size_range = (100, 150)  # 100 min and 200 max size for femur 
 num_steps = 20  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
@@ -316,27 +316,30 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # pick the right index
-bone_canny = removed_4d[19] 
+bone_canny = removed_4d[9] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 bone_canny[:,:270] = False # this was necessary to ease the labelling process 
 viewer.add_image(bone_canny, name='after_remove_small')
-
+#%%
+skeleton_bone_canny = apply_skeleton(bone_canny)
+viewer.add_image(skeleton_bone_canny, name = 'skeleton_bone_canny')
 #%%
 # Step 7 find labels of connected regions from the edge image
-labeled_image, num_features = label(bone_canny, return_num=True, connectivity=2)
+labeled_image, num_features = label(skeleton_bone_canny, return_num=True, connectivity=None)
 
 viewer.add_labels(labeled_image, name='labeled_tib')    
 #%%
 # pick a suitable label that represents one long edge of the bone
-tib_label = labeled_image == 3                                                                                               
+tib_label =  labeled_image == 11 # (labeled_image == 4) | (labeled_image == 6) | (labeled_image == 7)                                                                                              
 viewer.add_image(tib_label, name='one_label')
 #%%
+# no need to skeletonize again. this is done before applying labels. 
 label_skeleton = apply_skeleton(tib_label)
 viewer.add_image(label_skeleton, name='skeleton')
 
 #%%
-unsorted_skeleton = boolean_to_coords(label_skeleton)
+unsorted_skeleton = boolean_to_coords(tib_label)
 
 zeroth_frame = sort_points_single_frame(unsorted_skeleton[0])
 #%%
@@ -412,18 +415,22 @@ def adjust_downsampled_points(downsampled, original_curve):
 
 zeroth_adjusted = adjust_downsampled_points(equidistant_zeroth, zeroth_frame)
 #%%
+# i have a suspicion that the adjusted is working in the wrong order, which is causing the most proximal point to lose out. trying to do it after sorting. 
+# nope suspicions were false. it was already sorted to begin with... the equidsitant zeroth. 
+#%%
 viewer.add_points(zeroth_adjusted, size=1, face_color='blue') 
 #%%
-unsorted_skeleton[0] = zeroth_adjusted
+unsorted_skeleton[0] = zeroth_adjusted[7:-7] # inject the adjusted and downsampled 0th frame to the unsorted skeleton list .. crop from top and bottom. 
 #%%
+unsorted_skeleton[0] = zeroth_adjusted # not cropping 
 sorted_skeleton = sort_points_all_frames(unsorted_skeleton)
 #%%
 def find_equidistant_subset(template_frame, target_frame, avg_gap):
     # Initialize Nearest Neighbors
     nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(target_frame)
     
-    # Start from the last point in the template
-    start_point = template_frame[-1]
+    # Start from the last point in the template # changing to first point [0]
+    start_point = template_frame[0]
     
     # Find the closest point in the target frame
     _, initial_indices = nbrs.kneighbors([start_point])
@@ -435,8 +442,8 @@ def find_equidistant_subset(template_frame, target_frame, avg_gap):
     
     # Loop to find equidistant points
     while True:
-        # Find all points upstream (lower index)
-        upstream_points = [point for i, point in enumerate(target_frame) if i < initial_indices[0][0]]
+        # Find all points upstream (lower index) # changing to greater sign to find downstream 
+        upstream_points = [point for i, point in enumerate(target_frame) if i > initial_indices[0][0]]
         
         # If we've reached the start of the list, break
         if not upstream_points:
@@ -460,9 +467,65 @@ def find_equidistant_subset(template_frame, target_frame, avg_gap):
     return np.array( selected_points ) 
 
 #%%
-avg_gap = np.mean(pairwise_distances(sorted_skeleton[0]))
-testing = find_equidistant_subset(sorted_skeleton[0], sorted_skeleton[1], avg_gap)
+''' to ensure no more points than template frame are selected  '''
 
+#%%
+def find_equidistant_subset3(template_frame, target_frame, avg_gap):
+    # Initialize Nearest Neighbors
+    nbrs = NearestNeighbors(n_neighbors=1, algorithm='ball_tree').fit(target_frame)
+
+    # Start from the first point in the template
+    start_point = template_frame[0]
+
+    # Find the closest point in the target frame
+    distances, initial_indices = nbrs.kneighbors([start_point])
+
+    # Check if we found any point
+    if not initial_indices.size:
+        print("No matching point found for start_point in target_frame.")
+        return np.array([])
+
+    current_point = target_frame[initial_indices[0][0]]
+
+    # Initialize the list of selected points with the start point
+    selected_points = [current_point]
+
+    # Loop to find equidistant points
+    while True:
+        # Find all points downstream
+        downstream_indices = np.arange(initial_indices[0][0] + 1, len(target_frame))
+
+        # If we've reached the end of the list or have enough points, break
+        if not downstream_indices.size or len(selected_points) >= len(template_frame):
+            break
+
+        # Get downstream points
+        downstream_points = target_frame[downstream_indices]
+
+        # Calculate distances from the current point to downstream points
+        distances = np.linalg.norm(downstream_points - current_point, axis=1)
+
+        # Find the index of the point closest to avg_gap away from current_point
+        gap_indices = np.where(np.abs(distances - avg_gap) == np.min(np.abs(distances - avg_gap)))[0]
+
+        # If no such point exists or we've reached the end of the list, break
+        if not gap_indices.size or downstream_indices.size <= gap_indices[0] + 1:
+            break
+
+        # Update current point and indices
+        current_point_index = downstream_indices[gap_indices[0]]
+        current_point = target_frame[current_point_index]
+        initial_indices = np.array([[current_point_index]])
+
+        # Add the current point to selected points
+        selected_points.append(current_point)
+
+    return np.array(selected_points)
+
+#%%
+avg_gap = np.mean(pairwise_distances(sorted_skeleton[0]))
+testing = find_equidistant_subset3(sorted_skeleton[0], sorted_skeleton[1], avg_gap)
+viewer.add_points(testing, face_color='green', size=1)
 #%%
 def find_all_equidistant_subsets(sorted_skeleton_list):
     # Initialize list to store subsets
@@ -479,7 +542,7 @@ def find_all_equidistant_subsets(sorted_skeleton_list):
     # Loop through all target frames
     for target_frame in sorted_skeleton_list[1:]:
         # Find the subset for the current target frame based on the template frame
-        single_subset = find_equidistant_subset(template_frame, target_frame, avg_gap)
+        single_subset = find_equidistant_subset3(template_frame, target_frame, avg_gap)
     
         # Add this subset to the list of all subsets
         all_subsets.append(single_subset)
@@ -491,7 +554,7 @@ def find_all_equidistant_subsets(sorted_skeleton_list):
 
 result_subsets = find_all_equidistant_subsets(sorted_skeleton)
 
-viewer.add_points(points_for_napari(result_subsets), name='result_subsets', size=2, face_color='orange')
+viewer.add_points(points_for_napari(result_subsets), name='result_subsets', size=2, face_color='red')
 #%%
 result_sorted = sort_points_all_frames(result_subsets)
 equalized_result = equalize_lengths(result_sorted)
@@ -499,6 +562,8 @@ viewer.add_points(points_for_napari(equalized_result), name='equalized_result', 
 
 ''' went from 30 points to 17. almost halved because of one particular frame. but that was due to the short length of that particular edge.  ''' 
 #%%
+
+
 matrices_list_result = calculate_transform_matrices_procrustes_consecutive(equalized_result)
 post_transformation_result = apply_transformation_all_frames_consecutive(equalized_result[0], matrices_list_result)
 
