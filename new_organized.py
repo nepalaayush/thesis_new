@@ -643,3 +643,126 @@ def find_angles_and_ratios_from_matrices(matrices_list):
     plt.show()
     
 find_angles_and_ratios_from_matrices(global_transformations)
+#%%
+
+tib_label_coords = boolean_to_coords(tib_label[:30])
+list_of_matrices = [transformation_matrices[i] for i in range(transformation_matrices.shape[0])]
+''' doing the old school route  '''
+def apply_transformation(matrix, points):
+    # Convert points to homogeneous coordinates
+    homogeneous_points = np.hstack([points, np.ones((points.shape[0], 1))])
+    
+    # Apply the transformation
+    transformed_points = np.dot(homogeneous_points, matrix.T)
+    
+    return transformed_points[:, :2]  # Convert back to Cartesian coordinates
+
+def apply_transformation_all_frames(reference_set, transformation_matrices):
+    transformed_subsets = []
+# Assuming `transformation_matrices` is your list of 2x3 transformation matrices
+# and `reference_coords` is the coordinates of your reference frame
+    for matrix in transformation_matrices:
+        transformed_points = apply_transformation(matrix, reference_set)
+        print(transformed_points.shape) 
+        transformed_subsets.append(transformed_points)
+    return transformed_subsets
+
+
+def procrustes(X, Y):
+    X = X.astype(float)  # Ensure X is float
+    Y = Y.astype(float)
+    centroid_X = np.mean(X, axis=0)
+    centroid_Y = np.mean(Y, axis=0)
+    X -= centroid_X
+    Y -= centroid_Y
+    U, _, Vt = np.linalg.svd(np.dot(Y.T, X))
+    R = np.dot(U, Vt)
+    t = centroid_Y - np.dot(R, centroid_X)
+    return R, t
+
+def calculate_transform_matrices_procrustes(all_coords, reference_index):
+    num_frames = len(all_coords)
+    transformation_matrices = []
+
+    # Initialize the identity matrix for the reference frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+
+    # Get the coordinates of the reference frame
+    reference_coords = all_coords[reference_index]
+
+    for i in range(num_frames):
+        if i == reference_index:
+            # Add the identity matrix for the reference frame
+            transformation_matrices.append(identity_matrix)
+        else:
+            # Estimate the transformation matrix using Procrustes
+            R, t = procrustes(reference_coords, all_coords[i])
+            transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
+            transformation_matrices.append(transformation_matrix)
+
+    return transformation_matrices 
+
+post_transformation = apply_transformation_all_frames(tib_label_coords[5], list_of_matrices)
+viewer.add_points(points_for_napari(post_transformation), face_color='green', size=2) 
+#%%
+''' did not work directly. it is due to the difference in how we transform things. trying to do it exactly as done in notebook.   '''
+def transform(coords, x, y, phi):
+    rot_mat = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
+    shift_vec = np.array([x, y])
+    new_coords = []
+    for p in coords:
+        new_coords.append(np.matmul(p, rot_mat) + shift_vec)
+    return np.array(new_coords) 
+
+ori_tib = tib_label_coords[:30]
+#%%
+ref_frame = ori_tib[5][:-30]
+new_1 = transform(ori_tib[1], transformation_matrices[1][1],transformation_matrices[1][0], transformation_matrices[1][2] )
+
+#%%
+viewer.add_points ( new_1, size=1, face_color='blue')
+#%%
+import scipy.optimize
+def coords_distance_sum(coords1, coords2):
+    dist = []
+    for p in coords1:
+        dist.append(np.min(np.sqrt(np.power(coords2[:,0] - p[0],2) + np.power(coords2[:,1] - p[1],2))))
+    return np.sum(np.array(dist))
+
+def transform(coords, x, y, phi):
+    rot_mat = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
+    shift_vec = np.array([x, y])
+    new_coords = []
+    for p in coords:
+        new_coords.append(np.matmul(p, rot_mat) + shift_vec)
+    return np.array(new_coords)
+      
+def match_coords(coords1, coords2, x0=[0, 0, -np.deg2rad(2)]):
+    cost_fcn = lambda x: coords_distance_sum(transform(coords1, x[0], x[1], x[2]), coords2)
+    fr = scipy.optimize.fmin(func=cost_fcn, x0=x0, retall=False, disp=False, ftol=1e-8, maxiter=1e3, maxfun=1e3, xtol=1e-8)
+    return fr
+
+def plot_frame(coords, ax, **kwargs):
+    ax.plot(coords[:,1], coords[:,0], '.', **kwargs)
+data = boolean_to_coords(tib_label)
+id_ref = 5
+fig, axes = plt.subplots(nrows=5, ncols=6, figsize=(14,14))
+fr = [0, 0, -np.deg2rad(2)]
+giant_list = [] 
+for ida, ax in enumerate(axes.flatten()):
+    plot_frame(data[id_ref][:-30], ax, label=f"{id_ref}")
+    plot_frame(data[ida], ax, label=f"{ida}")
+
+    fr = match_coords(data[id_ref][:-30], data[ida], x0 = fr)
+    #print(fr)
+    plot_frame(transform(data[id_ref][:-30], fr[0], fr[1], fr[2]), ax, label=f"{id_ref} to {ida}")
+    giant_list.append( transform(data[id_ref][:-30], fr[0], fr[1], fr[2]) ) 
+    ax.axis('equal')
+    ax.invert_yaxis()
+    ax.legend()
+    
+#%%
+
+viewer.add_points(points_for_napari(giant_list), size=2, face_color='orange')
+    
