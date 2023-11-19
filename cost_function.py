@@ -15,7 +15,7 @@ from skimage.measure import label, regionprops
 from skimage.feature import canny
 from skimage.morphology import skeletonize, remove_small_objects
 #import cv2
-from scipy.ndimage import gaussian_filter
+from scipy import ndimage
 import time 
 from scipy.interpolate import CubicSpline
 import scipy.optimize
@@ -67,6 +67,8 @@ def apply_skeleton(pixelarray):
         skel_frame = skeletonize(pixelarray[i])
         skeletonized[i] = skel_frame
     return skeletonized
+
+
 
 
 def apply_transformation(matrix, points):
@@ -172,6 +174,17 @@ def points_for_napari(list_points):
     all_points = np.vstack(all_points)
     return all_points 
 
+
+def shapes_for_napari(list_shapes):
+    all_shapes = []
+
+    for i, subset in enumerate(list_shapes):
+        frame_id_column = np.full((subset.shape[0], 1), i)
+        frame_subset = np.hstack([frame_id_column, subset])
+        all_shapes.append(frame_subset)
+
+    return all_shapes
+
 def show_order(curve):
     plt.scatter(curve[:, 0], curve[:, 1])
 
@@ -218,7 +231,7 @@ def sort_points_single_frame(points):
     points = np.array(points, dtype=np.float32)  # Ensure it's float or int for arithmetic operations
     
     # Find starting point
-    starting_point = points[np.argmin(points[:, 0])]  # Highest row value
+    starting_point = points[np.argmax(points[:, 0])]  # Highest row value or lowest depending on argmax or arg min 
     sorted_points = [starting_point]
     remaining_points = [p for p in points.tolist() if not np.array_equal(p, starting_point)]
 
@@ -229,18 +242,20 @@ def sort_points_single_frame(points):
         
 
         # # Check if the distance is much larger than average
-        # if len(sorted_points) > 1:
-        #     avg_distance = np.mean([np.linalg.norm(np.array(sorted_points[i+1]) - np.array(sorted_points[i])) for i in range(len(sorted_points)-1)])
-        #     large_jump = np.linalg.norm(np.array(next_point) - np.array(current_point)) > 2 * avg_distance
-        #     if large_jump:
-        #         print(f"Warning: Large distance jump detected in frame {frame_number} between point {current_point} and point {next_point}")  # Modified print statement
-        #         break
+        if len(sorted_points) > 1:
+             avg_distance = np.mean([np.linalg.norm(np.array(sorted_points[i+1]) - np.array(sorted_points[i])) for i in range(len(sorted_points)-1)])
+             large_jump = np.linalg.norm(np.array(next_point) - np.array(current_point)) > 2 * avg_distance
+             if large_jump:
+                 break
 
         
         
         sorted_points.append(next_point)
         remaining_points.remove(next_point)
-
+    
+    # reverse the order or sorted_points if we are using np.argmax 
+    sorted_points.reverse()
+    
     return np.array(sorted_points)
 
 def sort_points_all_frames(list_of_points):
@@ -331,17 +346,172 @@ image = np.moveaxis(image, 1, 0)[1:]
 #add the original image to napari
 viewer = napari.view_image(image,  name='aw2')
 #%%
+# Step 4: find the best suitable low and high range for edge detection
+start_time = time.time() 
+
+def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps, sigma):
+    ''' Note, values less than low are ignored, values greater than high are considered edges. Pixels with a gradient magnitude between low and high are conditionally accepted if they're connected to strong edges. ''' 
+    low_values = np.linspace(low_range[0], low_range[1], num_steps)
+    high_values = np.linspace(high_range[0], high_range[1], num_steps)
+    
+    # Initialize a 4D array to store results
+    canny_multi_edge = np.zeros((num_steps, *pixelarray.shape), dtype=bool)
+    
+    for j, (low, high) in enumerate(zip(low_values, high_values)):
+        canny_edge = apply_canny(pixelarray, low, high, sigma)
+        canny_multi_edge[j] = canny_edge
+    
+    return canny_multi_edge
+
+low_range = (1,2) # 
+high_range = (15,20 ) # 
+num_steps = 10
+sigma = 3
+print(np.linspace(low_range[0] , low_range[1], num_steps) )
+print(np.linspace(high_range[0] , high_range[1], num_steps) )
+
+canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range, num_steps, sigma)
+
+end_time = time.time() 
+print(f"Elapsed Time: {end_time - start_time} seconds")
+
+#%%
+# add the 4d image to a new viewer
+viewer3 = napari.Viewer() 
+#%%
+viewer3.add_image(canny_multi_edge, name='aw3_5e-2_sigma3')
+
+#%%
+#Step 5: pick the right index and add it to viewer
+tib_canny = canny_multi_edge[7]
+viewer.add_image(tib_canny, name='after_edge_detection_sigma_3')
+
+#%%
+#Step 6: Use remove small objects at various ranges to find the most suitable
+def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
+    size_values = np.linspace(size_range[0], size_range[1], num_steps).astype(int)
+    print(size_values) 
+    # Initialize a 4D array to store results
+    removed_multi_3d = np.zeros((num_steps, *pixelarray.shape), dtype=bool)
+    
+    for i, size in enumerate(size_values):
+        removed_3d = apply_remove(pixelarray, size, connectivity)
+        removed_multi_3d[i] = removed_3d
+    
+    return removed_multi_3d
+
+# Example usage
+size_range = (50, 80)  # 100 min and 200 max size for femur 
+num_steps = 20  # Number of steps for size parameter
+connectivity = 2  # Fixed connectivity value
+print(np.linspace(size_range[0],size_range[1], num_steps))
+# Assuming smooth_image is your 3D image array
+removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, connectivity)
+
+
+# add it to the 4d viewer
+viewer3.add_image(removed_4d, name='multi_remove_small')
+#%%
+# pick the right index
+bone_canny = removed_4d[15] 
+viewer.add_image(bone_canny, name='after_remove_small')
+
+#%%
+skeleton_bone_canny = apply_skeleton(bone_canny)
+viewer.add_image(skeleton_bone_canny, name = 'skeleton_bone_canny')
+
+#%%
+viewer2 = napari.Viewer() 
+
+#%%
+''' since using  (2,2) looked promising, turned this into a loop. ''' 
+
+def apply_label(pixelarray):
+    structuring_element = ndimage.generate_binary_structure(2, 2)
+    labelized = []
+    for i in range(pixelarray.shape[0]):
+        label_frame, num_features = ndimage.label(pixelarray[i], structure=structuring_element, output=None)
+        labelized.append(label_frame)
+    return np.stack(labelized), num_features
+
+label_image, features = apply_label(bone_canny)
+
+viewer.add_labels(label_image, name='2,2,structure_label_loop')
+#%%
+tib_label = (label_image >= 10) & (label_image <= 19)
+viewer.add_image(tib_label, name='tib_label')
+
+#%%
+''' second time ''' 
+label_image, features = apply_label(tib_label)
+
+viewer.add_labels(label_image, name='second_iteration')
+#%%
+'''repeat''' 
+tib_label = (label_image == 1) | (label_image >= 3) & (label_image <=10)
+viewer.add_image(tib_label, name='tib_label_second_iteration')
+
+''' second iteration is not very useful. only the first case, where we separated out the femur and tibia were kinda helpful. but after that, the gains are minimal.  ''' 
+#%%
+
+structuring_element = ndimage.generate_binary_structure(3, 2)
+
+ndlabel, features = ndimage.label(tib_label, structure=structuring_element, output=None)
+viewer.add_labels(ndlabel, name='ndlabel_with_3,2_structure')    
+print(features)
+''' for some reason, doing this is actually quite benefitial.  ''' 
+#%%
+tib_label = ndlabel== 3 
+viewer.add_labels(tib_label)
+#%%
+#%%
+''' third time ''' 
+label_image, features = apply_label(tib_label)
+
+viewer.add_labels(label_image, name='third_iteration')
+#%%
+# saving the tib label only for future 
+new_labeling = viewer.layers['tib_label'].data
+np.save('new_labeling', new_labeling)
+
+#%%
+# loading the saved label image above: # still incomplete but a little bit to do, to obtain a long edge 
+new_labeling = np.load('C:/Users/Aayush/Documents/thesis_files/new_labeling.npy')
+#%%
+viewer = napari.Viewer()
+#%%
+viewer.add_labels(new_labeling)
+
+#%%
+pre_final_label = viewer.layers[0].data
+#%%
+viewer.add_labels(pre_final_label)
+#%%
+final_label = apply_skeleton(pre_final_label)
+
+#%%
+
+#%%
+# Step 7 find labels of connected regions from the edge image
+labeled_image, num_features = label(bone_canny, return_num=True, connectivity=1)
+
+viewer.add_labels(labeled_image, name='labeled_tib')    
+#%%
 # using previously obtained label 
-tib_label = tib_label
-viewer.add_image(tib_label)
+final_label = viewer.layers[0].data
 #%%
-tib_coords = boolean_to_coords(tib_label) 
+tib_coords = boolean_to_coords(final_label) 
 #%%
+viewer.add_image(final_label)
+#%%
+# step 8 : take the first frame and downsample/adjust it
 zeroth_frame = sort_points_single_frame(tib_coords[0])
-zeroth_nonadjusted = equidistant_points(zeroth_frame,30)
+zeroth_nonadjusted = equidistant_points(zeroth_frame,50)
 zeroth_adjusted = adjust_downsampled_points(zeroth_nonadjusted, zeroth_frame)
 viewer.add_points(zeroth_adjusted, face_color='blue', size =1)
 #%%
+#step 9, replace this version of first frame in the original list
+
 new_tib_coords = tib_coords 
 new_tib_coords[0] = zeroth_adjusted
 #%%
@@ -364,6 +534,16 @@ def match_coords(coords1, coords2, x0=[0, 0, 0]): # was using -np.deg2rad(2) as 
     fr = scipy.optimize.fmin(func=cost_fcn, x0=x0, retall=False, disp=False, ftol=1e-8, maxiter=1e3, maxfun=1e3, xtol=1e-8)
     min_cost = cost_fcn(fr)
     return fr, min_cost
+
+def apply_transformations(reference_frame, transformation_matrices):
+    transformed_frames = [reference_frame]
+
+    for matrix in transformation_matrices[1:]:  # Exclude the identity matrix
+        x, y, phi = matrix
+        reference_frame = transform(reference_frame, x, y, phi)
+        transformed_frames.append(reference_frame)
+
+    return transformed_frames
 #%%
 def plot_frame(coords, ax, **kwargs):
     ax.plot(coords[:,1], coords[:,0], '.', **kwargs)
@@ -389,22 +569,13 @@ for ida, ax in enumerate(axes.flatten()):
 viewer.add_points(points_for_napari(giant_list), size=2, face_color='orange')
 #%%
 
-#data = sort_points_all_frames(new_tib_coords)
-data = new_tib_coords
-# a non plot version of this 
-# Initialization of lists to store results
-transformation_matrices = []
-giant_list = []
-id_ref= 0 
-# Main loop to calculate transformation matrices
-for ida in range(len(data)):
-    fr = match_coords(data[id_ref], data[ida], x0=[0, 0, 0])
-    transformation_matrices.append(fr)  # Store the transformation matrix
-    transformed_data = transform(data[id_ref], fr[0], fr[1], fr[2])
-    giant_list.append(transformed_data)  # Store the transformed coordinates    
-    
-viewer.add_points(points_for_napari(giant_list), size=2, face_color='red')
 
+#%%
+''' this cell works when we have the label binary image as well as sampled first frame coordinates already  ''' 
+viewer = napari.Viewer() 
+viewer.add_image(image, name='original_image')
+viewer.add_image(tib_label)
+viewer.add_points(points_for_napari(new_tib_coords), face_color='yellow', size=2)
 #%%
 def consecutive_transform(data):
     # Initialize the list to store transformation matrices and transformed data
@@ -430,8 +601,50 @@ def consecutive_transform(data):
     return transformation_matrices, giant_list, cost_values
 
 transformation_matrices, giant_list, cost_values_no_update = consecutive_transform(new_tib_coords)
-viewer.add_points(points_for_napari(giant_list), size=2, face_color='yellow', name='consecutive_transform')
+viewer.add_points(points_for_napari(giant_list), size=1, face_color='red', name='consecutive_transform')
 
+#%%
+viewer.add_shapes(new_tib_coords[0], shape_type='polygon')
+#%%
+ref_points = viewer.layers['expanded_shape'].data[0]
+#%%
+# here ref_points is taken from the drawn shape. not shown here. 
+applied_transformation = apply_transformations(ref_points, transformation_matrices)    
+#%%
+viewer.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
+
+#%%
+disp_layer = viewer.layers["transformed_shapes"].to_labels(image.shape)
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
+xrange=slice(100,410)
+yrange=slice(150,400)
+for ax, idi in zip(axes.flatten(), range(0,38,7)):
+    ax.imshow(image[idi,xrange,yrange], cmap="gray")
+    ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
+    ax.imshow(tib_label[idi,xrange,yrange], alpha=(tib_label[idi,xrange,yrange] > 0).astype(float), cmap='autumn')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(f"Frame {idi}", color='white')
+    
+plt.tight_layout()
+plt.savefig('test.svg')
+
+
+
+#%%
+def find_min_max(list_of_matrices):
+    stacked_array = np.vstack(list_of_matrices)
+    min_vals = [np.min(stacked_array[:,0]), np.min(stacked_array[:,1]), np.min(stacked_array[:,2]) ]
+    max_vals = [np.max(stacked_array[:,0]), np.max(stacked_array[:,1]), np.max(stacked_array[:,2]) ]
+    print('The min values are ', min_vals, '\n', 'and the max values are ', max_vals)
+
+find_min_max(transformation_matrices)    
+
+#%%
+def find_min_indices(array):
+    min_arg = np.argmin(array) 
+    min_indices = np.unravel_index(min_arg,array.shape)
+    return (min_indices)
 #%%
 def consecutive_transform_with_guess_update(data):
     # Initialize the list to store transformation matrices and transformed data
@@ -464,10 +677,11 @@ transformation_matrices, giant_list, cost_values = consecutive_transform_with_gu
 viewer.add_points(points_for_napari(giant_list), size=2, face_color='green', name='consecutive_transform_with_guess_update')
 
 #%%
+data = new_tib_coords
 ''' to see the behaviour of cost function  '''
-dx_range = np.linspace(-30, 25, 100)  # Example range for dx
-dy_range = np.linspace(-20,25, 100)  # Example range for dy
-dphi_constant = -0.02  # Constant value for dphi taken from the transform_matrices list, index 19 
+dx_range = np.linspace(-5, 40, 100)  # Example range for dx
+dy_range = np.linspace(-35,-15,100)  # Example range for dy
+dphi_constant = -0.06629422132930236  # Constant value for dphi taken from the transform_matrices list, index 19 
 
 # Create a meshgrid for dx and dy
 DX, DY = np.meshgrid(dx_range, dy_range)
@@ -476,8 +690,8 @@ DX, DY = np.meshgrid(dx_range, dy_range)
 cost_values = np.zeros_like(DX)
 
 # Get the coordinates for frame 20
-coords1 = data[19]  # Assuming data is zero-indexed
-coords2 = data[20]
+coords1 = giant_list[8]  
+coords2 = giant_list[9]
 
 # Compute the cost function values over the grid
 for i in range(DX.shape[0]):
@@ -488,21 +702,37 @@ for i in range(DX.shape[0]):
         # Compute the cost function value
         cost_values[i, j] = coords_distance_sum(transformed_coords, coords2)
 
+# Find the minimum cost value directly
+min_cost_value = np.min(cost_values)
+
+# Find the indices of the minimum cost value
+min_cost_indices = np.where(cost_values == min_cost_value)
+
+# Use the indices to find the corresponding dx and dy values
+# Since where() returns a tuple of arrays, we take the first element of those arrays
+min_dx = DX[min_cost_indices][0]
+min_dy = DY[min_cost_indices][0]
+
+# Print the results
+print(f"The minimum cost function value is {min_cost_value:.4f} at dx = {min_dx:.4f} and dy = {min_dy:.4f}")
+
 # Plot the cost function values using a colormap
 plt.figure(figsize=(8, 6))
 plt.contourf(DX, DY, cost_values, levels=50, cmap='viridis')
 plt.colorbar(label='Cost function value')
 plt.xlabel('dx')
 plt.ylabel('dy')
-plt.title('Cost Function Landscape for Frame 20 (dphi constant)')
+plt.title('Cost Function Landscape for Frame 9 (dphi constant)')
 plt.show()
 #%%
+viewer1 = napari.Viewer()
+#%%
 ''' doing a 3d version below   ''' 
-
+start_time = time.time() 
 # Define ranges for dx, dy, and dphi
-dx_range = np.linspace(-30, 25, 50)  # Smaller sample for computational feasibility
-dy_range = np.linspace(-20, 25, 50)
-dphi_range = np.linspace(-0.1, 0.1, 50)  # Example range for dphi
+dx_range = np.linspace(0, 6, 50)  # Smaller sample for computational feasibility
+dy_range = np.linspace(-4,0, 50)
+dphi_range = np.linspace( -0.004, -0.014, 50)  # Example range for dphi
 
 # Create a 3D meshgrid for dx, dy, and dphi
 DX, DY, DPHI = np.meshgrid(dx_range, dy_range, dphi_range, indexing='ij')
@@ -510,19 +740,30 @@ DX, DY, DPHI = np.meshgrid(dx_range, dy_range, dphi_range, indexing='ij')
 # Initialize a 3D array to hold the cost function values
 cost_values_3d = np.zeros_like(DX)
 
-# Get the coordinates for frame 20
-coords1 = data[19]  # Assuming data is zero-indexed
-coords2 = data[20]
+# Get the coordinates for frame 8 and 9 
+coords1 = giant_list[29]  # giant_list contains the coordinates after sampling. 
+coords2 = giant_list[30]
 
 # Compute the cost function values over the grid
 for i in range(DX.shape[0]):
     for j in range(DX.shape[1]):
         for k in range(DX.shape[2]):
-            # Apply the transformation with the current dx, dy, and dphi
             transformed_coords = transform(coords1, DX[i, j, k], DY[i, j, k], DPHI[i, j, k])
             
             # Compute the cost function value
             cost_values_3d[i, j, k] = coords_distance_sum(transformed_coords, coords2) 
             
             
-viewer.add_image(cost_values_3d, )
+viewer1.add_image(np.moveaxis(cost_values_3d, -1,0) )
+
+end_time = time.time() 
+print(f"Elapsed Time: {end_time - start_time} seconds")
+#%%
+new_array = np.array([dx_range[24],dy_range[25], dphi_range[26] ])
+
+new_trans_matrices = transformation_matrices
+new_trans_matrices[30] = new_array
+#%%
+applied_transformation2 = apply_transformations(ref_points, new_trans_matrices)
+viewer.add_shapes(shapes_for_napari(applied_transformation2), shape_type='polygon', face_color='blue')
+    
