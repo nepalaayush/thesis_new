@@ -339,12 +339,14 @@ def adjust_downsampled_points(downsampled, original_curve):
     return np.array(adjusted_points)
 #%%
 # Step 1: load the image from directory and normalize it
-image = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/data_neg_aw1.nii')
+image = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_50.nii')
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='data_neg_aw1')
+viewer = napari.view_image(image,  name='aw2_5e3')
+#%%
+viewer.add_image(image, name='50')
 #%%
 # Step 2: apply gaussian blur to the original image and add it in napari. 
 smooth_image = ndimage.gaussian_filter(image, 2)
@@ -356,6 +358,9 @@ smooth_image = image # when using regularized, it is already smooth
 grad_smooth = gradify(smooth_image)[0]
 grad_direction = gradify(smooth_image)[1]
 viewer.add_image(grad_smooth, name='gradient_smooth')
+#%%
+# add the 4d image to a new viewer
+viewer3 = napari.Viewer() 
 #%%
 # Step 4: find the best suitable low and high range for edge detection
 start_time = time.time() 
@@ -377,7 +382,7 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
 low_range = (1,2) # 
 high_range = (15,20 ) # 
 num_steps = 10
-sigma = 1
+sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
@@ -385,12 +390,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
+viewer3.add_image(canny_multi_edge, name='50')
+
 
 #%%
-# add the 4d image to a new viewer
-viewer3 = napari.Viewer() 
-#%%
-viewer3.add_image(canny_multi_edge, name='aw3_5e-2_sigma2')
 
 #%%
 #Step 5: pick the right index and add it to viewer
@@ -436,7 +439,7 @@ viewer2 = napari.Viewer()
 
 #%%
 ''' since using  (2,2) looked promising, turned this into a loop. ''' 
-
+bone_canny = canny_multi_edge[9]
 def apply_label(pixelarray):
     structuring_element = ndimage.generate_binary_structure(2, 2)
     labelized = []
@@ -467,9 +470,24 @@ viewer.add_image(tib_label, name='tib_label_second_iteration')
 
 structuring_element = ndimage.generate_binary_structure(3, 2)
 
-ndlabel, features = ndimage.label(tib_label, structure=structuring_element, output=None)
-viewer.add_labels(ndlabel, name='ndlabel_with_3,2_structure')    
-print(features)
+
+custom_structuring_element = np.array([
+    [[False, True, False],
+     [True, True, True],
+     [False, True, False]],
+
+    [[True, True, True],
+     [True, True, True],
+     [True, True, True]],
+
+    [[False, True, False],
+     [True, True, True],
+     [False, True, False]]
+])
+
+ndlabel, features = ndimage.label(bone_canny, structure=custom_structuring_element, output=None)
+viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure_custom')    
+#print(features)
 ''' for some reason, doing this is actually quite benefitial.  ''' 
 #%%
 tib_label = ndlabel== 3 
@@ -504,7 +522,7 @@ final_label = apply_skeleton(pre_final_label)
 
 #%%
 # Step 7 find labels of connected regions from the edge image
-labeled_image, num_features = label(bone_canny, return_num=True, connectivity=1)
+labeled_image, num_features = label(bone_canny, return_num=True, connectivity=2)
 
 viewer.add_labels(labeled_image, name='labeled_tib')    
 #%%

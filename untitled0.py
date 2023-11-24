@@ -13,12 +13,7 @@ import os
 
 im1 = dicom.dcmread('C:/Users/Aayush/Documents/thesis_files/internship_stuff/0011175460 Phantom Internship Gadovistreihe/0047274091 Medphys Internship/MR se_32TE/MR000000.dcm')
 napari.view_image(im1.pixel_array)
-#%%
-file_path = "im0.txt"
 
-with open(file_path, 'w') as f:
-    f.write(str(im0))
-    
 #%%
 def get_pixelArray(dicomlist):
     ''' 
@@ -52,9 +47,13 @@ def delete_firstindex(array):
     array = np.delete(array, [0], axis = 0)
     return array
 #%%
-path_t2 = r'C:\Users\Aayush\Documents\thesis_files\internship_stuff\0011175460 Phantom Internship Gadovistreihe\0047274091 Medphys Internship\MR se_32TE'
+path_t1 = r'/data/projects/internship-biochemistry-annualy/data/0011175460 Phantom Internship Gadovistreihe/0047274091 Medphys Internship/MR tse 50'
+path_t1_2 = r'/data/projects/internship-biochemistry-annualy/data/0011175460 Phantom Internship Gadovistreihe/0047274091 Medphys Internship/MR tse 100'
 #%%
-dicomlist = get_dicom_list(r'C:\Users\Aayush\Documents\thesis_files\internship_stuff\0011175460 Phantom Internship Gadovistreihe\0047274091 Medphys Internship\MR se_32TE')
+pathlist = [path_t1 , path_t1_2]
+#%%
+
+dicomlist = get_dicom_list(pathlist)
 #%%
 pdata = get_pixelArray(dicomlist)
 #%%
@@ -62,7 +61,11 @@ napari.view_image(pdata)
 ''' contrary to my initial belief, actually, the dicom that is new, is still able to load and show the image. the problem then must lie in echo times stuff or perhaps the string literal stuff  ''' 
 #%%
 
+file_path = "t1.txt"
 
+with open(file_path, 'w') as f:
+    f.write(str(dicomlist[0]))
+    
 #%%
 def save_dicom_to_text(dicom_dataset, text_file_path):
     """
