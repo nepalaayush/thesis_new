@@ -337,16 +337,22 @@ def adjust_downsampled_points(downsampled, original_curve):
                 break
 
     return np.array(adjusted_points)
+
+#%%
+image1 = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/tgv_low.nii')
+image1 = normalize(image1)
+image1 = np.moveaxis(image1, 1, 0)[1:]
+napari.view_image(image1)
 #%%
 # Step 1: load the image from directory and normalize it
-image = open_nii('C:/Users/Aayush/Documents/thesis_files/more_data/aw2_rieseling_admm_tgv_5e-1.nii')
+image = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/W_tgv_0.5.nii')
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='5e-1')
+viewer = napari.view_image(image,  name='W_0.5')
 #%%
-viewer.add_image(image, name='50')
+viewer.add_image(image, name='original_zf2_ea')
 #%%
 # Step 2: apply gaussian blur to the original image and add it in napari. 
 smooth_image = ndimage.gaussian_filter(image, 2)
@@ -379,8 +385,8 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (1,2) # 
-high_range = (15,20 ) # 
+low_range = (5,10) # 
+high_range = (24,28 ) # 
 num_steps = 10
 sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
@@ -390,7 +396,7 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='5e-1_edge')
+viewer3.add_image(canny_multi_edge, name='0.5_tgv')
 
 
 #%%
@@ -427,16 +433,13 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # pick the right index
-bone_canny = removed_4d[10] 
+bone_canny = removed_4d[11] 
 viewer.add_image(bone_canny, name='after_remove_small')
 
 #%%
 # skeletonize the edge 
 skeleton_bone_canny = apply_skeleton(bone_canny)
 viewer.add_image(skeleton_bone_canny, name = 'skeleton_bone_canny')
-
-#%%
-viewer2 = napari.Viewer() 
 
 #%%
 ''' since using  (2,2) looked promising, turned this into a loop. ''' 
@@ -453,8 +456,8 @@ label_image, features = apply_label(bone_canny)
 
 viewer.add_labels(label_image, name='2,2,structure_label_loop')
 #%%
-tib_label = (label_image >= 10) & (label_image <= 19)
-viewer.add_image(tib_label, name='tib_label')
+tib_label = (label_image >= 15) & (label_image <= 21)
+viewer.add_labels(tib_label, name='tib_label')
 
 #%%
 ''' second time ''' 
@@ -462,20 +465,14 @@ label_image, features = apply_label(tib_label)
 
 viewer.add_labels(label_image, name='second_iteration')
 #%%
-'''repeat''' 
-tib_label = (label_image == 1) | (label_image >= 3) & (label_image <=10)
-viewer.add_image(tib_label, name='tib_label_second_iteration')
-
-''' second iteration is not very useful. only the first case, where we separated out the femur and tibia were kinda helpful. but after that, the gains are minimal.  ''' 
-#%%
 
 structuring_element = ndimage.generate_binary_structure(3, 2)
-
+#%%
 
 custom_structuring_element = np.array([
-    [[False, True, False],
-     [True, False, True],
-     [False, True, False]],
+    [[True, False, True],
+     [False, True, False],
+     [True, False, True]],
     
     [[True, True, False],
      [False, False, False],
@@ -486,16 +483,23 @@ custom_structuring_element = np.array([
      [False, True, False]]
 ])
 #%%
-ndlabel, features = ndimage.label(bone_canny, structure=custom_structuring_element, output=None)
+ndlabel, features = ndimage.label(tib_label, structure= structuring_element, output=None)
 viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure_custom')    
 #print(features)
 #%%
 ''' for some reason, doing this is actually quite benefitial.  ''' 
 #%%
-tib_label = ndlabel== 1 
-viewer.add_labels(tib_label)
+tib_label_penul = ndlabel== 5 
+viewer.add_labels(tib_label_penul)
+
 #%%
-np.save('tib_label_11.25', tib_label)
+final_label = viewer.layers['tib_label_penul'].data
+viewer.add_image(final_label)
+#%%
+final_label = apply_skeleton(final_label)
+viewer.add_image(final_label)
+#%%
+np.save('final_label_W', final_label)
 
 #%%
 tib_label = np.load('C:/Users/Aayush/tib_label_5e-1.npy') # continuiing on previous work 
@@ -553,7 +557,7 @@ viewer.add_points(zeroth_adjusted, face_color='orange', size =1)
 # step 8.5 try to find the shortest curve as the reference frame 
 template_index = np.argmin([np.sum(frame) for frame in final_label])
 print('template is frame: ', template_index)
-
+#%%
 # this works when we have a 3d boolean array, if instead we have a list of arrays, this should work 
 def find_array_with_min_n(list_of_arrays):
     template_index = np.argmin([arr.shape[0] for arr in list_of_arrays])
@@ -700,8 +704,8 @@ def consecutive_transform_min(data):
 
     return transformation_matrices, giant_list, cost_values
 
-transformation_matrices_last, giant_list_last, cost_values_no_update_last = consecutive_transform_min(new_tib_coords_last)
-viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='indigo', name='consecutive_transform_last')
+transformation_matrices, giant_list, cost_values_no_update = consecutive_transform_min(new_tib_coords)
+viewer.add_points(points_for_napari(giant_list), size=1, face_color='indigo', name='consecutive_transform_first')
 
 #%%
 # to use the reference as a shape and move it around 
