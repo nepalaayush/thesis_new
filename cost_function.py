@@ -338,6 +338,15 @@ def adjust_downsampled_points(downsampled, original_curve):
 
     return np.array(adjusted_points)
 
+
+def apply_label(pixelarray):
+    structuring_element = ndimage.generate_binary_structure(2, 2)
+    labelized = []
+    for i in range(pixelarray.shape[0]):
+        label_frame, num_features = ndimage.label(pixelarray[i], structure=structuring_element, output=None)
+        labelized.append(label_frame)
+    return np.stack(labelized), num_features
+
 #%%
 image1 = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/tgv_low.nii')
 image1 = normalize(image1)
@@ -352,7 +361,7 @@ image = np.moveaxis(image, 1, 0)[1:]
 #add the original image to napari
 viewer = napari.view_image(image,  name='W_0.5')
 #%%
-viewer.add_image(image, name='original_zf2_ea')
+viewer.add_image(image, name='image')
 #%%
 # Step 2: apply gaussian blur to the original image and add it in napari. 
 smooth_image = ndimage.gaussian_filter(image, 2)
@@ -386,7 +395,7 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     return canny_multi_edge
 
 low_range = (5,10) # 
-high_range = (24,28 ) # 
+high_range = (11,20 ) # 
 num_steps = 10
 sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
@@ -398,12 +407,9 @@ end_time = time.time()
 print(f"Elapsed Time: {end_time - start_time} seconds")
 viewer3.add_image(canny_multi_edge, name='0.5_tgv')
 
-
-#%%
-
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[9]
+tib_canny = canny_multi_edge[6]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 
 #%%
@@ -433,7 +439,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # pick the right index
-bone_canny = removed_4d[11] 
+bone_canny = removed_4d[9] 
 viewer.add_image(bone_canny, name='after_remove_small')
 
 #%%
@@ -441,16 +447,6 @@ viewer.add_image(bone_canny, name='after_remove_small')
 skeleton_bone_canny = apply_skeleton(bone_canny)
 viewer.add_image(skeleton_bone_canny, name = 'skeleton_bone_canny')
 
-#%%
-''' since using  (2,2) looked promising, turned this into a loop. ''' 
-#bone_canny = canny_multi_edge[9]
-def apply_label(pixelarray):
-    structuring_element = ndimage.generate_binary_structure(2, 2)
-    labelized = []
-    for i in range(pixelarray.shape[0]):
-        label_frame, num_features = ndimage.label(pixelarray[i], structure=structuring_element, output=None)
-        labelized.append(label_frame)
-    return np.stack(labelized), num_features
 #%%
 label_image, features = apply_label(bone_canny)
 
@@ -877,3 +873,61 @@ viewer.add_points(transformed_manual, size=1, face_color='indigo')
 applied_transformation2 = apply_transformations(ref_points, new_trans_matrices)
 viewer.add_shapes(shapes_for_napari(applied_transformation2), shape_type='polygon', face_color='blue')
     
+#%%
+
+''' the portion below attempts to find the automatic edge of interest, using a manually selected point '''
+
+def move_and_find_label(frame_labels, start_coord, direction, stop_label=None):
+    row, col = start_coord
+    label = None
+
+    if direction == 'east':
+        # Move east until a non-zero label is found
+        for i in range(col, frame_labels.shape[1]):
+            if frame_labels[row, i] != 0:
+                label = frame_labels[row, i]
+                break
+
+    elif direction == 'north':
+        # Move north until a non-zero label is found
+        for i in range(row, -1, -1):
+            if frame_labels[i, col] != 0:
+                if stop_label is not None and frame_labels[i, col] == stop_label:
+                    # If we encounter the stop_label, return None to indicate we should not continue searching
+                    return None
+                label = frame_labels[i, col]
+                break
+
+    return label
+
+
+def find_tibia_edges(label_image, start_coord):
+    # Create a new array to store the edges of interest
+    tibia_edges = np.zeros_like(label_image)
+
+    # Process each frame
+    for frame in range(label_image.shape[0]):
+        # Adjust the starting coordinates for the current frame, if necessary
+        current_coord = start_coord  # Assuming the point doesn't change location
+
+        # Find the label while moving east
+        east_label = move_and_find_label(label_image[frame], current_coord, direction='east')
+
+        # Check if we need to move north
+        north_label = move_and_find_label(label_image[frame], current_coord, direction='north', stop_label=east_label)
+
+        # Set the detected label(s) in the tibia_edges array
+        if east_label is not None:
+            tibia_edges[frame][label_image[frame] == east_label] = east_label
+            if north_label is not None:
+                tibia_edges[frame][label_image[frame] == north_label] = north_label
+
+    return tibia_edges
+
+
+#%%
+start_coord = viewer.layers['Points'].data[0][1:].astype(int) 
+
+
+auto_tib_edge = find_tibia_edges(label_image, start_coord)
+viewer.add_labels(auto_tib_edge) 
