@@ -347,6 +347,62 @@ def apply_label(pixelarray):
         labelized.append(label_frame)
     return np.stack(labelized), num_features
 
+
+
+''' the portion below attempts to find the automatic edge of interest, using a manually selected point '''
+
+def move_and_find_label(frame_labels, start_coord, direction, stop_label=None):
+    row, col = start_coord
+    label = None
+
+    if direction == 'east':
+        # Move east until a non-zero label is found
+        for i in range(col, frame_labels.shape[1]):
+            if frame_labels[row, i] != 0:
+                label = frame_labels[row, i]
+                break
+
+    elif direction == 'north':
+        # Move north until a non-zero label is found
+        for i in range(row, -1, -1):
+            if frame_labels[i, col] != 0:
+                if stop_label is not None and frame_labels[i, col] == stop_label:
+                    # If we encounter the stop_label, return None to indicate we should not continue searching
+                    return None
+                label = frame_labels[i, col]
+                break
+
+    return label
+
+
+def find_tibia_edges(label_image, start_coord):
+    # Create a new array to store the edges of interest
+    tibia_edges = np.zeros_like(label_image)
+
+    # Process each frame
+    for frame in range(label_image.shape[0]):
+        # Adjust the starting coordinates for the current frame, if necessary
+        current_coord = start_coord  # Assuming the point doesn't change location
+
+        # Find the label while moving east
+        east_label = move_and_find_label(label_image[frame], current_coord, direction='east')
+
+        # Check if we need to move north
+        north_label = move_and_find_label(label_image[frame], current_coord, direction='north', stop_label=east_label)
+
+        # Set the detected label(s) in the tibia_edges array
+        if east_label is not None:
+            tibia_edges[frame][label_image[frame] == east_label] = east_label
+            if north_label is not None:
+                tibia_edges[frame][label_image[frame] == north_label] = north_label
+
+    return tibia_edges
+
+
+def find_array_with_min_n(list_of_arrays):
+    template_index = np.argmin([arr.shape[0] for arr in list_of_arrays])
+    print('template is frame: ', template_index)
+    return template_index
 #%%
 image1 = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/tgv_low.nii')
 image1 = normalize(image1)
@@ -354,12 +410,12 @@ image1 = np.moveaxis(image1, 1, 0)[1:]
 napari.view_image(image1)
 #%%
 # Step 1: load the image from directory and normalize it
-image = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/W_tgv_0.5.nii')
+image = open_nii('C:/Users/Aayush/Documents/thesis_files/nepal_aayush/NW_tgv.nii')
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='W_0.5')
+viewer = napari.view_image(image,  name='NW_AN')
 #%%
 viewer.add_image(image, name='image')
 #%%
@@ -397,7 +453,7 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
 low_range = (5,10) # 
 high_range = (11,20 ) # 
 num_steps = 10
-sigma = 2
+sigma = 1.5
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
@@ -405,12 +461,12 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='0.5_tgv')
+viewer3.add_image(canny_multi_edge, name='AN_NW_1.5')
 
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[6]
-viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
+tib_canny = canny_multi_edge[9]
+viewer.add_image(tib_canny, name='after_edge_detection_sigma_1.5')
 
 #%%
 #Step 6: Use remove small objects at various ranges to find the most suitable
@@ -436,11 +492,11 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 
 
 # add it to the 4d viewer
-viewer3.add_image(removed_4d, name='multi_remove_small')
+viewer3.add_image(removed_4d, name='multi_remove_small_1.5')
 #%%
 # pick the right index
-bone_canny = removed_4d[9] 
-viewer.add_image(bone_canny, name='after_remove_small')
+bone_canny = removed_4d[15] 
+viewer.add_image(bone_canny, name='after_remove_small_15')
 
 #%%
 # skeletonize the edge 
@@ -462,7 +518,7 @@ label_image, features = apply_label(tib_label)
 viewer.add_labels(label_image, name='second_iteration')
 #%%
 
-structuring_element = ndimage.generate_binary_structure(3, 2)
+structuring_element = ndimage.generate_binary_structure(3, 3)
 #%%
 
 custom_structuring_element = np.array([
@@ -479,11 +535,15 @@ custom_structuring_element = np.array([
      [False, True, False]]
 ])
 #%%
-ndlabel, features = ndimage.label(tib_label, structure= structuring_element, output=None)
+ndlabel, features = ndimage.label(skeleton_bone_canny, structure= structuring_element, output=None)
 viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure_custom')    
 #print(features)
 #%%
 ''' for some reason, doing this is actually quite benefitial.  ''' 
+
+final_label_outer = ndlabel.copy()
+final_label_outer = final_label_outer==34
+viewer.add_image(final_label_outer)
 #%%
 tib_label_penul = ndlabel== 5 
 viewer.add_labels(tib_label_penul)
@@ -495,7 +555,7 @@ viewer.add_image(final_label)
 final_label = apply_skeleton(final_label)
 viewer.add_image(final_label)
 #%%
-np.save('final_label_W', final_label)
+np.save('final_label_outer_AN_NW', final_label_outer)
 
 #%%
 tib_label = np.load('C:/Users/Aayush/tib_label_5e-1.npy') # continuiing on previous work 
@@ -526,11 +586,19 @@ label_image, features = apply_label(tib_label_new)
 
 viewer.add_labels(label_image, name='fourth_iteration')  
 
+
+#%%
+start_coord = viewer.layers['Points'].data[0][1:].astype(int) 
+
+
+auto_tib_edge = find_tibia_edges(label_image, start_coord)
+viewer.add_labels(auto_tib_edge) 
+
 #%%
 final_label = viewer.layers['tib_label_g_than_10'].data
 viewer.add_image(final_label)
 #%%
-tib_coords = boolean_to_coords(final_label) 
+tib_coords = boolean_to_coords(final_label_outer) 
 #%%
 viewer.add_image(final_label)
 #%%
@@ -547,23 +615,20 @@ def downsample_points(list_of_arrays, index=0, number=50):
     zeroth_adjusted = adjust_downsampled_points(zeroth_nonadjusted, zeroth_frame)
     return zeroth_adjusted
 
-zeroth_adjusted = downsample_points(tib_coords)
+zeroth_adjusted = downsample_points(tib_coords, 9, 100)
 viewer.add_points(zeroth_adjusted, face_color='orange', size =1)
 #%%
 # step 8.5 try to find the shortest curve as the reference frame 
-template_index = np.argmin([np.sum(frame) for frame in final_label])
+template_index = np.argmin([np.sum(frame) for frame in final_label_outer])
 print('template is frame: ', template_index)
 #%%
 # this works when we have a 3d boolean array, if instead we have a list of arrays, this should work 
-def find_array_with_min_n(list_of_arrays):
-    template_index = np.argmin([arr.shape[0] for arr in list_of_arrays])
-    print('template is frame: ', template_index)
-    return template_index
+
 #%%
 #step 9, replace this version of first frame in the original list
 
 new_tib_coords = tib_coords.copy() 
-new_tib_coords[0] = zeroth_adjusted
+new_tib_coords[9] = zeroth_adjusted
 #%%
 def coords_distance_sum(coords1, coords2):
     dist = []
@@ -703,14 +768,42 @@ def consecutive_transform_min(data):
 transformation_matrices, giant_list, cost_values_no_update = consecutive_transform_min(new_tib_coords)
 viewer.add_points(points_for_napari(giant_list), size=1, face_color='indigo', name='consecutive_transform_first')
 
+
+#%%
+def apply_transformations_new(reference_frame, transformation_matrices, reference_index):
+    num_frames = len(transformation_matrices)
+    transformed_frames = [None] * num_frames
+
+    # Apply transformation for the reference frame
+    transformed_frames[reference_index] = reference_frame
+
+    # Apply transformations backwards
+    current_frame = reference_frame
+    for i in range(reference_index - 1, -1, -1):
+        matrix = transformation_matrices[i]
+        x, y, phi = matrix
+        current_frame = transform(current_frame, x, y, phi)
+        transformed_frames[i] = current_frame
+
+    # Reset current_frame for forward transformations
+    current_frame = reference_frame
+
+    # Apply transformations forwards
+    for i in range(reference_index + 1, num_frames):
+        matrix = transformation_matrices[i]
+        x, y, phi = matrix
+        current_frame = transform(current_frame, x, y, phi)
+        transformed_frames[i] = current_frame
+
+    return transformed_frames
 #%%
 # to use the reference as a shape and move it around 
-viewer.add_shapes(new_tib_coords[0], shape_type='polygon')
+viewer.add_shapes(new_tib_coords[9], shape_type='polygon')
 #%%
 ref_points = viewer.layers['expanded_shape'].data[0]
 #%%
 # here ref_points is taken from the drawn shape. not shown here. 
-applied_transformation = apply_transformations(ref_points, transformation_matrices)    
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_x, 9)    
 #%%
 viewer.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
@@ -776,6 +869,59 @@ def consecutive_transform_with_guess_update(data):
 
 transformation_matrices_g_update, giant_list_g_update, cost_values_g_update = consecutive_transform_with_guess_update(new_tib_coords)
 viewer.add_points(points_for_napari(giant_list_g_update), size=1, face_color='blue', name='consecutive_transform_with_guess_update')
+
+#%%
+def combined_consecutive_transform(data):
+    # Select reference frame based on the shortest edge
+    reference_index = find_array_with_min_n(data)
+    num_frames = len(data)
+    
+    # Initialize lists for transformation matrices, transformed data, and costs
+    transformation_matrices = [np.array([0, 0, 0])] * num_frames
+    giant_list = [None] * num_frames
+    cost_values = [0] * num_frames
+    
+    
+    # Set the reference frame in the giant_list
+    giant_list[reference_index] = data[reference_index]
+    
+    
+    # Initialize the reference frame data and initial guess
+    reference_data = data[reference_index]
+    x0 = np.array([0, 0, 0])  # Initial guess
+
+    # Transform preceding frames (working backwards)
+    for ida in range(reference_index - 1, -1, -1):
+        fr, cost = match_coords(reference_data, data[ida], x0=x0)
+        transformed_data = transform(reference_data, fr[0], fr[1], fr[2])
+        transformation_matrices[ida] = fr
+        cost_values[ida] = cost
+        giant_list[ida] = transformed_data
+
+        # Update the reference data and initial guess for the next iteration
+        reference_data = transformed_data
+        x0 = fr
+
+    # Reset for forward transformation
+    reference_data = data[reference_index]
+    x0 = np.array([0, 0, 0])
+
+    # Transform following frames (working forwards)
+    for ida in range(reference_index + 1, num_frames):
+        fr, cost = match_coords(reference_data, data[ida], x0=x0)
+        transformed_data = transform(reference_data, fr[0], fr[1], fr[2])
+        transformation_matrices[ida] = fr
+        cost_values[ida] = cost
+        giant_list[ida] = transformed_data
+
+        # Update the reference data and initial guess for the next iteration
+        reference_data = transformed_data
+        x0 = fr
+
+    return transformation_matrices, giant_list, cost_values
+
+transformation_matrices_x, giant_list_x, cost_values_x = combined_consecutive_transform(new_tib_coords)
+viewer.add_points(points_for_napari(giant_list_x), size=1, face_color='blue', name='combined_consecutive_transform')
 
 #%%
 data = new_tib_coords
@@ -875,59 +1021,5 @@ viewer.add_shapes(shapes_for_napari(applied_transformation2), shape_type='polygo
     
 #%%
 
-''' the portion below attempts to find the automatic edge of interest, using a manually selected point '''
-
-def move_and_find_label(frame_labels, start_coord, direction, stop_label=None):
-    row, col = start_coord
-    label = None
-
-    if direction == 'east':
-        # Move east until a non-zero label is found
-        for i in range(col, frame_labels.shape[1]):
-            if frame_labels[row, i] != 0:
-                label = frame_labels[row, i]
-                break
-
-    elif direction == 'north':
-        # Move north until a non-zero label is found
-        for i in range(row, -1, -1):
-            if frame_labels[i, col] != 0:
-                if stop_label is not None and frame_labels[i, col] == stop_label:
-                    # If we encounter the stop_label, return None to indicate we should not continue searching
-                    return None
-                label = frame_labels[i, col]
-                break
-
-    return label
 
 
-def find_tibia_edges(label_image, start_coord):
-    # Create a new array to store the edges of interest
-    tibia_edges = np.zeros_like(label_image)
-
-    # Process each frame
-    for frame in range(label_image.shape[0]):
-        # Adjust the starting coordinates for the current frame, if necessary
-        current_coord = start_coord  # Assuming the point doesn't change location
-
-        # Find the label while moving east
-        east_label = move_and_find_label(label_image[frame], current_coord, direction='east')
-
-        # Check if we need to move north
-        north_label = move_and_find_label(label_image[frame], current_coord, direction='north', stop_label=east_label)
-
-        # Set the detected label(s) in the tibia_edges array
-        if east_label is not None:
-            tibia_edges[frame][label_image[frame] == east_label] = east_label
-            if north_label is not None:
-                tibia_edges[frame][label_image[frame] == north_label] = north_label
-
-    return tibia_edges
-
-
-#%%
-start_coord = viewer.layers['Points'].data[0][1:].astype(int) 
-
-
-auto_tib_edge = find_tibia_edges(label_image, start_coord)
-viewer.add_labels(auto_tib_edge) 
