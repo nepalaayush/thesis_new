@@ -404,18 +404,18 @@ def find_array_with_min_n(list_of_arrays):
     print('template is frame: ', template_index)
     return template_index
 #%%
-image1 = open_nii('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/tgv_low.nii')
+image1 = open_nii('/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2023-12-01/81_MK_Radial_W_CINE_30bpm_CGA/MK_W_aw2_tgv_5e-2.nii')
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)[1:]
 napari.view_image(image1)
 #%%
 # Step 1: load the image from directory and normalize it
-image = open_nii('C:/Users/Aayush/Documents/thesis_files/nepal_aayush/NW_tgv.nii')
+image = open_nii('/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2023-12-01/79_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_aw2_tgv_5e-2.nii')
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_AN')
+viewer = napari.view_image(image,  name='NW_MK')
 #%%
 viewer.add_image(image, name='image')
 #%%
@@ -453,15 +453,15 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
 low_range = (5,10) # 
 high_range = (11,20 ) # 
 num_steps = 10
-sigma = 1.5
+sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
-canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range, num_steps, sigma)
+canny_multi_edge = apply_canny_multiple_thresholds(image1, low_range, high_range, num_steps, sigma)
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='AN_NW_1.5')
+viewer3.add_image(canny_multi_edge, name='MK_W_2')
 
 #%%
 #Step 5: pick the right index and add it to viewer

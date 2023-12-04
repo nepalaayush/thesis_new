@@ -1,0 +1,523 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec  4 10:30:24 2023
+
+@author: aayush
+"""
+
+import numpy as np
+import napari
+import nibabel as nib 
+import matplotlib.pyplot as plt 
+from scipy import ndimage
+import time 
+from scipy.interpolate import CubicSpline
+import scipy.optimize
+from skimage.feature import canny
+from skimage.morphology import skeletonize, remove_small_objects
+#%%
+def open_nii(path):
+    ''' Input: Path of nifti file (.nii) Output: pixelarray  ''' 
+    nifti_img = nib.load(path)
+    #pixelarray = np.transpose ( nifti_img.get_fdata(), (2,0,1)) # have to transpose because of the way nifti loads things 
+    pixelarray = nifti_img.get_fdata()
+    return np.moveaxis(pixelarray, -1,0)
+
+def normalize (image):
+    
+    min_val = np.min(image)
+    max_val = np.max(image)
+    
+    normalized_img = ( image - min_val ) / (max_val - min_val) 
+    scaled_img = (normalized_img * 255)
+    
+    return scaled_img 
+
+def gradify(pixelarray):
+    dy, dx = np.gradient(pixelarray, axis=(1, 2))
+
+    # Magnitude of the gradient for each frame
+    gradient_magnitude = np.sqrt(dy**2 + dx**2)
+    gradient_direction = np.arctan2(dy, dx)
+
+    return gradient_magnitude, gradient_direction
+
+def apply_canny(pixelarray, low, high, sigma):
+    canny_edge = np.zeros_like(pixelarray)
+    
+    for i in range(pixelarray.shape[0]):
+        canny_image = canny(pixelarray[i], low_threshold= low, high_threshold=high, sigma= sigma )    
+        canny_edge[i] = canny_image
+    return canny_edge.astype(dtype=bool)
+
+def apply_remove(pixelarray, size, connectivity):
+    removed_3d = np.zeros_like(pixelarray)
+    for i in range(pixelarray.shape[0]):
+        removed_image = remove_small_objects(pixelarray[i], min_size=size, connectivity=connectivity)
+        removed_3d[i] = removed_image
+    return removed_3d
+
+def apply_skeleton(pixelarray):
+    skeletonized = np.zeros_like(pixelarray)
+    for i in range(pixelarray.shape[0]):
+        skel_frame = skeletonize(pixelarray[i])
+        skeletonized[i] = skel_frame
+    return skeletonized
+
+
+
+
+def apply_transformation(matrix, points):
+    # Convert points to homogeneous coordinates
+    homogeneous_points = np.hstack([points, np.ones((points.shape[0], 1))])
+    
+    # Apply the transformation
+    transformed_points = np.dot(homogeneous_points, matrix.T)
+    
+    return transformed_points[:, :2]  # Convert back to Cartesian coordinates
+
+def apply_transformation_all_frames(reference_set, transformation_matrices):
+    transformed_subsets = []
+# Assuming `transformation_matrices` is your list of 2x3 transformation matrices
+# and `reference_coords` is the coordinates of your reference frame
+    for matrix in transformation_matrices:
+        transformed_points = apply_transformation(matrix, reference_set)
+        print(transformed_points.shape) 
+        transformed_subsets.append(transformed_points)
+    return transformed_subsets
+
+def apply_transformation_all_frames_consecutive(initial_set, transformation_matrices):
+    transformed_subsets = []
+    
+    # Initialize with the initial set of points
+    current_points = initial_set
+    transformed_subsets.append(current_points)
+    
+    # Apply each transformation matrix in sequence
+    for matrix in transformation_matrices[1:]:  # Skip the first identity matrix
+        transformed_points = apply_transformation(matrix, current_points)
+        transformed_subsets.append(transformed_points)
+        
+        # Update current_points for the next iteration
+        current_points = transformed_points
+        
+    return transformed_subsets
+
+def procrustes(X, Y):
+    X = X.astype(float)  # Ensure X is float
+    Y = Y.astype(float)
+    centroid_X = np.mean(X, axis=0)
+    centroid_Y = np.mean(Y, axis=0)
+    X -= centroid_X
+    Y -= centroid_Y
+    U, _, Vt = np.linalg.svd(np.dot(Y.T, X))
+    R = np.dot(U, Vt)
+    t = centroid_Y - np.dot(R, centroid_X)
+    return R, t
+
+
+def calculate_transform_matrices_procrustes(all_coords, reference_index):
+    num_frames = len(all_coords)
+    transformation_matrices = []
+
+    # Initialize the identity matrix for the reference frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+
+    # Get the coordinates of the reference frame
+    reference_coords = all_coords[reference_index]
+
+    for i in range(num_frames):
+        if i == reference_index:
+            # Add the identity matrix for the reference frame
+            transformation_matrices.append(identity_matrix)
+        else:
+            # Estimate the transformation matrix using Procrustes
+            R, t = procrustes(reference_coords, all_coords[i])
+            transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
+            transformation_matrices.append(transformation_matrix)
+
+    return transformation_matrices 
+
+def calculate_transform_matrices_procrustes_consecutive(all_coords):
+    num_frames = len(all_coords)
+    transformation_matrices = []
+    
+    # Initialize the identity matrix for the first frame
+    identity_matrix = np.array([[1.0, 0.0, 0.0],
+                                [0.0, 1.0, 0.0]])
+    
+    # Add the identity matrix for the first frame
+    transformation_matrices.append(identity_matrix)
+
+    for i in range(1, num_frames):
+        # Estimate the transformation matrix using Procrustes
+        # between the i-th frame and the (i-1)-th frame
+        R, t = procrustes(all_coords[i-1], all_coords[i])
+        transformation_matrix = np.hstack([R, t.reshape(-1, 1)])  # Combine into a 2x3 matrix
+        transformation_matrices.append(transformation_matrix)
+        
+    return transformation_matrices
+
+def points_for_napari(list_points):
+    all_points = []
+
+    for i, subset in enumerate(list_points):
+        frame_id_column = np.full((subset.shape[0], 1), i)
+        frame_subset = np.hstack([frame_id_column, subset])
+        all_points.append(frame_subset)
+
+    all_points = np.vstack(all_points)
+    return all_points 
+
+
+def shapes_for_napari(list_shapes):
+    all_shapes = []
+
+    for i, subset in enumerate(list_shapes):
+        frame_id_column = np.full((subset.shape[0], 1), i)
+        frame_subset = np.hstack([frame_id_column, subset])
+        all_shapes.append(frame_subset)
+
+    return all_shapes
+
+def show_order(curve):
+    plt.scatter(curve[:, 0], curve[:, 1])
+
+    # Annotate each point with its index
+    for i, (x, y) in enumerate(curve):
+        plt.annotate(str(i), (x, y))
+
+    plt.show()
+
+def boolean_to_coords(boolean_array):
+    all_coordinates = []
+    ''' Input: a 3d boolean array, like a label image 
+    Output: the coordinates where array is true, as a list, each list is a frame'''
+    # Loop through each frame and grab the coordinates
+    for frame in boolean_array:
+        coords = np.argwhere(frame)
+        all_coordinates.append(coords)
+    return all_coordinates
+    
+def coords_to_boolean(sorted_coordinates, shape):
+    # Initialize the 3D array
+    new_array = np.zeros(shape, dtype=bool)
+    
+    # Go through each frame
+    for frame_index, frame_coords in enumerate(sorted_coordinates):
+        for y, x in frame_coords:
+            try:
+                new_array[frame_index, int(y), int(x)] = True
+            except IndexError as e:
+                print(f"IndexError at frame {frame_index} with coordinates ({x}, {y}). Shape is {shape}")
+                raise e
+    
+    return new_array
+
+def check_integrity(list_of_cords): 
+    print ( [ np.var ( pairwise_distances(i) )  for i in list_of_cords ] ) 
+
+def pairwise_distances(points):
+    distances = np.linalg.norm(points[1:] - points[:-1], axis=1)
+    return distances
+
+
+def sort_points_single_frame(points):
+    points = np.array(points, dtype=np.float32)  # Ensure it's float or int for arithmetic operations
+    
+    # Find starting point
+    starting_point = points[np.argmax(points[:, 0])]  # Highest row value or lowest depending on argmax or arg min 
+    sorted_points = [starting_point]
+    remaining_points = [p for p in points.tolist() if not np.array_equal(p, starting_point)]
+
+    while remaining_points:
+        current_point = sorted_points[-1]
+        distances = [np.linalg.norm(np.array(current_point) - np.array(p)) for p in remaining_points]
+        next_point = remaining_points[np.argmin(distances)]
+        
+
+        # # Check if the distance is much larger than average
+        if len(sorted_points) > 1:
+             avg_distance = np.mean([np.linalg.norm(np.array(sorted_points[i+1]) - np.array(sorted_points[i])) for i in range(len(sorted_points)-1)])
+             large_jump = np.linalg.norm(np.array(next_point) - np.array(current_point)) > 2 * avg_distance
+             if large_jump:
+                 break
+
+        
+        
+        sorted_points.append(next_point)
+        remaining_points.remove(next_point)
+    
+    # reverse the order or sorted_points if we are using np.argmax 
+    sorted_points.reverse()
+    
+    return np.array(sorted_points)
+
+def sort_points_all_frames(list_of_points):
+    sorted_list = []
+    for i in list_of_points:
+        sorted_list.append(sort_points_single_frame(i))
+    return sorted_list 
+
+def equalize_lengths(points_list):
+    # Find the length of the smallest (n,2) array
+    min_length = min([len(points) for points in points_list])
+
+    # Trim each array in the list to have the same length as the smallest array
+    equalized_list = [points[-min_length:] for points in points_list]
+
+    return equalized_list
+
+
+def equidistant_points(points, n):
+    # Calculate pairwise distances between points
+    distances = np.linalg.norm(points[1:] - points[:-1], axis=1)
+    
+    # Calculate cumulative distances
+    cumulative_distances = np.cumsum(distances)
+    total_distance = cumulative_distances[-1]
+    
+    # Calculate desired spacing
+    desired_spacing = total_distance / (n - 1)
+    
+    # Select equidistant points
+    new_points = [points[0]]  # Start with the first point
+    current_dist = 0
+
+    for i in range(1, n - 1):  # We already have the starting point, and we'll manually add the endpoint
+        current_dist += desired_spacing
+        # Find the two original points which the current_dist is between
+        idx = np.searchsorted(cumulative_distances, current_dist)
+        weight = (current_dist - cumulative_distances[idx - 1]) / (cumulative_distances[idx] - cumulative_distances[idx - 1])
+        # Linearly interpolate between these two points
+        point = points[idx - 1] + weight * (points[idx] - points[idx - 1])
+        new_points.append(point)
+    
+    new_points.append(points[-1])  # End with the last point
+    return np.array(new_points)
+
+def adjust_downsampled_points(downsampled, original_curve):
+    """
+    Adjust the positions of downsampled points to make them equidistant 
+    while ensuring they remain on the original curve.
+
+    Parameters:
+    - downsampled: np.array of shape (30,2) representing downsampled points.
+    - original_curve: np.array of shape (100,2) representing the original curve.
+
+    Returns:
+    - np.array of shape (30,2) representing the adjusted downsampled points.
+    """
+
+    # Compute the desired equidistant length
+    pairwise_distances = [np.linalg.norm(downsampled[i] - downsampled[i - 1]) for i in range(1, len(downsampled))]
+    desired_distance = sum(pairwise_distances) / len(pairwise_distances)
+
+    # Cubic spline interpolation of the original curve
+    t = np.linspace(0, 1, len(original_curve))
+    cs_x = CubicSpline(t, original_curve[:, 0])
+    cs_y = CubicSpline(t, original_curve[:, 1])
+
+    # Adjust the downsampled points
+    adjusted_points = [downsampled[0]]  # Start with the first point as anchor
+    t_last = 0  # To keep track of the last position on t to avoid backtracking
+    for i in range(1, len(downsampled)):
+        # Search along the curve for the next position using a fine resolution
+        search_t = np.linspace(t_last, 1, 1000)
+        for ti in search_t:
+            potential_point = np.array([cs_x(ti), cs_y(ti)])
+            if np.linalg.norm(potential_point - adjusted_points[-1]) >= desired_distance:
+                adjusted_points.append(potential_point)
+                t_last = ti
+                break
+
+    return np.array(adjusted_points)
+
+
+def apply_label(pixelarray):
+    structuring_element = ndimage.generate_binary_structure(2, 2)
+    labelized = []
+    for i in range(pixelarray.shape[0]):
+        label_frame, num_features = ndimage.label(pixelarray[i], structure=structuring_element, output=None)
+        labelized.append(label_frame)
+    return np.stack(labelized), num_features
+
+
+
+''' the portion below attempts to find the automatic edge of interest, using a manually selected point '''
+
+def move_and_find_label(frame_labels, start_coord, direction, stop_label=None):
+    row, col = start_coord
+    label = None
+
+    if direction == 'east':
+        # Move east until a non-zero label is found
+        for i in range(col, frame_labels.shape[1]):
+            if frame_labels[row, i] != 0:
+                label = frame_labels[row, i]
+                break
+
+    elif direction == 'north':
+        # Move north until a non-zero label is found
+        for i in range(row, -1, -1):
+            if frame_labels[i, col] != 0:
+                if stop_label is not None and frame_labels[i, col] == stop_label:
+                    # If we encounter the stop_label, return None to indicate we should not continue searching
+                    return None
+                label = frame_labels[i, col]
+                break
+
+    return label
+
+
+def find_tibia_edges(label_image, start_coord):
+    # Create a new array to store the edges of interest
+    tibia_edges = np.zeros_like(label_image)
+
+    # Process each frame
+    for frame in range(label_image.shape[0]):
+        # Adjust the starting coordinates for the current frame, if necessary
+        current_coord = start_coord  # Assuming the point doesn't change location
+
+        # Find the label while moving east
+        east_label = move_and_find_label(label_image[frame], current_coord, direction='east')
+
+        # Check if we need to move north
+        north_label = move_and_find_label(label_image[frame], current_coord, direction='north', stop_label=east_label)
+
+        # Set the detected label(s) in the tibia_edges array
+        if east_label is not None:
+            tibia_edges[frame][label_image[frame] == east_label] = east_label
+            if north_label is not None:
+                tibia_edges[frame][label_image[frame] == north_label] = north_label
+
+    return tibia_edges
+
+
+def find_array_with_min_n(list_of_arrays):
+    template_index = np.argmin([arr.shape[0] for arr in list_of_arrays])
+    print('template is frame: ', template_index)
+    return template_index
+
+#%%
+# Step 1: load the image from directory and normalize it
+path = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-1.nii'
+image = open_nii(path)
+image = normalize(image)
+image = np.moveaxis(image, 1, 0)[1:]
+#%%
+#add the original image to napari
+viewer = napari.view_image(image,  name='NW_US')
+#%%
+viewer.add_image(image, name='MK_W_r0.40')
+#%%
+#%%
+# add the 4d image to a new viewer
+viewer3 = napari.Viewer() 
+#%%
+# Step 4: find the best suitable low and high range for edge detection
+start_time = time.time() 
+
+def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps, sigma):
+    ''' Note, values less than low are ignored, values greater than high are considered edges. Pixels with a gradient magnitude between low and high are conditionally accepted if they're connected to strong edges. ''' 
+    low_values = np.linspace(low_range[0], low_range[1], num_steps)
+    high_values = np.linspace(high_range[0], high_range[1], num_steps)
+    
+    # Initialize a 4D array to store results
+    canny_multi_edge = np.zeros((num_steps, *pixelarray.shape), dtype=bool)
+    
+    for j, (low, high) in enumerate(zip(low_values, high_values)):
+        canny_edge = apply_canny(pixelarray, low, high, sigma)
+        canny_multi_edge[j] = canny_edge
+    
+    return canny_multi_edge
+
+low_range = (5,10) # 
+high_range = (11,20 ) # 
+num_steps = 10
+sigma = 2
+print(np.linspace(low_range[0] , low_range[1], num_steps) )
+print(np.linspace(high_range[0] , high_range[1], num_steps) )
+
+canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range, num_steps, sigma)
+
+end_time = time.time() 
+print(f"Elapsed Time: {end_time - start_time} seconds")
+viewer3.add_image(canny_multi_edge, name='US_W')
+#%%
+#Step 5: pick the right index and add it to viewer
+tib_canny = canny_multi_edge[6]
+viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
+#%%
+tib_canny = viewer.layers['after_edge_detection_sigma_2'].data
+#%%
+#Step 6: Use remove small objects at various ranges to find the most suitable
+def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
+    size_values = np.linspace(size_range[0], size_range[1], num_steps).astype(int)
+    print(size_values) 
+    # Initialize a 4D array to store results
+    removed_multi_3d = np.zeros((num_steps, *pixelarray.shape), dtype=bool)
+    
+    for i, size in enumerate(size_values):
+        removed_3d = apply_remove(pixelarray, size, connectivity)
+        removed_multi_3d[i] = removed_3d
+    
+    return removed_multi_3d
+
+# Example usage
+size_range = (20, 50)  # 100 min and 200 max size for femur 
+num_steps = 20  # Number of steps for size parameter
+connectivity = 2  # Fixed connectivity value
+print(np.linspace(size_range[0],size_range[1], num_steps))
+# Assuming smooth_image is your 3D image array
+removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, connectivity)
+
+
+# add it to the 4d viewer
+viewer3.add_image(removed_4d, name='multi_remove_small')
+#%%
+# pick the right index
+bone_canny = removed_4d[19] 
+viewer.add_image(bone_canny, name='after_remove_small')
+#%%
+# skeletonize the edge 
+skeleton_bone_canny = apply_skeleton(bone_canny)
+viewer.add_image(skeleton_bone_canny, name = 'skeleton_bone_canny')
+#%%
+label_image, features = apply_label(bone_canny)
+
+viewer.add_labels(label_image, name='2,2,structure_label_loop')
+#%%
+
+start_coord = viewer.layers['Points'].data
+tibia_edges = find_tibia_edges(label_image, start_coord)
+
+#%%
+structuring_element = ndimage.generate_binary_structure(3, 3)
+#%%
+
+custom_structuring_element = np.array([
+    [[True, False, True],
+     [False, True, False],
+     [True, False, True]],
+    
+    [[True, True, False],
+     [False, False, False],
+     [False, True, True]],
+    
+    [[False, True, False],
+     [True, False, True],
+     [False, True, False]]
+])
+#%%
+ndlabel, features = ndimage.label(skeleton_bone_canny, structure= structuring_element, output=None)
+viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure_custom')    
+#print(features)
+#%%
+''' for some reason, doing this is actually quite benefitial.  ''' 
+
+final_label_outer = ndlabel.copy()
+final_label_outer = final_label_outer==34
+viewer.add_image(final_label_outer)
