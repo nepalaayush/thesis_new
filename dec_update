@@ -345,7 +345,7 @@ def apply_transformations(reference_frame, transformation_matrices):
     return transformed_frames
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-1.nii'
+path = 'C:/Users/Aayush/Documents/thesis_files/US/aw2_rieseling_admm_tgv_5e-1.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
@@ -569,7 +569,7 @@ def apply_transformations_new(reference_frame, transformation_matrices, referenc
         transformed_frames[i] = current_frame
 
     return transformed_frames
-
+#%%
 # to use the reference as a shape and move it around 
 viewer.add_shapes(new_tib_coords[6], shape_type='polygon')
 #%%
@@ -578,4 +578,112 @@ ref_points = viewer.layers['expanded_shape'].data[0]
 # here ref_points is taken from the drawn shape. not shown here. 
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_x, 9)    
 #%%
+# loading the previously calculated consecutive matrices in order to transform it. 
+consecutive_matrices = consecutive_matrices  # now, it is an array not a list of matrices. might be easier to deal with. so keep in mind in the future. 
+ref_points = viewer.layers['expanded_shape'].data[0][:,1:] # for some reason needed to slice it this way. 
+applied_transformation = apply_transformations_new(ref_points, consecutive_matrices,6)    
+#%%
+viewer.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
+#%%
+x, y , phi = consecutive_matrices[7]
+new_frame = transform(ref_points, x, y , phi )
+viewer.add_shapes(new_frame, shape_type='polygon', face_color='blue')
+#%%
+# to obtain the cumulative transform from 0 frame to frame 2: so 0 to 1 is R1 and 1 to 2 is R2... and t1 is translation from 0 to 1 and t2 is translation from 1 to 2 : 
+# new R = R2R1 and new translation = R2t1 + t2     
+def combine_transform(R1, t1, R2, t2):
+    R1R2 = R2 @ R1 
+    t = R2 @ t1 + t2 
+    
+    return R1R2, t 
 
+def extract_params(input_array):
+    x, y, phi = input_array
+    # Create the rotation matrix
+    R = np.array([[np.cos(phi), -np.sin(phi)],
+                  [np.sin(phi), np.cos(phi)]])
+    # Create the translation vector
+    t = np.array([x, y])
+    return R, t
+    
+R1, t1 = extract_params(consecutive_matrices[7])
+R2, t2 = extract_params(consecutive_matrices[8])
+
+def reverse_extract (R, t):
+    phi = np.arctan2(R[1, 0], R[0, 0])
+    x, y = t
+    return np.array([x, y, phi])
+
+R, t = combine_transform(R1, t1, R2, t2)
+new_matrix = reverse_extract(R,t)
+new_frame = transform(ref_points, new_matrix[0], new_matrix[1] , new_matrix[2] )
+viewer.add_shapes(new_frame, shape_type='polygon', face_color='orange')
+
+#%%
+# consolidating the stuff from above to a convenience function below 
+def get_cumulative_transform(consecutive_matrices, index1, index2):
+    def extract_params(input_array):
+        x, y, phi = input_array
+        R = np.array([[np.cos(phi), -np.sin(phi)],
+                      [np.sin(phi), np.cos(phi)]])
+        t = np.array([x, y])
+        return R, t
+
+    def combine_transform(R1, t1, R2, t2):
+        return R2 @ R1, R2 @ t1 + t2
+
+    R1, t1 = extract_params(consecutive_matrices[index1])
+    R2, t2 = extract_params(consecutive_matrices[index2])
+    R, t = combine_transform(R1, t1, R2, t2)
+
+    phi = np.arctan2(R[1, 0], R[0, 0])
+    x, y = t
+    return np.array([x, y, phi])
+
+new_matrix = get_cumulative_transform(consecutive_matrices, 7, 8)
+new_frame = transform(ref_points, new_matrix[0], new_matrix[1] , new_matrix[2] )
+viewer.add_shapes(new_frame, shape_type='polygon', face_color='red')
+
+#%%
+# doing this for cumulative stuff
+# # # # # # doesnt work 
+def convert_to_cumulative_matrices(consecutive_matrices, reference_index):
+    num_frames = len(consecutive_matrices)
+    cumulative_matrices = np.zeros_like(consecutive_matrices)
+
+    # Set frames before the reference frame to identity transformation
+    cumulative_matrices[:reference_index] = np.array([0, 0, 0])
+
+    # The reference frame itself is the identity transformation
+    cumulative_matrices[reference_index] = np.array([0, 0, 0])
+
+    # Initialize cumulative transformation at the reference frame
+    R_cumulative = np.array([[1, 0], [0, 1]])  # Identity rotation matrix
+    t_cumulative = np.array([0, 0])           # Identity translation vector
+
+    # Compute cumulative transformations from the reference frame onwards
+    for i in range(reference_index + 1, num_frames):
+        R_current, t_current = extract_params(consecutive_matrices[i - 1])
+        R_cumulative, t_cumulative = combine_transform(R_cumulative, t_cumulative, R_current, t_current)
+        cumulative_matrices[i] = reverse_extract(R_cumulative, t_cumulative)
+
+    return cumulative_matrices
+
+
+
+cumulative_matrices = convert_to_cumulative_matrices(consecutive_matrices, 6)
+#%%
+# # # # # # doesnt work 
+def apply_cumulative_transformations(reference_frame, cumulative_matrices, reference_index):
+    num_frames = len(cumulative_matrices)
+    transformed_frames = [None] * num_frames
+
+    # Apply transformation for each frame using the cumulative matrices
+    for i in range(num_frames):
+        matrix = cumulative_matrices[i]
+        x, y, phi = matrix
+        transformed_frames[i] = transform(reference_frame, x, y, phi)
+
+    return transformed_frames
+applied_transformation = apply_cumulative_transformations(ref_points, cumulative_matrices, 6)
+viewer.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')

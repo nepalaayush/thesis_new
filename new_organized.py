@@ -765,4 +765,4 @@ for ida, ax in enumerate(axes.flatten()):
 #%%
 
 viewer.add_points(points_for_napari(giant_list), size=2, face_color='orange')
-    
+#%%
