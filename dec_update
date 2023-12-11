@@ -345,13 +345,13 @@ def apply_transformations(reference_frame, transformation_matrices):
     return transformed_frames
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/US/aw2_rieseling_admm_tgv_5e-1.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_aw2_tgv_5e-2_pos.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_US')
+viewer = napari.view_image(image,  name='NW_MM')
 #%%
 viewer.add_image(image, name='MK_W_r0.40')
 #%%
@@ -387,10 +387,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='US_W')
+viewer3.add_image(canny_multi_edge, name='MM_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[6]
+tib_canny = canny_multi_edge[5]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 tib_canny = viewer.layers['after_edge_detection_sigma_2'].data
@@ -421,7 +421,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # pick the right index
-bone_canny = removed_4d[10] 
+bone_canny = removed_4d[15] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # skeletonize the edge 
@@ -474,7 +474,6 @@ viewer.add_image(final_label_outer)
 #%%
 #when using tibia edges to find the labels
 final_label =  viewer.layers['tibia_edges'].data
-#%%
 viewer.add_image(final_label, name='final label')
 #%%
 #Step 8: once the final edge has been found, convert it to a list of arrays. 
@@ -483,12 +482,12 @@ tib_coords = boolean_to_coords(final_label)
 # Step 9: find the frame with the least number of points, and then downsample that. 
 find_array_with_min_n(tib_coords)
 #%%
-reference_frame = downsample_points(tib_coords, 6, 100)
+reference_frame = downsample_points(tib_coords, 0, 50)
 viewer.add_points(reference_frame, face_color='orange', size =1, name='reference_frame_100')
 #%%
 # Step 10, replace this in the original list
 new_tib_coords = tib_coords.copy() 
-new_tib_coords[6] = reference_frame
+new_tib_coords[0] = reference_frame
 #%%
 def combined_consecutive_transform(data):
     # Select reference frame based on the shortest edge
@@ -540,7 +539,7 @@ def combined_consecutive_transform(data):
     return transformation_matrices, giant_list, cost_values
 
 transformation_matrices_x, giant_list_x, cost_values_x = combined_consecutive_transform(new_tib_coords)
-viewer.add_points(points_for_napari(giant_list_x), size=1, face_color='red', name='combined_consecutive_transform')
+viewer.add_points(points_for_napari(giant_list_x), size=1, face_color='yellow', name='ref_frame_0')
 
 #%%
 def apply_transformations_new(reference_frame, transformation_matrices, reference_index):
@@ -621,16 +620,19 @@ viewer.add_shapes(new_frame, shape_type='polygon', face_color='orange')
 
 #%%
 # consolidating the stuff from above to a convenience function below 
-def get_cumulative_transform(consecutive_matrices, index1, index2):
-    def extract_params(input_array):
-        x, y, phi = input_array
-        R = np.array([[np.cos(phi), -np.sin(phi)],
-                      [np.sin(phi), np.cos(phi)]])
-        t = np.array([x, y])
-        return R, t
 
-    def combine_transform(R1, t1, R2, t2):
-        return R2 @ R1, R2 @ t1 + t2
+def extract_params(input_array):
+    x, y, phi = input_array
+    R = np.array([[np.cos(phi), -np.sin(phi)],
+                  [np.sin(phi), np.cos(phi)]])
+    t = np.array([x, y])
+    return R, t
+
+def combine_transform(R1, t1, R2, t2):
+    return R2 @ R1, R2 @ t1 + t2
+
+def get_cumulative_transform(consecutive_matrices, index1, index2):
+    
 
     R1, t1 = extract_params(consecutive_matrices[index1])
     R2, t2 = extract_params(consecutive_matrices[index2])
@@ -646,44 +648,44 @@ viewer.add_shapes(new_frame, shape_type='polygon', face_color='red')
 
 #%%
 # doing this for cumulative stuff
-# # # # # # doesnt work 
-def convert_to_cumulative_matrices(consecutive_matrices, reference_index):
-    num_frames = len(consecutive_matrices)
-    cumulative_matrices = np.zeros_like(consecutive_matrices)
+def get_global_transforms(transform_list):
+    global_transforms = [transform_list[0]]  # Initialize with the first transformation
+    
+    R_prev, t_prev = extract_params(global_transforms[0])
 
-    # Set frames before the reference frame to identity transformation
-    cumulative_matrices[:reference_index] = np.array([0, 0, 0])
+    for i in range(1, len(transform_list)):
+        R_curr, t_curr = extract_params(transform_list[i])
+        R_combined, t_combined = combine_transform(R_prev, t_prev, R_curr, t_curr)
 
-    # The reference frame itself is the identity transformation
-    cumulative_matrices[reference_index] = np.array([0, 0, 0])
+        phi_combined = np.arctan2(R_combined[1, 0], R_combined[0, 0])
+        combined_transform = [t_combined[0], t_combined[1], phi_combined]
 
-    # Initialize cumulative transformation at the reference frame
-    R_cumulative = np.array([[1, 0], [0, 1]])  # Identity rotation matrix
-    t_cumulative = np.array([0, 0])           # Identity translation vector
+        global_transforms.append(combined_transform)
 
-    # Compute cumulative transformations from the reference frame onwards
-    for i in range(reference_index + 1, num_frames):
-        R_current, t_current = extract_params(consecutive_matrices[i - 1])
-        R_cumulative, t_cumulative = combine_transform(R_cumulative, t_cumulative, R_current, t_current)
-        cumulative_matrices[i] = reverse_extract(R_cumulative, t_cumulative)
+        R_prev, t_prev = R_combined, t_combined
 
-    return cumulative_matrices
+    return global_transforms
 
+global_transforms = get_global_transforms(transformation_matrices_x)
 
-
-cumulative_matrices = convert_to_cumulative_matrices(consecutive_matrices, 6)
 #%%
-# # # # # # doesnt work 
-def apply_cumulative_transformations(reference_frame, cumulative_matrices, reference_index):
-    num_frames = len(cumulative_matrices)
+def apply_transformations_global(reference_frame, global_transform_matrices):
+    num_frames = len(global_transform_matrices)
     transformed_frames = [None] * num_frames
 
-    # Apply transformation for each frame using the cumulative matrices
     for i in range(num_frames):
-        matrix = cumulative_matrices[i]
+        matrix = global_transform_matrices[i]
         x, y, phi = matrix
         transformed_frames[i] = transform(reference_frame, x, y, phi)
 
     return transformed_frames
-applied_transformation = apply_cumulative_transformations(ref_points, cumulative_matrices, 6)
+
+#%%
+applied_transformation = apply_transformations_global(reference_frame, global_transforms)    
 viewer.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
+#%%
+def X_combine_transform(r[i], t[i], r[i+1], t[i+1]):
+    return r[i+1] @ r[i], r[i+1] @ t[i] + t[i+1]
+R2@
+
+
