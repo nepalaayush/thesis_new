@@ -45,7 +45,7 @@ from skimage.morphology import skeletonize
 from scipy.spatial import distance
 
 def find_medial_axis(coordinates, n_points=2):
-    # I'm assuming your coordinates are a binary mask. If not, make it so.
+    #  assuming  coordinates are a binary mask. If not, make it so.
     # Creating a bounding box around the segmented area for skeletonization
     min_x, min_y = np.min(coordinates, axis=0).astype(int)
     max_x, max_y = np.max(coordinates, axis=0).astype(int)

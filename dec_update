@@ -336,7 +336,7 @@ def match_coords(coords1, coords2, x0=[0, 0, 0]): # was using -np.deg2rad(2) as 
 
 def apply_transformations(reference_frame, transformation_matrices):
     transformed_frames = [reference_frame]
-
+^
     for matrix in transformation_matrices[1:]:  # Exclude the identity matrix
         x, y, phi = matrix
         reference_frame = transform(reference_frame, x, y, phi)
@@ -646,34 +646,120 @@ plt.grid(True)
 plt.show()    
 
 #%%
+# all these functions are taken from the segmentation.py file. 
+
 from sklearn.decomposition import PCA
+from shapely.geometry import LineString, MultiPoint
 
-def find_origin(points):
-    """
-    Find the origin of a shape defined by points. 
-    The origin is the point on the principal component axis that is closest to the centroid.
-    
-    :param points: An array of shape (n, 2) representing the points of the shape.
-    :return: The coordinates of the origin point.
-    """
-    # Calculating the centroid
-    centroid = np.mean(points, axis=0)
 
-    # Applying PCA
+def get_uv_from_pca(line_points):
+    A = np.array(line_points[0])
+    B = np.array(line_points[1])
+    AB = B - A
+    mag_AB = np.linalg.norm(AB)
+    U = AB / mag_AB
+    V = np.array([-U[1], U[0]])
+    return U, V
+
+def fit_pca_line(coordinates, n_points=2):
     pca = PCA(n_components=1)
-    pca.fit(points)
-    pca_direction = pca.components_[0]
+    pca.fit(coordinates)
     
-    # Projecting the centroid on the PCA line
-    # The line passes through the mean (the pca center) and has direction pca_direction
-    pca_line_point = pca.mean_
-    line_vector = pca_direction
-    point_vector = centroid - pca_line_point
-    scalar_projection = np.dot(point_vector, line_vector)
-    projected_point = pca_line_point + scalar_projection * line_vector
+    mean = pca.mean_
+    component = pca.components_[0]
+    
+    projections = (coordinates - mean) @ component
+    min_t, max_t = np.min(projections), np.max(projections)
+    t = np.linspace(min_t, max_t, n_points)
+    line_points = mean + component * t[:, np.newaxis]
+      
+    return line_points
 
-    return projected_point
 
 
-origin = find_origin(applied_transformation[0])
-viewer.add_points(origin)
+def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
+    # Parameterize long axis by the points U1 and U2
+    t_values = np.linspace(0, 1, num_points)
+    long_axis_points = np.array([(1-t)*U1 + t*U2 for t in t_values])
+
+    widest_distance = 0
+    widest_points = None
+
+    for point in long_axis_points:
+        # Create line segment perpendicular to the long axis
+        perp_line = LineString([point - 50 * V, point + 50 * V])
+
+        # Convert shape coordinates to LineString
+        shape_line = LineString(shape_coords[:, 1:])
+
+        # Find intersection
+        intersection = perp_line.intersection(shape_line)
+
+        if isinstance(intersection, MultiPoint):
+            points_list = intersection.geoms
+            if len(points_list) >= 2:
+                dist = points_list[0].distance(points_list[-1])
+                if dist > widest_distance:
+                    widest_distance = dist
+                    widest_points = [list(points_list[0].coords)[0], list(points_list[-1].coords)[0]]
+
+    return np.array(widest_points)
+
+
+def find_intersection(A, B, E, F):
+    m1 = (B[1] - A[1]) / (B[0] - A[0])
+    b1 = A[1] - m1 * A[0]
+    m2 = (F[1] - E[1]) / (F[0] - E[0])
+    b2 = E[1] - m2 * E[0]
+    x_intersection = (b2 - b1) / (m1 - m2)
+    y_intersection = m1 * x_intersection + b1
+    return np.array([x_intersection, y_intersection])
+
+
+def process_frame(viewer):
+    # Process for all frames
+    #frame_data = viewer.layers[1].data
+    sorted_data = sorted(viewer.layers[1].data, key=lambda x: x[0][0])
+    results = {}
+    
+    for idx, shape_coords in enumerate(sorted_data):
+        # Calculate PCA line points
+        line_points = fit_pca_line(shape_coords[:, 1:])
+        # Get unit vectors
+        U, V = get_uv_from_pca(line_points)
+        
+        
+        # Debug Check 1: Check if U and V are perpendicular
+        is_perpendicular_uv = np.abs(np.dot(U, V)) < 1e-5
+        if not is_perpendicular_uv:
+           print(f"Debug Check 1: For shape {idx}, U and V are not perpendicular.")
+        # Compute centroid
+        centroid = np.mean(shape_coords[:, 1:], axis=0)
+        
+        # Find extreme points
+        #extreme_points = np.array(find_edges_new(centroid, shape_coords, V))
+        extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=100))
+        # Debug check 2: check if the extreme points line is indeed perpendicualr to U  
+        extreme_vector = extreme_points[1] - extreme_points[0]
+        is_perpendicular_extreme = np.abs(np.dot(extreme_vector, U)) < 1e-5
+        
+        if not is_perpendicular_extreme:
+            print(f'Debug Check 2: For shape {idx}, extreme poitns line is not perp to U ')
+        #viewer.add_points(extreme_points) 
+        # Compute intersection
+        intersection = find_intersection(line_points[0], line_points[1], extreme_points[0], extreme_points[1])
+        
+        results[idx] = {
+            "points_long_axis": line_points,
+            "U": U,
+            "V": V,
+            "centroid": centroid,
+            "points_short_axis": extreme_points,
+            "origin": intersection
+        }
+    return results
+
+
+
+#%%
+sorted_data = sorted(viewer.layers['Shapes'].data, key=lambda x: x[0][0])
