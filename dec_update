@@ -336,7 +336,6 @@ def match_coords(coords1, coords2, x0=[0, 0, 0]): # was using -np.deg2rad(2) as 
 
 def apply_transformations(reference_frame, transformation_matrices):
     transformed_frames = [reference_frame]
-^
     for matrix in transformation_matrices[1:]:  # Exclude the identity matrix
         x, y, phi = matrix
         reference_frame = transform(reference_frame, x, y, phi)
@@ -345,7 +344,7 @@ def apply_transformations(reference_frame, transformation_matrices):
     return transformed_frames
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_aw2_tgv_5e-2_pos.nii'
+path = 'C:/Users/Aayush/Documents/thesis_files/MM/MM_NW_aw2_tgv_5e-2_pos.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
@@ -390,7 +389,7 @@ print(f"Elapsed Time: {end_time - start_time} seconds")
 viewer3.add_image(canny_multi_edge, name='MM_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[5]
+tib_canny = canny_multi_edge[2]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 tib_canny = viewer.layers['after_edge_detection_sigma_2'].data
@@ -409,7 +408,7 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (20, 50)  # 100 min and 200 max size for femur 
+size_range = (50, 80)  # 100 min and 200 max size for femur 
 num_steps = 20  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
@@ -421,8 +420,11 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # pick the right index
-bone_canny = removed_4d[15] 
+bone_canny = removed_4d[13] 
 viewer.add_image(bone_canny, name='after_remove_small')
+#%%
+bone_canny = viewer.layers['after_remove_small'].data
+
 #%%
 # skeletonize the edge 
 skeleton_bone_canny = apply_skeleton(bone_canny)
@@ -472,8 +474,11 @@ final_label_outer = ndlabel.copy()
 final_label_outer = final_label_outer==34
 viewer.add_image(final_label_outer)
 #%%
+skeleton_final_label = apply_skeleton(tibia_edges)
+viewer.add_image(skeleton_final_label, name = 'skeleton_tibia_edges')
+#%%
 #when using tibia edges to find the labels
-final_label =  viewer.layers['tibia_edges'].data
+final_label =  viewer.layers['skeleton_tibia_edges'].data
 viewer.add_image(final_label, name='final label')
 #%%
 #Step 8: once the final edge has been found, convert it to a list of arrays. 
@@ -482,10 +487,17 @@ tib_coords = boolean_to_coords(final_label)
 # Step 9: find the frame with the least number of points, and then downsample that. 
 find_array_with_min_n(tib_coords)
 #%%
+reference_frame_last = downsample_points(tib_coords, -1, 50)
+viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
+#%%
 reference_frame = downsample_points(tib_coords, 0, 50)
-viewer.add_points(reference_frame, face_color='orange', size =1, name='reference_frame_100')
+viewer.add_points(reference_frame, face_color='orange', size =1, name='reference_frame_first')
 #%%
 # Step 10, replace this in the original list
+new_tib_coords_last = tib_coords.copy() 
+new_tib_coords_last[-1] = reference_frame_last
+
+#%%
 new_tib_coords = tib_coords.copy() 
 new_tib_coords[0] = reference_frame
 #%%
@@ -537,9 +549,9 @@ def combined_consecutive_transform(data):
         x0 = fr
 
     return transformation_matrices, giant_list, cost_values
-
-transformation_matrices_x, giant_list_x, cost_values_x = combined_consecutive_transform(new_tib_coords)
-viewer.add_points(points_for_napari(giant_list_x), size=1, face_color='yellow', name='ref_frame_0')
+#%%
+transformation_matrices_last, giant_list_x, cost_values_x = combined_consecutive_transform(new_tib_coords_last)
+viewer.add_points(points_for_napari(giant_list_x), size=1, face_color='green', name='ref_frame_last')
 
 #%%
 def apply_transformations_new(reference_frame, transformation_matrices, reference_index):
@@ -645,6 +657,233 @@ plt.ylabel("Phi (Rotation in degrees)")
 plt.grid(True)
 plt.show()    
 
+#%%
+# for last frame as refernce:
+
+# Reverse the order of transformations (make the last frame the first)
+reversed_transformations = transformation_matrices_x[::-1]
+
+# Calculate the rotation for each frame in the reversed order
+phis_reversed = [np.rad2deg(transformation[2]) for transformation in reversed_transformations]
+
+# Calculate the cumulative sum of the reversed phis
+cumulative_phis_reversed = np.cumsum(phis_reversed)
+
+# Since we reversed the order, we need to reverse the cumulative sum back
+cumulative_phis = cumulative_phis_reversed[::-1]
+# Number of frames
+num_frames = len(cumulative_phis)
+
+# Create reversed labels for the x-axis
+frame_labels = list(range(num_frames - 1, -1, -1))
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(cumulative_phis, marker='o')
+plt.title("Change in Phi over Frames (Relative to Last Frame)")
+plt.xticks(ticks=range(num_frames), labels=frame_labels)
+plt.xlabel("Frame Number")
+plt.ylabel("Phi (Rotation in degrees)")
+plt.yticks(np.linspace(0, 35, 30))  # Adjust this range as needed
+plt.grid(True)
+plt.show()
+
+#%%
+from sklearn.metrics import mean_squared_error
+
+# line of regression plot 
+
+# Calculate the residuals from a linear fit
+def calculate_residuals(x, y):
+    # Fit a first degree polynomial (linear fit) to the data
+    coefficients = np.polyfit(x, y, 1)
+    # Create a polynomial using these coefficients
+    poly = np.poly1d(coefficients)
+    # Generate the predicted y-values
+    y_pred = poly(x)
+    # Calculate the residuals
+    residuals = y - y_pred
+    return residuals, y_pred, coefficients
+
+# Your existing code to calculate cumulative_phis
+
+# Assuming cumulative_phis is already calculated and is a numpy array
+frame_numbers = np.array(range(len(cumulative_phis)))
+
+# Calculate residuals
+residuals, y_pred, coefficients = calculate_residuals(frame_numbers, cumulative_phis)
+
+# Plotting the original data
+plt.figure(figsize=(14, 8))
+plt.subplot(2, 1, 1)
+plt.plot(frame_numbers, cumulative_phis, marker='o', label='Original Data')
+plt.plot(frame_numbers, y_pred, color='red', label='Linear Fit')
+plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
+plt.title("Change in Phi over Frames (Relative to Last Frame) and Linear Fit")
+plt.xlabel("Frame Number (29 to 0)")
+plt.ylabel("Phi (Rotation in degrees)")
+plt.grid(True)
+plt.legend()
+
+# Plotting the residuals
+plt.subplot(2, 1, 2)
+plt.plot(frame_numbers, residuals, marker='o', color='green')
+plt.axhline(0, color='black', linewidth=0.5)
+plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
+plt.title("Residuals of the Linear Fit")
+plt.xlabel("Frame Number (29 to 0)")
+plt.ylabel("Residuals (degrees)")
+plt.grid(True)
+
+# Show the plot with both the original data and the residuals
+plt.tight_layout()
+plt.show()
+
+# Print out the mean squared error of the residuals
+mse = mean_squared_error(cumulative_phis, y_pred)
+print(f"Mean Squared Error of the fit: {mse:.4f}")
+
+# Print the coefficients of the linear fit
+print(f"Coefficients of the linear fit: slope = {coefficients[0]:.4f}, intercept = {coefficients[1]:.4f}")
+    
+#%%
+# theoretical one degree increment line plot: 
+    
+
+frame_numbers = np.array(range(len(cumulative_phis)))
+
+# Generate the theoretical perfect line with 1-degree increments
+# Assuming the last angle is the starting point
+start_angle = cumulative_phis[-1]
+perfect_line = np.arange(28, -1, -1)  # This will create an array from 28 down to 0
+# Calculate the residuals
+residuals = cumulative_phis - perfect_line
+
+# Plotting the original data
+plt.figure(figsize=(14, 8))
+plt.subplot(2, 1, 1)
+plt.plot(frame_numbers, cumulative_phis, marker='o', label='Measured Data')
+plt.plot(frame_numbers, perfect_line, color='red', linestyle='--', label='Perfect 1-degree Decrement Line')
+plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
+plt.title("Measured Data vs. Perfect 1-degree Decrement Line (Using last frame as reference)")
+plt.xlabel("Rotary angle encoder")
+plt.ylabel("Rotation angle of tibia (in degrees)")
+plt.grid(True)
+plt.legend()
+
+# Plotting the residuals
+plt.subplot(2, 1, 2)
+plt.plot(frame_numbers, residuals, marker='o', color='green')
+plt.axhline(0, color='black', linewidth=0.5)
+plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
+plt.title("Deviation from Perfect 1-degree Decrement Line")
+plt.xlabel("Rotary angle encoder")
+plt.ylabel("Deviation (degrees)")
+plt.grid(True)
+
+# Show the plot with both the original data and the residuals
+plt.tight_layout()
+plt.show()
+
+# Print out the mean squared error of the residuals
+mse = np.mean(residuals**2)
+print(f"Mean Squared Error of the deviation: {mse:.4f}")
+
+#%%
+# encapsulating this into a function 
+def plot_phi_changes(transformation_matrices, reference_frame_index):
+    # Extract phi angles and convert to degrees
+    phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
+    
+    # Adjust phis based on the reference frame
+    reference_phi = phis[reference_frame_index]
+    adjusted_phis = [phi - reference_phi for phi in phis]
+    
+    # Calculate cumulative phis from the reference frame
+    if reference_frame_index == 0:
+        # If the reference frame is the first frame, calculate cumulative sum directly
+        cumulative_phis = np.cumsum(adjusted_phis)
+    else:
+        # If the reference frame is not the first, reverse the list before cumulative sum
+        cumulative_phis = np.cumsum(adjusted_phis[::-1])[::-1]
+    
+    # Generate the theoretical perfect line with 1-degree increments
+    if reference_frame_index == 0:
+        perfect_line = np.arange(0, -len(cumulative_phis), -1)
+    else:
+        #perfect_line = np.arange(len(cumulative_phis) - 1, -1, -1)
+        first_phi_value = cumulative_phis[0]
+        perfect_line = np.arange(first_phi_value, first_phi_value - len(cumulative_phis), -1)
+    
+    # Calculate the residuals
+    residuals = cumulative_phis - perfect_line
+    
+    # Plotting the original data
+    plt.figure(figsize=(14, 8))
+    plt.subplot(2, 1, 1)
+    plt.plot(cumulative_phis, marker='o', label='Measured Data')
+    plt.plot(perfect_line, color='red', linestyle='--', label='Perfect 1-degree Line')
+    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
+    plt.title(f"Measured Data vs. Perfect 1-degree Line (Using frame {reference_frame_index} as reference)")
+    plt.xlabel("Rotary angle encoder")
+    plt.ylabel("Rotation angle of tibia (in degrees)")
+    plt.grid(True)
+    plt.legend()
+    
+    # Plotting the residuals
+    plt.subplot(2, 1, 2)
+    plt.plot(residuals, marker='o', color='green')
+    plt.axhline(0, color='black', linewidth=0.5)
+    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
+    plt.title("Deviation from Perfect 1-degree Line")
+    plt.xlabel("Rotary angle encoder")
+    plt.ylabel("Deviation (degrees)")
+    plt.grid(True)
+    
+    # Show the plot with both the original data and the residuals
+    plt.tight_layout()
+    plt.show()
+    
+    # Print out the mean squared error of the residuals
+    mse = np.mean(residuals**2)
+    print(f"Mean Squared Error of the deviation: {mse:.4f}")
+
+
+plot_phi_changes(transformation_matrices_last, 28)
+
+#%%
+
+def plot_compared_phi_changes(transformations_zero_ref, transformations_last_ref):
+    # Extract phi angles for zero frame reference and convert to degrees
+    phis_zero_ref = [np.rad2deg(transformation[2]) for transformation in transformations_zero_ref]
+    cumulative_phis_zero_ref = np.cumsum(phis_zero_ref)
+    
+    # Extract phi angles for last frame reference, reverse and convert to degrees
+    phis_last_ref = [np.rad2deg(transformation[2]) for transformation in transformations_last_ref][::-1]
+    cumulative_phis_last_ref = np.cumsum(phis_last_ref[::-1])[::-1]
+    
+    # Offset for last frame reference to start around zero
+    offset = cumulative_phis_zero_ref[0] - cumulative_phis_last_ref[0]
+    cumulative_phis_last_ref += offset
+
+    # Plotting the original data
+    plt.figure(figsize=(14, 8))
+    
+    # Plot for zero frame reference
+    plt.plot(cumulative_phis_zero_ref, marker='o', label='Zero Frame Reference')
+    
+    # Plot for last frame reference
+    plt.plot(cumulative_phis_last_ref, marker='x', label='Last Frame Reference')
+    
+    plt.title("Comparison of Cumulative Phi Angles")
+    plt.xlabel("Frame Number")
+    plt.ylabel("Cumulative Phi (Rotation in degrees)")
+    plt.legend()
+    plt.grid(True)
+    
+    plt.show()
+    
+plot_compared_phi_changes(transformation_matrices_x, transformation_matrices_last)
 #%%
 # all these functions are taken from the segmentation.py file. 
 
