@@ -11,6 +11,7 @@ import nibabel as nib
 import matplotlib.pyplot as plt 
 from sklearn.decomposition import PCA
 import os 
+from shapely.geometry import LineString, Point, MultiPoint
 #%%
 def open_nii(path):
     ''' Input: Path of nifti file (.nii) Output: pixelarray  ''' 
@@ -134,7 +135,7 @@ def find_extreme_points_on_secondary_axis(centroid, shape_coords, unit_vector_pe
     
     return shape_coords[max_index, 1:], shape_coords[min_index, 1:]
 
-from shapely.geometry import LineString, Point, MultiPoint
+
 
 def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
     # Parameterize long axis by the points U1 and U2
@@ -175,10 +176,10 @@ def find_intersection(A, B, E, F):
     return np.array([x_intersection, y_intersection])
 
 
-def process_frame(viewer):
+def process_frame(shapes_data):
     # Process for all frames
     #frame_data = viewer.layers[1].data
-    sorted_data = sorted(viewer.layers[1].data, key=lambda x: x[0][0])
+    sorted_data = sorted(shapes_data, key=lambda x: x[0][0]) # was viewer.layers[1].data
     results = {}
     
     for idx, shape_coords in enumerate(sorted_data):
@@ -227,6 +228,9 @@ def open_napari(path):
     pixelarray = open_nii(path)
     viewer = napari.view_image(gradify(pixelarray))
     return viewer 
+
+#%%
+process_frame(viewer.layers['Shapes'].data)
 #%%
 path = 'C:/Users/MSI/Documents/data/90bpm_nowt_06-25/data_aw3_up_3_to_26deg.nii'
 #%%
@@ -243,13 +247,15 @@ tib_layer = viewer.layers[1]
 #%%
 viewer.add_image(tib_layer) 
 #%%
-fem_layer = viewer.layers[1]
+tib_info = np.load('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/tib_info_first.npy',  allow_pickle=True).item()
 #%%
-fem_info = process_frame(viewer)
+fem_info = process_frame(viewer.layers['Shapes'].data)
 #%%
-tib_info = process_frame(viewer)
+tib_info = process_frame(viewer.layers['Shapes'].data)
 #%%
-check_info = process_frame(viewer) 
+check_info = process_frame(viewer)
+#%%
+np.save('femur_info_first', fem_info) 
 #%%
 def show_origin(all_frame_data):
     point_data = []
@@ -305,7 +311,7 @@ def axis_check (bone_info ,ind):
 
 def all_axis_check(bone_info):
     all_rad = []
-    for i in fem_info:
+    for i in bone_info:
         dot = axis_check(bone_info,i)
         radians = np.arccos(dot)
         all_rad.append(radians)
@@ -341,8 +347,8 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     angles = []
     
     for frame in frames:
-        femur_vector = femur_info[frame]['V']
-        tibia_vector = tibia_info[frame]['V']
+        femur_vector = femur_info[frame]['U']
+        tibia_vector = tibia_info[frame]['U']
         angle = calculate_angle(femur_vector, tibia_vector)
         angles.append(angle)
     angles = (180 - np.array(angles) ) 
@@ -350,17 +356,17 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     plt.plot(frames, angles, label=f'{label}')
     plt.xlabel("Frame")
     plt.ylabel("Angle (degrees)")
-    plt.title("Change in Angle Between Femur and Tibia Over Frames")
+    plt.title("Angle Between long axes of Femur and Tibia Over Frames")
     plt.grid(True)
     plt.legend()
     plt.show()
 
 #%%
-track_origin(tib_info, 'tibia__no_weight')
+track_origin(tib_info, 'tibia_NW_last_frame')
 #%%
 track_origin(fem_info, 'femur_no_weight') 
 #%%
-plot_angle_vs_frame(fem_info, tib_info, 'no_weight')
+plot_angle_vs_frame(fem_info, tib_info, 'NW_US')
 #%%
 def plot_angle_vs_angle(femur_info , tibia_info, angle_list,  label):
     frames = sorted(femur_info.keys())
@@ -384,3 +390,4 @@ def plot_angle_vs_angle(femur_info , tibia_info, angle_list,  label):
 #%%
 angle_list = np.arange(3,27)
 plot_angle_vs_angle(fem_info, tib_info, angle_list, 'no_weight')
+#%%
