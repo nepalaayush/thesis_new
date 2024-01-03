@@ -344,13 +344,13 @@ def apply_transformations(reference_frame, transformation_matrices):
     return transformed_frames
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/MM/MM_NW_aw2_tgv_5e-2_pos.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-1.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)[1:]
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_MM')
+viewer = napari.view_image(image,  name='NW_US')
 #%%
 viewer.add_image(image, name='MK_W_r0.40')
 #%%
@@ -386,7 +386,7 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='MM_NW')
+viewer3.add_image(canny_multi_edge, name='US_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
 tib_canny = canny_multi_edge[2]
@@ -408,7 +408,7 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (50, 80)  # 100 min and 200 max size for femur 
+size_range = (20, 45)  # 100 min and 200 max size for femur 
 num_steps = 20  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
@@ -420,7 +420,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # pick the right index
-bone_canny = removed_4d[13] 
+bone_canny = removed_4d[19] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 bone_canny = viewer.layers['after_remove_small'].data
@@ -464,14 +464,16 @@ custom_structuring_element = np.array([
      [False, True, False]]
 ])
 #%%
+# works great for femur this. 
+
 ndlabel, features = ndimage.label(skeleton_bone_canny, structure= structuring_element, output=None)
-viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure_custom')    
+viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')    
 #print(features)
 #%%
 ''' for some reason, doing this is actually quite benefitial.  ''' 
 
 final_label_outer = ndlabel.copy()
-final_label_outer = final_label_outer==34
+final_label_outer = final_label_outer==4
 viewer.add_image(final_label_outer)
 #%%
 skeleton_final_label = apply_skeleton(tibia_edges)
@@ -480,6 +482,10 @@ viewer.add_image(skeleton_final_label, name = 'skeleton_tibia_edges')
 #when using tibia edges to find the labels
 final_label =  viewer.layers['skeleton_tibia_edges'].data
 viewer.add_image(final_label, name='final label')
+
+#%%
+# if one is happy with tibia_edges / final_labelouter already: 
+final_label = final_label_outer
 #%%
 #Step 8: once the final edge has been found, convert it to a list of arrays. 
 tib_coords = boolean_to_coords(final_label)
@@ -490,16 +496,16 @@ find_array_with_min_n(tib_coords)
 reference_frame_last = downsample_points(tib_coords, -1, 50)
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-reference_frame = downsample_points(tib_coords, 0, 50)
-viewer.add_points(reference_frame, face_color='orange', size =1, name='reference_frame_first')
+reference_frame_first = downsample_points(tib_coords, 0, 50)
+viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
 #%%
 # Step 10, replace this in the original list
 new_tib_coords_last = tib_coords.copy() 
 new_tib_coords_last[-1] = reference_frame_last
 
 #%%
-new_tib_coords = tib_coords.copy() 
-new_tib_coords[0] = reference_frame
+new_tib_coords_first = tib_coords.copy() 
+new_tib_coords_first[0] = reference_frame_first
 #%%
 def combined_consecutive_transform(data):
     # Select reference frame based on the shortest edge
@@ -550,9 +556,16 @@ def combined_consecutive_transform(data):
 
     return transformation_matrices, giant_list, cost_values
 #%%
-transformation_matrices_last, giant_list_x, cost_values_x = combined_consecutive_transform(new_tib_coords_last)
-viewer.add_points(points_for_napari(giant_list_x), size=1, face_color='green', name='ref_frame_last')
+transformation_matrices_last, giant_list_last, cost_values_last = combined_consecutive_transform(new_tib_coords_last)
+viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='green', name='ref_frame_last')
 
+#%%
+transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(new_tib_coords_first)
+viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='green', name='ref_frame_first')
+
+#%%
+# to save the matrices as arrays: 
+np.save('t_matrices_first_femur', np.array(transformation_matrices_first) )    
 #%%
 def apply_transformations_new(reference_frame, transformation_matrices, reference_index):
     num_frames = len(transformation_matrices)
@@ -581,15 +594,15 @@ def apply_transformations_new(reference_frame, transformation_matrices, referenc
 
     return transformed_frames
 #%%
-# to use the reference as a shape and move it around 
-viewer.add_shapes(new_tib_coords[0], shape_type='polygon')
+# to use the reference as a shape and move it around   
+viewer.add_shapes(new_tib _coords_first[0], shape_type='polygon')
 #%%
 ref_points = viewer.layers['expanded_shape'].data[0]
 #%%
 viewer.add_shapes(ref_points, shape_type='polygon', face_color='red')
 #%%
 # here ref_points is taken from the drawn shape. not shown here. 
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_x, 0)    
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 #%%
 # loading the previously calculated consecutive matrices in order to transform it. 
 consecutive_matrices = consecutive_matrices  # now, it is an array not a list of matrices. might be easier to deal with. so keep in mind in the future. 
@@ -746,48 +759,6 @@ print(f"Mean Squared Error of the fit: {mse:.4f}")
 # Print the coefficients of the linear fit
 print(f"Coefficients of the linear fit: slope = {coefficients[0]:.4f}, intercept = {coefficients[1]:.4f}")
     
-#%%
-# theoretical one degree increment line plot: 
-    
-
-frame_numbers = np.array(range(len(cumulative_phis)))
-
-# Generate the theoretical perfect line with 1-degree increments
-# Assuming the last angle is the starting point
-start_angle = cumulative_phis[-1]
-perfect_line = np.arange(28, -1, -1)  # This will create an array from 28 down to 0
-# Calculate the residuals
-residuals = cumulative_phis - perfect_line
-
-# Plotting the original data
-plt.figure(figsize=(14, 8))
-plt.subplot(2, 1, 1)
-plt.plot(frame_numbers, cumulative_phis, marker='o', label='Measured Data')
-plt.plot(frame_numbers, perfect_line, color='red', linestyle='--', label='Perfect 1-degree Decrement Line')
-plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
-plt.title("Measured Data vs. Perfect 1-degree Decrement Line (Using last frame as reference)")
-plt.xlabel("Rotary angle encoder")
-plt.ylabel("Rotation angle of tibia (in degrees)")
-plt.grid(True)
-plt.legend()
-
-# Plotting the residuals
-plt.subplot(2, 1, 2)
-plt.plot(frame_numbers, residuals, marker='o', color='green')
-plt.axhline(0, color='black', linewidth=0.5)
-plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
-plt.title("Deviation from Perfect 1-degree Decrement Line")
-plt.xlabel("Rotary angle encoder")
-plt.ylabel("Deviation (degrees)")
-plt.grid(True)
-
-# Show the plot with both the original data and the residuals
-plt.tight_layout()
-plt.show()
-
-# Print out the mean squared error of the residuals
-mse = np.mean(residuals**2)
-print(f"Mean Squared Error of the deviation: {mse:.4f}")
 
 #%%
 # encapsulating this into a function 
@@ -849,8 +820,34 @@ def plot_phi_changes(transformation_matrices, reference_frame_index):
     print(f"Mean Squared Error of the deviation: {mse:.4f}")
 
 
-plot_phi_changes(transformation_matrices_last, 28)
+plot_phi_changes(transformation_matrices_first, 0)
 
+#%%
+def plot_cost_values(values):
+    # Ensure the input is a list or a numpy array
+    if not isinstance(values, (list, np.ndarray)):
+        raise ValueError("Input should be a list or numpy array of numerical values.")
+
+    # Generate the item numbers (indices) for the x-axis
+    item_numbers = range(len(values))
+    
+    # Create the plot
+    plt.figure(figsize=(10, 6))  # Adjust the size to your preference
+    plt.plot(item_numbers, values, marker='o', linestyle='-')  # Plot values vs. item numbers
+    
+    # Adding labels and title
+    plt.title("Cost Value at Each Frame")
+    plt.xlabel("Rotary Angle Encoder")
+    plt.ylabel("Cost function Value")
+    plt.xticks(ticks=item_numbers)
+    #plt.minorticks_on()
+    # Adding grid for better readability
+    plt.grid(True)
+    
+    # Show the plot
+    plt.show()
+    print('The sum of all the cost function values is:', np.sum(values))
+plot_cost_values(cost_values_first)
 #%%
 
 def plot_compared_phi_changes(transformations_zero_ref, transformations_last_ref):
@@ -1001,4 +998,6 @@ def process_frame(viewer):
 
 
 #%%
-sorted_data = sorted(viewer.layers['Shapes'].data, key=lambda x: x[0][0])
+viewer1 = napari.view_image(image)
+
+#%%
