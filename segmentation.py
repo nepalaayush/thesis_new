@@ -11,7 +11,7 @@ import nibabel as nib
 import matplotlib.pyplot as plt 
 from sklearn.decomposition import PCA
 import os 
-from shapely.geometry import LineString, Point, MultiPoint
+from shapely.geometry import LineString, MultiPoint
 #%%
 def open_nii(path):
     ''' Input: Path of nifti file (.nii) Output: pixelarray  ''' 
