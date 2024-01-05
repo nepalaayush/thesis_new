@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec  4 10:30:24 2023
+Created on Fri Jan  5 14:24:36 2024
 
 @author: aayush
 """
-
+import os 
 import numpy as np
-import napari
 import nibabel as nib 
 import matplotlib.pyplot as plt 
 from scipy import ndimage
-import time 
 from scipy.interpolate import CubicSpline
 import scipy.optimize
 from skimage.feature import canny
 from skimage.morphology import skeletonize, remove_small_objects
-#%%
+from sklearn.decomposition import PCA
+from shapely.geometry import LineString, MultiPoint
+
 def open_nii(path):
     ''' Input: Path of nifti file (.nii) Output: pixelarray  ''' 
     nifti_img = nib.load(path)
@@ -342,172 +342,8 @@ def apply_transformations(reference_frame, transformation_matrices):
         transformed_frames.append(reference_frame)
 
     return transformed_frames
-#%%
-# Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-1.nii'
-image = open_nii(path)
-image = normalize(image)
-image = np.moveaxis(image, 1, 0)[1:]
-#%%
-#add the original image to napari
-viewer = napari.view_image(image,  name='NW_US')
-#%%
-viewer.add_image(image, name='MK_W_r0.40')
-#%%
-#%%
-# add the 4d image to a new viewer
-viewer3 = napari.Viewer() 
-#%%
-# Step 4: find the best suitable low and high range for edge detection
-start_time = time.time() 
-
-def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps, sigma):
-    ''' Note, values less than low are ignored, values greater than high are considered edges. Pixels with a gradient magnitude between low and high are conditionally accepted if they're connected to strong edges. ''' 
-    low_values = np.linspace(low_range[0], low_range[1], num_steps)
-    high_values = np.linspace(high_range[0], high_range[1], num_steps)
-    
-    # Initialize a 4D array to store results
-    canny_multi_edge = np.zeros((num_steps, *pixelarray.shape), dtype=bool)
-    
-    for j, (low, high) in enumerate(zip(low_values, high_values)):
-        canny_edge = apply_canny(pixelarray, low, high, sigma)
-        canny_multi_edge[j] = canny_edge
-    
-    return canny_multi_edge
-
-low_range = (5,10) # 
-high_range = (11,20 ) # 
-num_steps = 10
-sigma = 2
-print(np.linspace(low_range[0] , low_range[1], num_steps) )
-print(np.linspace(high_range[0] , high_range[1], num_steps) )
-
-canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range, num_steps, sigma)
-
-end_time = time.time() 
-print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='US_NW')
-#%%
-#Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[2]
-viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
-#%%
-tib_canny = viewer.layers['after_edge_detection_sigma_2'].data
-#%%
-#Step 6: Use remove small objects at various ranges to find the most suitable
-def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
-    size_values = np.linspace(size_range[0], size_range[1], num_steps).astype(int)
-    print(size_values) 
-    # Initialize a 4D array to store results
-    removed_multi_3d = np.zeros((num_steps, *pixelarray.shape), dtype=bool)
-    
-    for i, size in enumerate(size_values):
-        removed_3d = apply_remove(pixelarray, size, connectivity)
-        removed_multi_3d[i] = removed_3d
-    
-    return removed_multi_3d
-
-# Example usage
-size_range = (20, 45)  # 100 min and 200 max size for femur 
-num_steps = 20  # Number of steps for size parameter
-connectivity = 2  # Fixed connectivity value
-print(np.linspace(size_range[0],size_range[1], num_steps))
-# Assuming smooth_image is your 3D image array
-removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, connectivity)
 
 
-# add it to the 4d viewer
-viewer3.add_image(removed_4d, name='multi_remove_small')
-#%%
-# pick the right index
-bone_canny = removed_4d[19] 
-viewer.add_image(bone_canny, name='after_remove_small')
-#%%
-bone_canny = viewer.layers['after_remove_small'].data
-
-#%%
-# skeletonize the edge 
-skeleton_bone_canny = apply_skeleton(bone_canny)
-viewer.add_image(skeleton_bone_canny, name = 'skeleton_bone_canny')
-#%%
-# Step 7 : either using a 2d or 3d,label the appropriate edge 
-label_image, features = apply_label(bone_canny)
-
-viewer.add_labels(label_image, name='2,2,structure_label_loop')
-
-#%%
-#making a small tweak where we got 3 part label of inner edge: 
-label_image = viewer.layers['2,2,structure_label_loop'].data
-viewer.add_labels(label_image, name='tweaked labels')
-
-#%%
-
-start_coord = (viewer.layers['Points'].data[0,1:]).astype(int)
-tibia_edges = find_tibia_edges(label_image, start_coord)
-#%%
-viewer.add_labels(tibia_edges)
-#%%
-structuring_element = ndimage.generate_binary_structure(3, 3)
-#%%
-''' 
-custom_structuring_element = np.array([
-    [[True, False, True],
-     [False, True, False],
-     [True, False, True]],
-    
-    [[True, True, False],
-     [False, False, False],
-     [False, True, True]],
-    
-    [[False, True, False],
-     [True, False, True],
-     [False, True, False]]
-])
-'''
-#%%
-# works great for femur this. 
-
-ndlabel, features = ndimage.label(skeleton_bone_canny, structure= structuring_element, output=None)
-viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')    
-#print(features)
-#%%
-''' for some reason, doing this is actually quite benefitial.  ''' 
-
-final_label_outer = ndlabel.copy()
-final_label_outer = final_label_outer==4
-viewer.add_image(final_label_outer)
-#%%
-skeleton_final_label = apply_skeleton(tibia_edges)
-viewer.add_image(skeleton_final_label, name = 'skeleton_tibia_edges')
-#%%
-#when using tibia edges to find the labels
-final_label =  viewer.layers['skeleton_tibia_edges'].data
-viewer.add_image(final_label, name='final label')
-
-#%%
-# if one is happy with tibia_edges / final_labelouter already: 
-final_label = final_label_outer
-#%%
-#Step 8: once the final edge has been found, convert it to a list of arrays. 
-tib_coords = boolean_to_coords(final_label)
-#%%
-# Step 9: find the frame with the least number of points, and then downsample that. 
-find_array_with_min_n(tib_coords)
-#%%
-reference_frame_last = downsample_points(tib_coords, -1, 50)
-viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
-#%%
-reference_frame_first = downsample_points(tib_coords, 0, 50)
-viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
-#%%
-# Step 10, replace this in the original list
-new_tib_coords_last = tib_coords.copy() 
-new_tib_coords_last[-1] = reference_frame_last
-
-#%%
-new_tib_coords_first = tib_coords.copy() 
-new_tib_coords_first[0] = reference_frame_first
-#%%
 def combined_consecutive_transform(data):
     # Select reference frame based on the shortest edge
     reference_index = find_array_with_min_n(data)
@@ -556,18 +392,8 @@ def combined_consecutive_transform(data):
         x0 = fr
 
     return transformation_matrices, giant_list, cost_values
-#%%
-transformation_matrices_last, giant_list_last, cost_values_last = combined_consecutive_transform(new_tib_coords_last)
-viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='green', name='ref_frame_last')
 
-#%%
-transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(new_tib_coords_first)
-viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='green', name='ref_frame_first')
 
-#%%
-# to save the matrices as arrays: 
-np.save('t_matrices_first_femur', np.array(transformation_matrices_first) )    
-#%%
 def apply_transformations_new(reference_frame, transformation_matrices, reference_index):
     num_frames = len(transformation_matrices)
     transformed_frames = [None] * num_frames
@@ -594,299 +420,7 @@ def apply_transformations_new(reference_frame, transformation_matrices, referenc
         transformed_frames[i] = current_frame
 
     return transformed_frames
-#%%
-# to use the reference as a shape and move it around   
-viewer.add_shapes(new_tib _coords_first[0], shape_type='polygon')
-#%%
-ref_points = viewer.layers['expanded_shape'].data[0]
-#%%
-viewer.add_shapes(ref_points, shape_type='polygon', face_color='red')
-#%%
-# here ref_points is taken from the drawn shape. not shown here. 
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
-#%%
-# loading the previously calculated consecutive matrices in order to transform it. 
-consecutive_matrices = consecutive_matrices  # now, it is an array not a list of matrices. might be easier to deal with. so keep in mind in the future. 
-ref_points = viewer.layers['expanded_shape'].data[0][:,1:] # for some reason needed to slice it this way. 
-applied_transformation = apply_transformations_new(ref_points, consecutive_matrices,6)    
-#%%
-viewer.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='blue')
-#%%
-x, y , phi = consecutive_matrices[7]
-new_frame = transform(ref_points, x, y , phi )
-viewer.add_shapes(new_frame, shape_type='polygon', face_color='blue')
-#%%
-# to obtain the cumulative transform from 0 frame to frame 2: so 0 to 1 is R1 and 1 to 2 is R2... and t1 is translation from 0 to 1 and t2 is translation from 1 to 2 : 
-# new R = R2R1 and new translation = R2t1 + t2     
-def extract_params(input_array):
-    x, y, phi = input_array
-    R = np.array([[np.cos(phi), -np.sin(phi)],
-                  [np.sin(phi), np.cos(phi)]])
-    t = np.array([x, y])
-    return R, t
 
-def combine_transforms(R_prev, t_prev, R_curr, t_curr):
-    R_combined = R_curr @ R_prev
-    t_rotated = R_prev @ t_curr  # Rotate the current translation by the previous cumulative rotation
-    t_combined = t_prev + t_rotated  # Add it to the cumulative translation
-    return R_combined, t_combined
-
-def create_transforms_list(matrices):
-    if len(matrices) == 0:
-        raise ValueError("The list must contain at least one matrix.")
-
-    transforms_list = []  # Initialize with identity transformation
-    R_prev, t_prev = np.array([[1, 0], [0, 1]]), np.array([0, 0])  # Identity transform
-
-    for matrix in matrices:
-        R_curr, t_curr = extract_params(matrix)
-        R_combined, t_combined = combine_transforms(R_prev, t_prev, R_curr, t_curr)
-        #print(R_combined, t_combined)
-        phi_combined = np.arctan2(R_combined[1, 0], R_combined[0, 0])
-        combined_transform = np.array([t_combined[0], t_combined[1], phi_combined])
-
-        transforms_list.append(combined_transform)
-        R_prev, t_prev = R_combined, t_combined
-
-    return transforms_list
-
-
-new_transform_list = create_transforms_list(transformation_matrices_x)
-
-#%%
-x, y , phi = new_transform_list[2]
-new_frame = transform(ref_points, x, y , phi )
-viewer.add_shapes(new_frame, shape_type='polygon', face_color='yellow')
-
-#%%
-# simply does not work. at all. lets move on to the visualization. using always frame 0 as reference: 
-phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices_x]
-cumulative_phis = np.cumsum(phis)
-plt.figure(figsize=(10, 6))
-plt.plot(cumulative_phis, marker='o')
-plt.title("Change in Phi over Frames")
-plt.xlabel("Frame Number")
-plt.yticks(np.linspace(-35,0,30))
-plt.ylabel("Phi (Rotation in degrees)")untitled2.py
-plt.grid(True)
-plt.show()    
-
-#%%
-# for last frame as refernce:
-
-# Reverse the order of transformations (make the last frame the first)
-reversed_transformations = transformation_matrices_x[::-1]
-
-# Calculate the rotation for each frame in the reversed order
-phis_reversed = [np.rad2deg(transformation[2]) for transformation in reversed_transformations]
-
-# Calculate the cumulative sum of the reversed phis
-cumulative_phis_reversed = np.cumsum(phis_reversed)
-
-# Since we reversed the order, we need to reverse the cumulative sum back
-cumulative_phis = cumulative_phis_reversed[::-1]
-# Number of frames
-num_frames = len(cumulative_phis)
-
-# Create reversed labels for the x-axis
-frame_labels = list(range(num_frames - 1, -1, -1))
-
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(cumulative_phis, marker='o')
-plt.title("Change in Phi over Frames (Relative to Last Frame)")
-plt.xticks(ticks=range(num_frames), labels=frame_labels)
-plt.xlabel("Frame Number")
-plt.ylabel("Phi (Rotation in degrees)")
-plt.yticks(np.linspace(0, 35, 30))  # Adjust this range as needed
-plt.grid(True)
-plt.show()
-
-#%%
-from sklearn.metrics import mean_squared_error
-
-# line of regression plot 
-
-# Calculate the residuals from a linear fit
-def calculate_residuals(x, y):
-    # Fit a first degree polynomial (linear fit) to the data
-    coefficients = np.polyfit(x, y, 1)
-    # Create a polynomial using these coefficients
-    poly = np.poly1d(coefficients)
-    # Generate the predicted y-values
-    y_pred = poly(x)
-    # Calculate the residuals
-    residuals = y - y_pred
-    return residuals, y_pred, coefficients
-
-# Your existing code to calculate cumulative_phis
-
-# Assuming cumulative_phis is already calculated and is a numpy array
-frame_numbers = np.array(range(len(cumulative_phis)))
-
-# Calculate residuals
-residuals, y_pred, coefficients = calculate_residuals(frame_numbers, cumulative_phis)
-
-# Plotting the original data
-plt.figure(figsize=(14, 8))
-plt.subplot(2, 1, 1)
-plt.plot(frame_numbers, cumulative_phis, marker='o', label='Original Data')
-plt.plot(frame_numbers, y_pred, color='red', label='Linear Fit')
-plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
-plt.title("Change in Phi over Frames (Relative to Last Frame) and Linear Fit")
-plt.xlabel("Frame Number (29 to 0)")
-plt.ylabel("Phi (Rotation in degrees)")
-plt.grid(True)
-plt.legend()
-
-# Plotting the residuals
-plt.subplot(2, 1, 2)
-plt.plot(frame_numbers, residuals, marker='o', color='green')
-plt.axhline(0, color='black', linewidth=0.5)
-plt.xticks(ticks=frame_numbers, labels=frame_numbers[::-1])  # Reversed frame labels
-plt.title("Residuals of the Linear Fit")
-plt.xlabel("Frame Number (29 to 0)")
-plt.ylabel("Residuals (degrees)")
-plt.grid(True)
-
-# Show the plot with both the original data and the residuals
-plt.tight_layout()
-plt.show()
-
-# Print out the mean squared error of the residuals
-mse = mean_squared_error(cumulative_phis, y_pred)
-print(f"Mean Squared Error of the fit: {mse:.4f}")
-
-# Print the coefficients of the linear fit
-print(f"Coefficients of the linear fit: slope = {coefficients[0]:.4f}, intercept = {coefficients[1]:.4f}")
-    
-
-#%%
-# encapsulating this into a function 
-def plot_phi_changes(transformation_matrices, reference_frame_index):
-    # Extract phi angles and convert to degrees
-    phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
-    
-    # Adjust phis based on the reference frame
-    reference_phi = phis[reference_frame_index]
-    adjusted_phis = [phi - reference_phi for phi in phis]
-    
-    # Calculate cumulative phis from the reference frame
-    if reference_frame_index == 0:
-        # If the reference frame is the first frame, calculate cumulative sum directly
-        cumulative_phis = np.cumsum(adjusted_phis)
-    else:
-        # If the reference frame is not the first, reverse the list before cumulative sum
-        cumulative_phis = np.cumsum(adjusted_phis[::-1])[::-1]
-    
-    # Generate the theoretical perfect line with 1-degree increments
-    if reference_frame_index == 0:
-        perfect_line = np.arange(0, -len(cumulative_phis), -1)
-    else:
-        #perfect_line = np.arange(len(cumulative_phis) - 1, -1, -1)
-        first_phi_value = cumulative_phis[0]
-        perfect_line = np.arange(first_phi_value, first_phi_value - len(cumulative_phis), -1)
-    
-    # Calculate the residuals
-    residuals = cumulative_phis - perfect_line
-    
-    # Plotting the original data
-    plt.figure(figsize=(14, 8))
-    plt.subplot(2, 1, 1)
-    plt.plot(cumulative_phis, marker='o', label='Measured Data')
-    plt.plot(perfect_line, color='red', linestyle='--', label='Perfect 1-degree Line')
-    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
-    plt.title(f"Measured Data vs. Perfect 1-degree Line (Using frame {reference_frame_index} as reference)")
-    plt.xlabel("Rotary angle encoder")
-    plt.ylabel("Rotation angle of tibia (in degrees)")
-    plt.grid(True)
-    plt.legend()
-    
-    # Plotting the residuals
-    plt.subplot(2, 1, 2)
-    plt.plot(residuals, marker='o', color='green')
-    plt.axhline(0, color='black', linewidth=0.5)
-    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
-    plt.title("Deviation from Perfect 1-degree Line")
-    plt.xlabel("Rotary angle encoder")
-    plt.ylabel("Deviation (degrees)")
-    plt.grid(True)
-    
-    # Show the plot with both the original data and the residuals
-    plt.tight_layout()
-    plt.show()
-    
-    # Print out the mean squared error of the residuals
-    mse = np.mean(residuals**2)
-    print(f"Mean Squared Error of the deviation: {mse:.4f}")
-
-
-plot_phi_changes(transformation_matrices_first, 0)
-
-#%%
-def plot_cost_values(values):
-    # Ensure the input is a list or a numpy array
-    if not isinstance(values, (list, np.ndarray)):
-        raise ValueError("Input should be a list or numpy array of numerical values.")
-
-    # Generate the item numbers (indices) for the x-axis
-    item_numbers = range(len(values))
-    
-    # Create the plot
-    plt.figure(figsize=(10, 6))  # Adjust the size to your preference
-    plt.plot(item_numbers, values, marker='o', linestyle='-')  # Plot values vs. item numbers
-    
-    # Adding labels and title
-    plt.title("Optimized overlap distance per frame")
-    plt.xlabel("Rotary Angle Encoder")
-    plt.ylabel("Minimized Cost function Value")
-    plt.xticks(ticks=item_numbers)
-    #plt.minorticks_on()
-    # Adding grid for better readability
-    plt.grid(True)
-    
-    # Show the plot
-    plt.show()
-    print('The sum of all the cost function values is:', np.sum(values))
-plot_cost_values(cost_values_first)
-#%%
-
-def plot_compared_phi_changes(transformations_zero_ref, transformations_last_ref):
-    # Extract phi angles for zero frame reference and convert to degrees
-    phis_zero_ref = [np.rad2deg(transformation[2]) for transformation in transformations_zero_ref]
-    cumulative_phis_zero_ref = np.cumsum(phis_zero_ref)
-    
-    # Extract phi angles for last frame reference, reverse and convert to degrees
-    phis_last_ref = [np.rad2deg(transformation[2]) for transformation in transformations_last_ref][::-1]
-    cumulative_phis_last_ref = np.cumsum(phis_last_ref[::-1])[::-1]
-    
-    # Offset for last frame reference to start around zero
-    offset = cumulative_phis_zero_ref[0] - cumulative_phis_last_ref[0]
-    cumulative_phis_last_ref += offset
-
-    # Plotting the original data
-    plt.figure(figsize=(14, 8))
-    
-    # Plot for zero frame reference
-    plt.plot(cumulative_phis_zero_ref, marker='o', label='Zero Frame Reference')
-    
-    # Plot for last frame reference
-    plt.plot(cumulative_phis_last_ref, marker='x', label='Last Frame Reference')
-    
-    plt.title("Comparison of Cumulative Phi Angles")
-    plt.xlabel("Frame Number")
-    plt.ylabel("Cumulative Phi (Rotation in degrees)")
-    plt.legend()
-    plt.grid(True)
-    
-    plt.show()
-    
-plot_compared_phi_changes(transformation_matrices_x, transformation_matrices_last)
-#%%
-# all these functions are taken from the segmentation.py file. 
-
-from sklearn.decomposition import PCA
-from shapely.geometry import LineString, MultiPoint
 
 
 def get_uv_from_pca(line_points):
@@ -897,6 +431,7 @@ def get_uv_from_pca(line_points):
     U = AB / mag_AB
     V = np.array([-U[1], U[0]])
     return U, V
+
 
 def fit_pca_line(coordinates, n_points=2):
     pca = PCA(n_components=1)
@@ -911,8 +446,6 @@ def fit_pca_line(coordinates, n_points=2):
     line_points = mean + component * t[:, np.newaxis]
       
     return line_points
-
-
 
 def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
     # Parameterize long axis by the points U1 and U2
@@ -942,7 +475,6 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
 
     return np.array(widest_points)
 
-
 def find_intersection(A, B, E, F):
     m1 = (B[1] - A[1]) / (B[0] - A[0])
     b1 = A[1] - m1 * A[0]
@@ -953,10 +485,10 @@ def find_intersection(A, B, E, F):
     return np.array([x_intersection, y_intersection])
 
 
-def process_frame(viewer):
+def process_frame(shapes_data):
     # Process for all frames
     #frame_data = viewer.layers[1].data
-    sorted_data = sorted(viewer.layers[1].data, key=lambda x: x[0][0])
+    sorted_data = sorted(shapes_data, key=lambda x: x[0][0]) # was viewer.layers[1].data
     results = {}
     
     for idx, shape_coords in enumerate(sorted_data):
@@ -996,9 +528,37 @@ def process_frame(viewer):
         }
     return results
 
+def show_origin(all_frame_data, viewer):
+    point_data = []
+    
+    for frame_index, frame_data in all_frame_data.items():
+        x, y = frame_data['origin'] 
+        cross = [frame_index, x , y] 
+        print(cross) 
+        point_data.append(cross)
+    viewer.add_points(point_data, symbol='x')
+ 
 
+def show_axis(all_frame_data, axis_name, viewer):
+    lines_data = []
+    
+    for frame_index, frame_data in all_frame_data.items():
+        point_A, point_B = frame_data[axis_name]
+        
+        x_A, y_A = point_A
+        x_B, y_B = point_B
+        
+        # Constructing the line (path) for the current frame
+        line = [[frame_index, x_A, y_A],  
+                [frame_index, x_B, y_B]]
+        lines_data.append(line)
+    
+    viewer.add_shapes(lines_data, shape_type='path', edge_width=2, edge_color='blue', name=f'{axis_name} line')
 
-#%%
-viewer1 = napari.view_image(image)
-
-#%%
+def show_stuff(frame_data, frame_name, viewer):
+    home_directory = os.path.expanduser('~')
+    show_axis(frame_data,'points_short_axis', viewer)         
+    show_origin(frame_data, viewer) 
+    show_axis(frame_data,'points_long_axis', viewer) 
+    save_path = os.path.join(home_directory, 'Pictures', frame_name)
+    np.save(save_path,frame_data)
