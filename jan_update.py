@@ -5,6 +5,11 @@ Created on Fri Jan  5 14:31:24 2024
 
 @author: aayush
 """
+
+#%%
+import os 
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#%%
 import numpy as np 
 import napari 
 import time 
@@ -13,19 +18,19 @@ from scipy import ndimage
 from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleton, points_for_napari,
                    boolean_to_coords, apply_label, find_tibia_edges, find_array_with_min_n, downsample_points,
                    combined_consecutive_transform)
+
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-1.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_pos.nii'
 image = open_nii(path)
 image = normalize(image)
-image = np.moveaxis(image, 1, 0)[1:]
+image = np.moveaxis(image, 1, 0)
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_US')
-
+viewer = napari.view_image(image,  name='NW_MM')
+#%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
-#%%
 # Step 4: find the best suitable low and high range for edge detection
 start_time = time.time() 
 
@@ -54,14 +59,14 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='US_NW')
+viewer3.add_image(canny_multi_edge, name='MM_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[2]
+tib_canny = canny_multi_edge[0]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
-tib_canny = viewer.layers['after_edge_detection_sigma_2'].data
+tib_canny = viewer.layers['after_edge_detection_sigma_2'].data.astype(bool)
 #%%
 #Step 7: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
@@ -77,7 +82,7 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (20, 45)  # 100 min and 200 max size for femur 
+size_range = (45, 75)  # 100 min and 200 max size for femur 
 num_steps = 20  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
@@ -117,10 +122,10 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==4
+final_label_3d = final_label_3d==7
 viewer.add_image(final_label_3d)
 #%%
-final_label = tibia_edges
+final_label = viewer.layers['final_label_3d'].data # or final_label_3d
 #Step 11: once the final edge has been found, convert it to a list of arrays. 
 tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
 #  just finding the frame with the least number of points
