@@ -13,12 +13,12 @@ import napari
 from utils import (shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff)
 
 #%%
-def plot_phi_changes(transformation_matrices, reference_frame_index):
+def plot_phi_changes(transformation_matrices, reference_frame_index, os=5, ai=1):
     # Extract phi angles and convert to degrees
     phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
     
     # Adjust phis based on the reference frame
-    reference_phi = phis[reference_frame_index]
+    reference_phi = phis[reference_frame_index] - os
     adjusted_phis = [phi - reference_phi for phi in phis]
     
     # Calculate cumulative phis from the reference frame
@@ -28,14 +28,17 @@ def plot_phi_changes(transformation_matrices, reference_frame_index):
     else:
         # If the reference frame is not the first, reverse the list before cumulative sum
         cumulative_phis = np.cumsum(adjusted_phis[::-1])[::-1]
+        
+    # Define the x-axis based on the offset and angle increment
+    x_axis = np.arange(os, os + ai * len(cumulative_phis), ai)
     
-    # Generate the theoretical perfect line with 1-degree increments
+    # Generate the theoretical perfect line based on offsets and ai 
     if reference_frame_index == 0:
-        perfect_line = np.arange(0, -len(cumulative_phis), -1)
+        perfect_line = np.arange(os, os + ai*len(cumulative_phis),ai)
     else:
         #perfect_line = np.arange(len(cumulative_phis) - 1, -1, -1)
-        first_phi_value = cumulative_phis[0]
-        perfect_line = np.arange(first_phi_value, first_phi_value - len(cumulative_phis), -1)
+        first_phi_value = cumulative_phis[0] + os
+        perfect_line = np.arange(first_phi_value, first_phi_value + ai*len(cumulative_phis), ai)
     
     # Calculate the residuals
     residuals = cumulative_phis - perfect_line
@@ -43,10 +46,10 @@ def plot_phi_changes(transformation_matrices, reference_frame_index):
     # Plotting the original data
     plt.figure(figsize=(14, 8))
     plt.subplot(2, 1, 1)
-    plt.plot(cumulative_phis, marker='o', label='Measured Data')
-    plt.plot(perfect_line, color='red', linestyle='--', label='Perfect 1-degree Line')
-    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
-    plt.title(f"Measured Data vs. Perfect 1-degree Line (Using frame {reference_frame_index} as reference)")
+    plt.plot(x_axis, cumulative_phis, marker='o', label='Measured Data')
+    plt.plot(x_axis, perfect_line, color='red', linestyle='--', label='Perfect Line')
+    plt.xticks(ticks=x_axis, labels=x_axis)
+    plt.title(f"Measured Data vs. Perfect 1-degree Line (Using frame {reference_frame_index} as reference, Offset: {os}, Angle Increment: {ai})")
     plt.xlabel("Rotary angle encoder")
     plt.ylabel("Rotation angle of tibia (in degrees)")
     plt.grid(True)
@@ -56,8 +59,8 @@ def plot_phi_changes(transformation_matrices, reference_frame_index):
     plt.subplot(2, 1, 2)
     plt.plot(residuals, marker='o', color='green')
     plt.axhline(0, color='black', linewidth=0.5)
-    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
-    plt.title("Deviation from Perfect 1-degree Line")
+    plt.xticks(ticks=x_axis, labels=x_axis)
+    plt.title("Deviation from Perfect Line")
     plt.xlabel("Rotary angle encoder")
     plt.ylabel("Deviation (degrees)")
     plt.grid(True)
@@ -71,7 +74,7 @@ def plot_phi_changes(transformation_matrices, reference_frame_index):
     print(f"Mean Squared Error of the deviation: {mse:.4f}")
 
 
-plot_phi_changes(transformation_matrices_last[1:], -1)
+plot_phi_changes(transformation_matrices_first, 0, os=5, ai=2)
 
 #%%
 def plot_cost_values(values):
