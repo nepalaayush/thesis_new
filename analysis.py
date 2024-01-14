@@ -5,40 +5,42 @@ Created on Fri Jan  5 11:47:23 2024
 
 @author: aayush
 """
+import os 
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#%%
 import numpy as np 
 import matplotlib.pylab as plt 
 from shapely.geometry import LineString, MultiPoint
 import napari
+from sklearn.metrics import mean_absolute_error
 
 from utils import (shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff)
 
-#%%
-def plot_phi_changes(transformation_matrices, reference_frame_index, os=5, ai=1):
     # Extract phi angles and convert to degrees
+#%%
+def plot_phi_changes(transformation_matrices, reference_frame_index):
     phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
-    
+    print(phis, len(phis))
     # Adjust phis based on the reference frame
-    reference_phi = phis[reference_frame_index] - os
-    adjusted_phis = [phi - reference_phi for phi in phis]
-    
+    reference_phi = phis[reference_frame_index]
+    adjusted_phis = [phi - reference_phi for phi in phis] # this doesnt do anything 
+    #print (adjusted_phis)
     # Calculate cumulative phis from the reference frame
     if reference_frame_index == 0:
         # If the reference frame is the first frame, calculate cumulative sum directly
         cumulative_phis = np.cumsum(adjusted_phis)
+        print(cumulative_phis, 'cum_phis')
     else:
         # If the reference frame is not the first, reverse the list before cumulative sum
         cumulative_phis = np.cumsum(adjusted_phis[::-1])[::-1]
-        
-    # Define the x-axis based on the offset and angle increment
-    x_axis = np.arange(os, os + ai * len(cumulative_phis), ai)
     
-    # Generate the theoretical perfect line based on offsets and ai 
+    # Generate the theoretical perfect line with 1-degree increments
     if reference_frame_index == 0:
-        perfect_line = np.arange(os, os + ai*len(cumulative_phis),ai)
+        perfect_line = np.arange(0, -len(cumulative_phis), -1)
     else:
         #perfect_line = np.arange(len(cumulative_phis) - 1, -1, -1)
-        first_phi_value = cumulative_phis[0] + os
-        perfect_line = np.arange(first_phi_value, first_phi_value + ai*len(cumulative_phis), ai)
+        first_phi_value = cumulative_phis[0]
+        perfect_line = np.arange(first_phi_value, first_phi_value - len(cumulative_phis), -1)
     
     # Calculate the residuals
     residuals = cumulative_phis - perfect_line
@@ -46,10 +48,10 @@ def plot_phi_changes(transformation_matrices, reference_frame_index, os=5, ai=1)
     # Plotting the original data
     plt.figure(figsize=(14, 8))
     plt.subplot(2, 1, 1)
-    plt.plot(x_axis, cumulative_phis, marker='o', label='Measured Data')
-    plt.plot(x_axis, perfect_line, color='red', linestyle='--', label='Perfect Line')
-    plt.xticks(ticks=x_axis, labels=x_axis)
-    plt.title(f"Measured Data vs. Perfect 1-degree Line (Using frame {reference_frame_index} as reference, Offset: {os}, Angle Increment: {ai})")
+    plt.plot(cumulative_phis, marker='o', label='Measured Data')
+    plt.plot(perfect_line, color='red', linestyle='--', label='Perfect 1-degree Line')
+    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
+    plt.title(f"Measured Data vs. Perfect 1-degree Line (Using frame {reference_frame_index} as reference)")
     plt.xlabel("Rotary angle encoder")
     plt.ylabel("Rotation angle of tibia (in degrees)")
     plt.grid(True)
@@ -59,8 +61,8 @@ def plot_phi_changes(transformation_matrices, reference_frame_index, os=5, ai=1)
     plt.subplot(2, 1, 2)
     plt.plot(residuals, marker='o', color='green')
     plt.axhline(0, color='black', linewidth=0.5)
-    plt.xticks(ticks=x_axis, labels=x_axis)
-    plt.title("Deviation from Perfect Line")
+    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
+    plt.title("Deviation from Perfect 1-degree Line")
     plt.xlabel("Rotary angle encoder")
     plt.ylabel("Deviation (degrees)")
     plt.grid(True)
@@ -73,8 +75,75 @@ def plot_phi_changes(transformation_matrices, reference_frame_index, os=5, ai=1)
     mse = np.mean(residuals**2)
     print(f"Mean Squared Error of the deviation: {mse:.4f}")
 
+plot_phi_changes(t_matrices_first, 0)
+#%%
 
-plot_phi_changes(transformation_matrices_first, 0, os=5, ai=2)
+def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index):
+    # Extract phi values from transformation matrices and convert to degrees
+    phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
+    
+    if reference_index == -1:
+        # Reverse phis for reference at the end
+        phis.reverse()
+
+    if reference_index == 0:
+        cumulative_phis = np.cumsum(phis) - offset
+        print(cumulative_phis)
+    else:
+       # Reverse the cumulative sum to reflect decreasing trend
+        cumulative_phis = np.cumsum(phis[::-1])[::-1]
+        # Adjust for the offset
+        cumulative_phis = cumulative_phis - cumulative_phis[-1] + offset
+        print(cumulative_phis)
+    # Adjusting x-axis to start from the specified offset
+    x_values_shifted = np.arange(offset, offset + len(cumulative_phis) * angle_increment, angle_increment)
+
+    
+    if reference_index == 0:
+        # Perfect increment line, starting from -offset and decreasing by angle_increment
+        perfect_increment = np.arange(-offset, -offset - len(cumulative_phis) * angle_increment, -angle_increment)
+    else:  
+        # For reference at the end, start high and decrease towards the offset
+        num_steps = len(cumulative_phis)
+        high_value = offset + angle_increment * (num_steps - 1)
+        perfect_increment = np.linspace(high_value, offset, num_steps)
+    # Calculating residuals
+    residuals = cumulative_phis - perfect_increment
+
+    # Calculating Mean Absolute Error (MAE)
+    mae = mean_absolute_error(cumulative_phis, perfect_increment)
+
+    # Creating plots
+    plt.figure(figsize=(10, 12))
+
+    # Adjusted graph (Top Graph)
+    plt.subplot(2, 1, 1)
+    plt.plot(x_values_shifted, cumulative_phis, label='Cumulative Phi Data', marker='o')
+    plt.plot(x_values_shifted, perfect_increment, label='Perfect ' + str(angle_increment) + '-Degree Increment (Start ' + str(-offset) + ')', linestyle='--')
+    plt.title('Deviation from Perfect theoretical Line')
+    plt.xlabel("Rotary angle encoder")
+    plt.ylabel('Rotation angle of tibia (in degrees)')
+    plt.legend()
+    plt.grid(True, which='both', linestyle='-', linewidth=0.5)
+    plt.xticks(x_values_shifted)
+    plt.yticks(np.arange(np.max(cumulative_phis), np.min(cumulative_phis), -1))
+    # Residuals plot (Bottom Graph)
+    plt.subplot(2, 1, 2)
+    plt.plot(x_values_shifted, residuals, label='Residuals', marker='o', color='red')
+    plt.title('Residuals at Each Frame')
+    plt.xlabel('Frame (Starting from ' + str(offset) + ')')
+    plt.ylabel('Residual Value')
+    plt.legend()
+    plt.grid(True, which='both', linestyle='-', linewidth=0.5)
+    plt.xticks(x_values_shifted)
+    plt.yticks(np.arange(np.floor(np.min(residuals)), np.ceil(np.max(residuals)) + 1, 1))
+    
+    plt.tight_layout()
+    plt.show()
+
+    # Print the Mean Absolute Error
+    print(f"Mean Absolute Error (MAE): {mae}")    
+plot_transformations_and_calculate_MAE(t_matrices_last_ai2, offset=5, angle_increment=2, reference_index=-1)
 
 #%%
 def plot_cost_values(values):
