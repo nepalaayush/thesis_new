@@ -5,8 +5,9 @@ Created on Fri Jan  5 11:47:23 2024
 
 @author: aayush
 """
+import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -14,9 +15,12 @@ from shapely.geometry import LineString, MultiPoint
 import napari
 from sklearn.metrics import mean_absolute_error
 
-from utils import (shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff)
+from utils import (open_nii, normalize, shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff)
 
     # Extract phi angles and convert to degrees
+#%%
+with open('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/jan_14_data/tib_coords_first.pkl', 'rb') as file:
+    tib_coords_first = pickle.load(file)
 #%%
 def plot_phi_changes(transformation_matrices, reference_frame_index):
     phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
@@ -75,7 +79,7 @@ def plot_phi_changes(transformation_matrices, reference_frame_index):
     mse = np.mean(residuals**2)
     print(f"Mean Squared Error of the deviation: {mse:.4f}")
 
-plot_phi_changes(t_matrices_first, 0)
+plot_phi_changes(transformation_matrices_first, 0)
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index):
@@ -126,7 +130,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     plt.legend()
     plt.grid(True, which='both', linestyle='-', linewidth=0.5)
     plt.xticks(x_values_shifted)
-    plt.yticks(np.arange(np.max(cumulative_phis), np.min(cumulative_phis), -1))
+    plt.yticks(np.arange(np.max(perfect_increment), np.min(perfect_increment), -1))
     # Residuals plot (Bottom Graph)
     plt.subplot(2, 1, 2)
     plt.plot(x_values_shifted, residuals, label='Residuals', marker='o', color='red')
@@ -143,7 +147,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 
     # Print the Mean Absolute Error
     print(f"Mean Absolute Error (MAE): {mae}")    
-plot_transformations_and_calculate_MAE(t_matrices_last_ai2, offset=5, angle_increment=2, reference_index=-1)
+plot_transformations_and_calculate_MAE(transformation_matrices_last, offset=5, angle_increment=2, reference_index=-1)
 
 #%%
 def plot_cost_values(values):
@@ -170,40 +174,39 @@ def plot_cost_values(values):
     # Show the plot
     plt.show()
     print('The sum of all the cost function values is:', np.sum(values))
-plot_cost_values(cost_values_last)
-
+plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-3.nii'
+path1 = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-1.nii'
 image1 = open_nii(path1)
-image1 = normalize(image)
-#image1 = np.moveaxis(image, 1, 0)[1:]
+image1 = normalize(image1)
+image1 = np.moveaxis(image1, 1, 0)
 #%%
-viewer1 = napari.view_image(image)
+viewer1 = napari.view_image(image1)
 #%%
 # add the reference points and manually segment the reference frame 
-viewer1.add_shapes(new_tib_coords_last[-1], shape_type='polygon')
+viewer1.add_shapes(new_tib_coords_first[0], shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
 ref_points = viewer1.layers['expanded_shape'].data[0]
 #%%
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_last, 24)    
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='red')
 
 #%%
-tib_label = coords_to_boolean(new_tib_coords_last, image.shape)
+tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
 
-total_frames = len(new_tib_coords_last) 
+total_frames = len(new_tib_coords_first) 
 desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["Shapes"].to_labels(image.shape)
+disp_layer = viewer1.layers["Shapes"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
 xrange=slice(100,410)
 yrange=slice(150,400)
 for ax, idi in zip(axes.flatten(), frame_indices):
-    ax.imshow(image[idi,xrange,yrange], cmap="gray")
+    ax.imshow(image1[idi,xrange,yrange], cmap="gray")
     ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
     ax.imshow(tib_label[idi,xrange,yrange], alpha=(tib_label[idi,xrange,yrange] > 0).astype(float), cmap='autumn')
     ax.set_xticks([])
@@ -211,7 +214,7 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('test.svg')
+plt.savefig('NW_US_segmented.svg')
 #%%
 # After manually segmenting, find the info of the shapes. 
 tib_info = process_frame(viewer1.layers['Shapes'].data)
