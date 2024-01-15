@@ -21,13 +21,13 @@ from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleto
 
 #%%
 # Step 1: load the image from directory and normalize it
-path =  '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/US_NW_ai2_tgv_5e-2_pos.nii'
+path =  '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/US_W_ai2_tgv_5e-2_pos.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_US')
+viewer = napari.view_image(image,  name='W_US')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -62,7 +62,7 @@ print(f"Elapsed Time: {end_time - start_time} seconds")
 viewer3.add_image(canny_multi_edge, name='US_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[3]
+tib_canny = canny_multi_edge[4]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -122,7 +122,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==11
+final_label_3d = final_label_3d==12
 viewer.add_image(final_label_3d)
 #%%
 final_label = viewer.layers['final_label_3d'].data # or final_label_3d
