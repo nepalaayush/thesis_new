@@ -22,64 +22,28 @@ from utils import (open_nii, normalize, shapes_for_napari, apply_transformations
 with open('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/jan_14_data/tib_coords_first.pkl', 'rb') as file:
     tib_coords_first = pickle.load(file)
 #%%
-def plot_phi_changes(transformation_matrices, reference_frame_index):
+def plot_transformations(transformation_matrices, index):
+    # Extracting the rotation angles from the transformation matrices and converting to degrees
     phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
-    print(phis, len(phis))
-    # Adjust phis based on the reference frame
-    reference_phi = phis[reference_frame_index]
-    adjusted_phis = [phi - reference_phi for phi in phis] # this doesnt do anything 
-    #print (adjusted_phis)
-    # Calculate cumulative phis from the reference frame
-    if reference_frame_index == 0:
-        # If the reference frame is the first frame, calculate cumulative sum directly
-        cumulative_phis = np.cumsum(adjusted_phis)
-        print(cumulative_phis, 'cum_phis')
+
+    # Creating the plot
+    plt.figure(figsize=(10, 6))
+    if index==0:
+        plt.scatter(np.arange(1, len(phis[1:]) + 1), phis[1:], color='blue')  # Plotting the points
+        plt.plot(np.arange(1, len(phis[1:]) + 1), phis[1:], linestyle='dotted', color='red')  # Connecting the points with a dotted line
     else:
-        # If the reference frame is not the first, reverse the list before cumulative sum
-        cumulative_phis = np.cumsum(adjusted_phis[::-1])[::-1]
+        plt.scatter(np.arange(1, len(phis[:-1]) + 1), phis[:-1], color='blue')
+        plt.plot(np.arange(1, len(phis[:-1]) + 1), phis[:-1], linestyle='dotted', color='red')  # Connecting the points with a dotted line
     
-    # Generate the theoretical perfect line with 1-degree increments
-    if reference_frame_index == 0:
-        perfect_line = np.arange(0, -len(cumulative_phis), -1)
-    else:
-        #perfect_line = np.arange(len(cumulative_phis) - 1, -1, -1)
-        first_phi_value = cumulative_phis[0]
-        perfect_line = np.arange(first_phi_value, first_phi_value - len(cumulative_phis), -1)
-    
-    # Calculate the residuals
-    residuals = cumulative_phis - perfect_line
-    
-    # Plotting the original data
-    plt.figure(figsize=(14, 8))
-    plt.subplot(2, 1, 1)
-    plt.plot(cumulative_phis, marker='o', label='Measured Data')
-    plt.plot(perfect_line, color='red', linestyle='--', label='Perfect 1-degree Line')
-    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
-    plt.title(f"Measured Data vs. Perfect 1-degree Line (Using frame {reference_frame_index} as reference)")
-    plt.xlabel("Rotary angle encoder")
-    plt.ylabel("Rotation angle of tibia (in degrees)")
-    plt.grid(True)
-    plt.legend()
-    
-    # Plotting the residuals
-    plt.subplot(2, 1, 2)
-    plt.plot(residuals, marker='o', color='green')
-    plt.axhline(0, color='black', linewidth=0.5)
-    plt.xticks(ticks=range(len(cumulative_phis)), labels=(range(len(cumulative_phis)) if reference_frame_index == 0 else range(len(cumulative_phis) - 1, -1, -1)))
-    plt.title("Deviation from Perfect 1-degree Line")
-    plt.xlabel("Rotary angle encoder")
-    plt.ylabel("Deviation (degrees)")
-    plt.grid(True)
-    
-    # Show the plot with both the original data and the residuals
-    plt.tight_layout()
+    plt.grid(True)  # Adding grid
+    plt.xlabel('Transformation Index')
+    plt.ylabel('Rotation Angle (Degrees)')
+    plt.title(f'Rotation Angles from Transformation Matrices using {index} frame as reference')
+    plt.savefig(f'phi_plot_{index}.svg') 
     plt.show()
     
-    # Print out the mean squared error of the residuals
-    mse = np.mean(residuals**2)
-    print(f"Mean Squared Error of the deviation: {mse:.4f}")
-
-plot_phi_changes(transformation_matrices_first, 0)
+   
+plot_transformations(t_matrices_last_ai2, -1)
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index):
@@ -124,7 +88,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     plt.subplot(2, 1, 1)
     plt.plot(x_values_shifted, cumulative_phis, label='Cumulative Phi Data', marker='o')
     plt.plot(x_values_shifted, perfect_increment, label='Perfect ' + str(angle_increment) + '-Degree Increment (Start ' + str(-offset) + ')', linestyle='--')
-    plt.title('Deviation from Perfect theoretical Line')
+    plt.title(f'Deviation from Perfect theoretical Line when using frame {reference_index} as reference')
     plt.xlabel("Rotary angle encoder")
     plt.ylabel('Rotation angle of tibia (in degrees)')
     plt.legend()
@@ -143,11 +107,12 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     plt.yticks(np.arange(np.floor(np.min(residuals)), np.ceil(np.max(residuals)) + 1, 1))
     
     plt.tight_layout()
+    plt.savefig(f'angle_residuals_ai2_{reference_index}.svg') 
     plt.show()
 
     # Print the Mean Absolute Error
     print(f"Mean Absolute Error (MAE): {mae}")    
-plot_transformations_and_calculate_MAE(transformation_matrices_last, offset=5, angle_increment=2, reference_index=-1)
+plot_transformations_and_calculate_MAE(t_matrices_last_ai2, offset=5, angle_increment=2, reference_index=-1)
 
 #%%
 def plot_cost_values(values):
@@ -172,12 +137,13 @@ def plot_cost_values(values):
     plt.grid(True)
     
     # Show the plot
+    plt.savefig('cost_values_femur_0.svg')
     plt.show()
     print('The sum of all the cost function values is:', np.sum(values))
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/aw2_rieseling_admm_tgv_5e-1.nii'
+path1 = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_pos.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
@@ -185,25 +151,26 @@ image1 = np.moveaxis(image1, 1, 0)
 viewer1 = napari.view_image(image1)
 #%%
 # add the reference points and manually segment the reference frame 
-viewer1.add_shapes(new_tib_coords_first[0], shape_type='polygon')
+viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
 ref_points = viewer1.layers['expanded_shape'].data[0]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
-viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='red')
+viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
-tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
+# tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
+tib_label = final_label
 
-total_frames = len(new_tib_coords_first) 
+total_frames = len(tib_label) 
 desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
 disp_layer = viewer1.layers["Shapes"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(100,410)
+xrange=slice(150,450)
 yrange=slice(150,400)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
@@ -214,12 +181,15 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('NW_US_segmented.svg')
+plt.savefig('NW_MM_segmented_femur.svg')
 #%%
 # After manually segmenting, find the info of the shapes. 
 tib_info = process_frame(viewer1.layers['Shapes'].data)
+
 #%%
-show_stuff(tib_info, 'tib_nowt', viewer1)    
+fem_info = process_frame(viewer1.layers['Shapes'].data)
+#%%
+show_stuff(fem_info, 'fem_nowt', viewer1)    
 #%%
 def track_origin(all_frame_info, bone_name):
     # Extract x and y coordinates of the origin for each frame
@@ -235,6 +205,7 @@ def track_origin(all_frame_info, bone_name):
     plt.xlabel('X-coordinate')
     plt.ylabel('Y-coordinate')
     plt.grid(True)
+    plt.savefig(f'origin_track_{bone_name}.svg')
     plt.show()
     
 def calculate_angle(vector_a, vector_b):
@@ -254,17 +225,34 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
         tibia_vector = tibia_info[frame]['U']
         angle = calculate_angle(femur_vector, tibia_vector)
         angles.append(angle)
-    angles = (180 - np.array(angles) ) 
+    angles = (np.array(angles) ) 
     # Plot
+    plt.scatter(frames, angles, marker='x', color='k')
     plt.plot(frames, angles, label=f'{label}')
     plt.xlabel("Frame")
     plt.ylabel("Angle (degrees)")
     plt.title("Angle Between long axes of Femur and Tibia Over Frames")
     plt.grid(True)
     plt.legend()
+    plt.savefig('angle_between_bones.svg')
     plt.show()
 
 #%%
-track_origin(tib_info, 'tibia_NW_last_frame')
+track_origin(tib_info, 'NW_0_ai2_tibia')
+
 #%%
-plot_angle_vs_frame(fem_info, tib_info, 'NW_US')
+track_origin(fem_info, 'NW_0_ai2_femur')
+#%%
+plot_angle_vs_frame(fem_info, tib_info, 'NW_ai2')
+
+#%%
+# Saving the dictionary to a file
+with open('tib_info_ai2.pkl', 'wb') as f:
+    pickle.dump(tib_info, f)
+    
+with open('fem_info_ai2.pkl', 'wb') as f:
+    pickle.dump(fem_info, f)
+
+''' to load do: 
+    with open('my_dict.pkl', 'rb') as f:
+    my_dict_loaded = pickle.load(f)'''    

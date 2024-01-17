@@ -7,3 +7,7 @@ need to plot against angle.
 
 pmr.py reco radial_cine_2d -i data.twix -o MM_NW_aw2_tgv_5e-2_pos.nii -g ../scan_data_081223_2DRadial_MM_NW_30bpm.dat -aw 2 -os 5 -d pos -zf 2 -v -e riesling-admm -ea "--sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --tgv=5e-2 --max-outer-its=4"
 
+with angle increment: 
+
+pmr.py reco radial_cine_2d -i data.twix -o US_W_ai2_tgv_5e-2_pos.nii -g ../scan_data_11092023_2DRadial_60bpm_W.dat -aw 2 -os 5 -ai 2 -d pos -zf 2 -v -e riesling-admm -ea "--sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --tgv=5e-2 --max-outer-its=4"
+
