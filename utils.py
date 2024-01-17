@@ -129,11 +129,14 @@ def pairwise_distances(points):
     return distances
 
 
-def sort_points_single_frame(points):
+def sort_points_single_frame(points, bone_type='tibia'):
     points = np.array(points, dtype=np.float32)  # Ensure it's float or int for arithmetic operations
     
     # Find starting point
-    starting_point = points[np.argmax(points[:, 0])]  # Highest row value or lowest depending on argmax or arg min 
+    if bone_type == 'femur':
+        starting_point = points[np.argmin(points[:, 0])]
+    else:
+        starting_point = points[np.argmax(points[:, 0])]  # Highest row value or lowest depending on argmax or arg min 
     sorted_points = [starting_point]
     remaining_points = [p for p in points.tolist() if not np.array_equal(p, starting_point)]
 
@@ -307,8 +310,8 @@ def find_array_with_min_n(list_of_arrays):
     return template_index
 
 
-def downsample_points(list_of_arrays, index=0, number=50):
-    zeroth_frame = sort_points_single_frame(list_of_arrays[index])
+def downsample_points(list_of_arrays, index=0, number=50, bone_type='tibia' ):
+    zeroth_frame = sort_points_single_frame(list_of_arrays[index], bone_type)
     zeroth_nonadjusted = equidistant_points(zeroth_frame,number)
     zeroth_adjusted = adjust_downsampled_points(zeroth_nonadjusted, zeroth_frame)
     return zeroth_adjusted

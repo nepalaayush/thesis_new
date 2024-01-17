@@ -21,13 +21,13 @@ from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleto
 
 #%%
 # Step 1: load the image from directory and normalize it
-path =  '/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/73_MK_Radial_W_CINE_60bpm_CGA/US_W_ai2_tgv_5e-2_pos.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_pos.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='W_US')
+viewer = napari.view_image(image,  name='NW_MM')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -51,7 +51,7 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
 low_range = (5,10) # 
 high_range = (11,20 ) # 
 num_steps = 10
-sigma = 2
+sigma = 1
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
@@ -59,10 +59,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='US_NW')
+viewer3.add_image(canny_multi_edge, name='MM_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[4]
+tib_canny = canny_multi_edge[9]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -82,14 +82,14 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (45, 75)  # 100 min and 200 max size for femur 
+size_range = (150, 250)  # 100 min and 200 max size for femur 
 num_steps = 20  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
 # Assuming smooth_image is your 3D image array
 removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, connectivity)
 
-
+#%%
 # add it to the 4d viewer
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
@@ -122,7 +122,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==12
+final_label_3d = final_label_3d==2
 viewer.add_image(final_label_3d)
 #%%
 final_label = viewer.layers['final_label_3d'].data # or final_label_3d
@@ -132,12 +132,12 @@ tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used
 find_array_with_min_n(tib_coords)
 #%%
 # Step 12, starting with either the first or the last frame. 
-reference_frame_last = downsample_points(tib_coords, -1, 50)
+reference_frame_last = downsample_points(tib_coords, -1, 50, bone_type='femur')
 new_tib_coords_last = tib_coords.copy() 
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-reference_frame_first = downsample_points(tib_coords, 0, 50)
+reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='femur')
 new_tib_coords_first = tib_coords.copy() 
 new_tib_coords_first[0] = reference_frame_first
 viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
@@ -145,11 +145,11 @@ viewer.add_points(reference_frame_first, face_color='orange', size =1, name='ref
 #Step 13. find the transformation matrices, list of coordinates and minimized cost function values per frame 
 transformation_matrices_last, giant_list_last, cost_values_last = combined_consecutive_transform(new_tib_coords_last)
 viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='green', name='ref_frame_last')
-
+            
 #%%
 transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(new_tib_coords_first)
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 import pickle
-with open('tib_coords_first.pkl', 'wb') as file:
-    pickle.dump(new_tib_coords_first, file)
+with open('tib_coords_last_W_outer.pkl', 'wb') as file:
+    pickle.dump(new_tib_coords_last, file)
