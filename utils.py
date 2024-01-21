@@ -460,7 +460,7 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
 
     for point in long_axis_points:
         # Create line segment perpendicular to the long axis
-        perp_line = LineString([point - 50 * V, point + 50 * V])
+        perp_line = LineString([point - 150 * V, point + 150 * V]) # using 150 instead of 50 
 
         # Convert shape coordinates to LineString
         shape_line = LineString(shape_coords[:, 1:])
@@ -510,7 +510,7 @@ def process_frame(shapes_data):
         
         # Find extreme points
         #extreme_points = np.array(find_edges_new(centroid, shape_coords, V))
-        extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=100))
+        extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=200))
         # Debug check 2: check if the extreme points line is indeed perpendicualr to U  
         extreme_vector = extreme_points[1] - extreme_points[0]
         is_perpendicular_extreme = np.abs(np.dot(extreme_vector, U)) < 1e-5
