@@ -7,7 +7,7 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -143,12 +143,39 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_pos.nii'
+path1 = 'C:/Users/Aayush/Documents/thesis_files/MM/MM_NW_aw2_tgv_5e-2_pos.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
 #%%
-viewer1 = napari.view_image(image1)
+viewer1 = napari.view_image(image1[0:2])
+#%%
+
+from napari_animation import Animation
+
+# Initialize the animation with the viewer
+animation = Animation(viewer1)
+
+# Capture the first keyframe (frame 1)
+animation.key_frames.insert(0, animation.current_key_frame())
+
+# Change the viewer to the second frame however you need to
+viewer1.dims.current_step = (1, 0, 0)  # This is just an example, adjust as necessary
+
+# Capture the second keyframe (frame 2)
+animation.key_frames.insert(1, animation.current_key_frame())
+
+# Set the duration for each keyframe in milliseconds
+# Here we set 1000 ms (1 second) for each keyframe
+for key_frame in animation.key_frames:
+    key_frame['frame_duration'] = 1000  # 1 second per frame
+
+# Save the animation as a GIF
+# Since we cannot use 'duration' or 'fps' directly, 
+# we have to rely on the 'frame_duration' we set for each keyframe
+animation.animate('demo2D.gif', canvas_only=True)
+
+
 #%%
 # add the reference points and manually segment the reference frame 
 viewer1.add_shapes(reference_frame_first, shape_type='polygon')
@@ -189,7 +216,7 @@ tib_info = process_frame(viewer1.layers['Shapes'].data)
 #%%
 fem_info = process_frame(viewer1.layers['Shapes'].data)
 #%%
-show_stuff(fem_info, 'fem_nowt', viewer1)    
+show_stuff(tib_info, 'fem_nowt', viewer1)    
 #%%
 def track_origin(all_frame_info, bone_name):
     # Extract x and y coordinates of the origin for each frame
