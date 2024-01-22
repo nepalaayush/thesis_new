@@ -21,13 +21,13 @@ from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleto
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_pos.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Nepal^Aayush/2023-12-01/45_MK_Radial_W_CINE_30bpm_CGA/AN_W_ai2_tgv_5e-2_neg.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_MM')
+viewer = napari.view_image(image,  name='W_AN')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -51,7 +51,7 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
 low_range = (5,10) # 
 high_range = (11,20 ) # 
 num_steps = 10
-sigma = 1
+sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
