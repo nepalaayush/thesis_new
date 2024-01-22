@@ -7,7 +7,7 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -283,3 +283,15 @@ with open('fem_info_ai2.pkl', 'wb') as f:
 ''' to load do: 
     with open('my_dict.pkl', 'rb') as f:
     my_dict_loaded = pickle.load(f)'''    
+    
+#%%
+# what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
+with open('/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/tib_info_ai2.pkl', 'rb') as file:
+    tib_info = pickle.load(file)    
+
+
+
+with open('/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/fem_info_ai2.pkl', 'rb') as file:
+    fem_info = pickle.load(file)  
+    
+#%%
