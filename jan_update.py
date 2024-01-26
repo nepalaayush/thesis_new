@@ -21,13 +21,13 @@ from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleto
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2024-01-26/67_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_neg.nii'
+path = '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/AN_NW_ai2_tgv_5e-2_pos.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_MM')
+viewer = napari.view_image(image,  name='NW_AN')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
