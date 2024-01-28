@@ -7,7 +7,7 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -19,8 +19,8 @@ from utils import (open_nii, normalize, shapes_for_napari, apply_transformations
 
     # Extract phi angles and convert to degrees
 #%%
-with open('/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/jan_14_data/tib_coords_first.pkl', 'rb') as file:
-    tib_coords_first = pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/t_matrices_first.pkl', 'rb') as file:
+    t_matrices_first = pickle.load(file)
 #%%
 def plot_transformations(transformation_matrices, index):
     # Extracting the rotation angles from the transformation matrices and converting to degrees
@@ -112,7 +112,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 
     # Print the Mean Absolute Error
     print(f"Mean Absolute Error (MAE): {mae}")    
-plot_transformations_and_calculate_MAE(t_matrices_last_ai2, offset=5, angle_increment=2, reference_index=-1)
+plot_transformations_and_calculate_MAE(transformation_matrices_last, offset=5, angle_increment=2, reference_index=-1)
 
 #%%
 def plot_cost_values(values):
@@ -137,53 +137,52 @@ def plot_cost_values(values):
     plt.grid(True)
     
     # Show the plot
-    plt.savefig('cost_values_femur_0.svg')
+    plt.savefig('26.01.24/cost_values_tibia_0.svg')
     plt.show()
     print('The sum of all the cost function values is:', np.sum(values))
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = 'C:/Users/Aayush/Documents/thesis_files/MM/MM_NW_aw2_tgv_5e-2_pos.nii'
+path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW_ai2_tgv_5e-2_neg.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
 #%%
-viewer1 = napari.view_image(image1[0:2])
+viewer1 = napari.view_image(image1)
 #%%
 
 from napari_animation import Animation
+from skimage import io
 
-# Initialize the animation with the viewer
+# Create an animation object from the viewer
 animation = Animation(viewer1)
 
-# Capture the first keyframe (frame 1)
-animation.key_frames.insert(0, animation.current_key_frame())
+# The number of frames in your animation
+number_of_frames = 14  # Adjust this to match your animation's frame count
 
-# Change the viewer to the second frame however you need to
-viewer1.dims.current_step = (1, 0, 0)  # This is just an example, adjust as necessary
+# Directory to save the frames
+save_directory = "C:/Users/Aayush/Documents/thesis_files"  # Change this to your desired directory
 
-# Capture the second keyframe (frame 2)
-animation.key_frames.insert(1, animation.current_key_frame())
+# Iterate through each frame and save it
+for frame_number in range(number_of_frames):
+    # Set the viewer state to the state at the current frame
+    animation.set_viewer_state(animation.key_frames[frame_number].viewer_state)
 
-# Set the duration for each keyframe in milliseconds
-# Here we set 1000 ms (1 second) for each keyframe
-for key_frame in animation.key_frames:
-    key_frame['frame_duration'] = 1000  # 1 second per frame
+    # Capture the current viewer state as an image
+    image = viewer1.screenshot()
 
-# Save the animation as a GIF
-# Since we cannot use 'duration' or 'fps' directly, 
-# we have to rely on the 'frame_duration' we set for each keyframe
-animation.animate('demo2D.gif', canvas_only=True)
-
+    # Save the image
+    file_path = f"{save_directory}/frame_{frame_number}.png"
+    io.imsave(file_path, image)
 
 #%%
 # add the reference points and manually segment the reference frame 
-viewer1.add_shapes(reference_frame_first, shape_type='polygon')
+viewer1.add_shapes(reference_frame_last, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
 ref_points = viewer1.layers['expanded_shape'].data[0]
 #%%
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_last, 14)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
@@ -208,7 +207,10 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('NW_MM_segmented_femur.svg')
+plt.savefig('NW_MM_segmented_tibia.svg')
+
+#%%
+shapes_data = viewer1.layers['Shapes'].data
 #%%
 # After manually segmenting, find the info of the shapes. 
 tib_info = process_frame(viewer1.layers['Shapes'].data)
@@ -216,7 +218,91 @@ tib_info = process_frame(viewer1.layers['Shapes'].data)
 #%%
 fem_info = process_frame(viewer1.layers['Shapes'].data)
 #%%
-show_stuff(tib_info, 'fem_nowt', viewer1)    
+show_stuff(tib_info, 'tib_wt', viewer1)
+
+#%%
+show_stuff(fem_info, 'fem_wt', viewer1)
+#%%
+screenshot = viewer1.screenshot()
+viewer1.add_image(screenshot, rgb=True, name='screenshot')  
+
+from skimage.io import imsave
+imsave('screenshot.png', screenshot)
+
+#%%
+screenshots = []
+
+axis_index = 0 
+number_of_frames = len(image1)
+
+# Loop through your frames and take screenshots
+for frame_index in range(number_of_frames):
+    viewer1.dims.set_point(axis_index, frame_index)  # Navigate to the frame
+    screenshot = viewer1.screenshot()  # Take screenshot
+    screenshots.append(screenshot)
+#%%
+imsave('mosaic.png', mosaic_image)
+
+#%%
+def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsize=(14,12)):
+    """
+    Create a mosaic image from the given list of screenshots using matplotlib.
+    
+    Parameters:
+    screenshots (list): A list of numpy arrays of shape (H, W, C).
+    rows (int): Number of rows in the mosaic.
+    columns (int): Number of columns in the mosaic.
+    figsize (tuple): Size of the figure for the mosaic.
+    
+    Returns:
+    str: File path of the saved mosaic image.
+    """
+    fig, axes = plt.subplots(nrows=rows, ncols=columns, figsize=figsize, facecolor='black')
+    # Calculate frame indices to include the first and last frames and others equally spaced
+    #frame_indices = [0] + list(np.linspace(1, total_frames - 2, columns * rows - 2, dtype=int)) + [total_frames - 1]
+    frame_indices = [ 0, 3, 6, 9 , 12, 13]
+    print(frame_indices)
+    plt.subplots_adjust(wspace=0, hspace=0)
+    # Flatten the axes array for easy iteration and fill each subplot
+    for ax, (screenshot, frame_idx) in zip(axes.flatten(), zip(screenshots, frame_indices)):
+        ax.imshow(screenshot)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title(f"Frame {frame_idx}", color='white')
+    # Remove any excess plots if screenshots are less than grid size
+    #for i in range(len(screenshots), rows*columns):
+     #   fig.delaxes(axes.flatten()[i])
+
+    plt.tight_layout()
+
+    # Save the mosaic image to a file
+    output_path = 'mosaic_matplotlib.svg'
+    
+    plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
+
+    return output_path
+
+mosaic_path = create_mosaic_matplotlib(screenshots, total_frames=len(image1))
+
+#%%
+fig, axes = plt.subplots( 2, 3, figsize= (14,12), facecolor='black')
+# Adjust subplot parameters
+#plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0, hspace=0)
+
+print(frame_indices)
+total_frames = len(image1) 
+desired_frames = 6
+frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
+xrange=slice(50,350)
+yrange=slice(150,400)
+for ax, indi in zip(axes.flatten(), frame_indices):
+    ax.imshow(screenshots[indi])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(f"Frame {indi}", color='white')
+
+plt.tight_layout()
+plt.savefig('simple_mosaic.svg')
 #%%
 def track_origin(all_frame_info, bone_name):
     # Extract x and y coordinates of the origin for each frame
@@ -242,6 +328,23 @@ def calculate_angle(vector_a, vector_b):
     angle_deg = np.degrees(angle_rad)
     return angle_deg
 
+def calculate_distance_betwn_origins (fem_info, tib_info):
+    indices = sorted(fem_info)
+    origin_distances = [ np.linalg.norm(fem_info[ind]['origin']  -  tib_info[ind]['origin']) for ind in indices  ]
+    plt.plot(origin_distances)
+    plt.xlabel('Frame number')
+    plt.title('Distance between femur and tibia origins across the frames')
+    
+
+def calculate_distance_betwn_centroids (fem_info, tib_info):
+    indices = sorted(fem_info)
+    origin_distances = [ np.linalg.norm(fem_info[ind]['centroid']  -  tib_info[ind]['centroid']) for ind in indices  ]
+    plt.plot(origin_distances)
+    plt.xlabel('Frame number')
+    plt.title('Distance between femur and tibia centroids across the frames')
+    
+    
+    
 # Assuming femur_info and tibia_info have the same keys (frames)
 def plot_angle_vs_frame(femur_info , tibia_info, label):
     frames = sorted(femur_info.keys())
@@ -252,7 +355,7 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
         tibia_vector = tibia_info[frame]['U']
         angle = calculate_angle(femur_vector, tibia_vector)
         angles.append(angle)
-    angles = (np.array(angles) ) 
+    angles = (180 - np.array(angles) ) 
     # Plot
     plt.scatter(frames, angles, marker='x', color='k')
     plt.plot(frames, angles, label=f'{label}')
@@ -265,19 +368,19 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     plt.show()
 
 #%%
-track_origin(tib_info, 'NW_0_ai2_tibia')
+track_origin(tib_info, 'W_0_ai2_tibia')
 
 #%%
 track_origin(fem_info, 'NW_0_ai2_femur')
 #%%
-plot_angle_vs_frame(fem_info, tib_info, 'NW_ai2')
+plot_angle_vs_frame(fem_info, tib_info, 'W_ai2')
 
 #%%
 # Saving the dictionary to a file
-with open('tib_info_ai2.pkl', 'wb') as f:
+with open('MM_W_tib_info_ai2.pkl', 'wb') as f:
     pickle.dump(tib_info, f)
     
-with open('fem_info_ai2.pkl', 'wb') as f:
+with open('MM_W_fem_info_ai2.pkl', 'wb') as f:
     pickle.dump(fem_info, f)
 
 ''' to load do: 
@@ -286,12 +389,12 @@ with open('fem_info_ai2.pkl', 'wb') as f:
     
 #%%
 # what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/tib_info_ai2.pkl', 'rb') as file:
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_W_tib_info_ai2.pkl', 'rb') as file:
     tib_info = pickle.load(file)    
 
 
 
-with open('/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/23_MK_Radial_NW_CINE_30bpm_CGA/fem_info_ai2.pkl', 'rb') as file:
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_W_fem_info_ai2.pkl', 'rb') as file:
     fem_info = pickle.load(file)  
     
 #%%
