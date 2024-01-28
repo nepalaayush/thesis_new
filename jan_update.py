@@ -8,7 +8,7 @@ Created on Fri Jan  5 14:31:24 2024
 
 #%%
 import os 
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -21,13 +21,13 @@ from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleto
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/AN_NW_ai2_tgv_5e-2_pos.nii'
+path = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW_ai2_tgv_5e-2_neg.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_AN')
+viewer = napari.view_image(image,  name='NW_MM')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -62,7 +62,7 @@ print(f"Elapsed Time: {end_time - start_time} seconds")
 viewer3.add_image(canny_multi_edge, name='MM_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[9]
+tib_canny = canny_multi_edge[0]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -82,7 +82,7 @@ def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity)
     return removed_multi_3d
 
 # Example usage
-size_range = (150, 250)  # 100 min and 200 max size for femur 
+size_range = (50, 150)  # 100 min and 200 max size for femur 
 num_steps = 20  # Number of steps for size parameter
 connectivity = 2  # Fixed connectivity value
 print(np.linspace(size_range[0],size_range[1], num_steps))
@@ -122,22 +122,24 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==2
+final_label_3d = final_label_3d==1
 viewer.add_image(final_label_3d)
 #%%
+#final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
 final_label = viewer.layers['final_label_3d'].data # or final_label_3d
-#Step 11: once the final edge has been found, convert it to a list of arrays. 
+#Step 11: once the final edge has been found, convert it to a list of arrays.
+#%% 
 tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
 #  just finding the frame with the least number of points
 find_array_with_min_n(tib_coords)
 #%%
 # Step 12, starting with either the first or the last frame. 
-reference_frame_last = downsample_points(tib_coords, -1, 50, bone_type='femur')
+reference_frame_last = downsample_points(tib_coords, -1, 50, bone_type='tibia')
 new_tib_coords_last = tib_coords.copy() 
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='femur')
+reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='tibia')
 new_tib_coords_first = tib_coords.copy() 
 new_tib_coords_first[0] = reference_frame_first
 viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
@@ -151,5 +153,5 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 import pickle
-with open('tib_coords_last_W_outer.pkl', 'wb') as file:
-    pickle.dump(new_tib_coords_last, file)
+with open('t_matrices_last_NW_MM.pkl', 'wb') as file:
+    pickle.dump(transformation_matrices_last, file)

@@ -16,6 +16,7 @@ from skimage.feature import canny
 from skimage.morphology import skeletonize, remove_small_objects
 from sklearn.decomposition import PCA
 from shapely.geometry import LineString, MultiPoint
+from matplotlib.path import Path
 
 def open_nii(path):
     ''' Input: Path of nifti file (.nii) Output: pixelarray  ''' 
@@ -400,10 +401,16 @@ def combined_consecutive_transform(data):
 def apply_transformations_new(reference_frame, transformation_matrices, reference_index):
     num_frames = len(transformation_matrices)
     transformed_frames = [None] * num_frames
-
+    
+    if reference_index < 0:
+        reference_index =  num_frames + reference_index
+    
+    if reference_index >= num_frames or reference_index < 0:
+       raise ValueError("Reference index is out of range")
     # Apply transformation for the reference frame
     transformed_frames[reference_index] = reference_frame
-
+    
+    
     # Apply transformations backwards
     current_frame = reference_frame
     for i in range(reference_index - 1, -1, -1):
@@ -426,6 +433,68 @@ def apply_transformations_new(reference_frame, transformation_matrices, referenc
 
 
 
+'''
+def sample_points_in_polygon(polygon, n_samples=1000):
+    """
+    Generates uniformly distributed points within the given polygon.
+
+    Parameters:
+    polygon (array-like): An Nx3 array where each row represents [frame, x, y].
+    n_samples (int): Number of points to sample within the polygon.
+
+    Returns:
+    np.ndarray: An array of points within the polygon.
+    """
+
+    # Extract the x and y coordinates
+    x_coords = polygon[:, 1]
+    y_coords = polygon[:, 2]
+
+    # Define the bounding box
+    min_x, min_y = np.min(x_coords), np.min(y_coords)
+    max_x, max_y = np.max(x_coords), np.max(y_coords)
+
+    # Generate random points within the bounding box
+    random_points = np.random.uniform([min_x, min_y], [max_x, max_y], (n_samples, 2))
+
+    # Create a Path object for the polygon
+    path = Path(polygon[:, 1:])
+
+    # Filter points that are inside the polygon
+    inside_points = random_points[path.contains_points(random_points)]
+
+    return inside_points
+
+'''
+
+def sample_points_in_polygon(polygon, n_samples=1000):
+    """
+    Generates uniformly distributed points within the given polygon, including the frame number.
+
+    Parameters:
+    polygon (array-like): An Nx3 array where each row represents [frame, x, y].
+    n_samples (int): Number of points to sample within the polygon.
+
+    Returns:
+    np.ndarray: An array of points within the polygon, including the frame number.
+    """
+
+    frame_number = polygon[0, 0]  # Extract the frame number from the first point
+    x_coords = polygon[:, 1]
+    y_coords = polygon[:, 2]
+
+    min_x, min_y = np.min(x_coords), np.min(y_coords)
+    max_x, max_y = np.max(x_coords), np.max(y_coords)
+
+    random_points = np.random.uniform([min_x, min_y], [max_x, max_y], (n_samples, 2))
+
+    path = Path(polygon[:, 1:])
+    inside_points = random_points[path.contains_points(random_points)]
+
+    # Add the frame number to the generated points
+    inside_points_with_frame = np.hstack([np.full((len(inside_points), 1), frame_number), inside_points])
+
+    return inside_points_with_frame
 def get_uv_from_pca(line_points):
     A = np.array(line_points[0])
     B = np.array(line_points[1])
@@ -495,8 +564,15 @@ def process_frame(shapes_data):
     results = {}
     
     for idx, shape_coords in enumerate(sorted_data):
+        print("shape coords shape: ", shape_coords.shape)
+        uniform_points = sample_points_in_polygon(shape_coords)
+        print("Uniform points shape:", uniform_points.shape)
+        
         # Calculate PCA line points
         line_points = fit_pca_line(shape_coords[:, 1:])
+        #line_points = fit_pca_line(uniform_points[:, 1:])
+        #print(line_points, 'the shape is', line_points.shape)
+         
         # Get unit vectors
         U, V = get_uv_from_pca(line_points)
         
