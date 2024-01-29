@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+_#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan  5 11:47:23 2024
@@ -20,8 +20,8 @@ from utils import (open_nii, normalize, shapes_for_napari, apply_transformations
 
     # Extract phi angles and convert to degrees
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/MM_W/MM_W_tib_info_ai2.pkl', 'rb') as file:
-    tib_info = pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/t_matrices_last_NW_MM.pkl', 'rb') as file:
+    tib_matrices= pickle.load(file)
 #%%
 def plot_transformations(transformation_matrices, index):
     # Extracting the rotation angles from the transformation matrices and converting to degrees
@@ -108,12 +108,12 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     plt.yticks(np.arange(np.floor(np.min(residuals)), np.ceil(np.max(residuals)) + 1, 1))
     
     plt.tight_layout()
-    plt.savefig(f'angle_residuals_ai2_{reference_index}.svg') 
+    plt.savefig(f'angle_residuals_ai2_{reference_index}_MM_NW.svg') 
     plt.show()
 
     # Print the Mean Absolute Error
     print(f"Mean Absolute Error (MAE): {mae}")    
-plot_transformations_and_calculate_MAE(transformation_matrices_last, offset=5, angle_increment=2, reference_index=-1)
+plot_transformations_and_calculate_MAE(tib_matrices, offset=5, angle_increment=2, reference_index=-1)
 
 #%%
 def plot_cost_values(values):
@@ -144,7 +144,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/MM_W/MM_W_ai2_tgv_5e-2_neg_r0_r40.nii'
+path1 = '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/MM_NW_ai2_tgv_5e-2_neg.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
@@ -183,7 +183,7 @@ viewer1.add_shapes(reference_frame_last, shape_type='polygon')
 # rename it to expanded_shape and then store it as ref_points variable 
 ref_points = viewer1.layers['expanded_shape'].data[0]
 #%%
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_last, 14)    
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_last, -1)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
@@ -197,7 +197,7 @@ frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
 disp_layer = viewer1.layers["Shapes"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(150,450)
+xrange=slice(0,300)
 yrange=slice(150,400)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
@@ -208,30 +208,45 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('NW_MM_segmented_tibia.svg')
+plt.savefig('NW_MM_segmented_femur.svg')
 
 #%%
-shapes_data = viewer1.layers['tibia_W'].data
+shapes_data = viewer1.layers['tibia_NW_last'].data
 #%%
 # After manually segmenting, find the info of the shapes. 
-single_tib_info = process_frame([shapes_data[0]])
+single_tib_info = process_frame([shapes_data[-1]])
 #%%
-info_array = dict_to_array(single_tib_info)
+tib_info_array = dict_to_array(single_tib_info)
 #%%
-transformed_info = applied_transformation = apply_transformations_new(info_array, t_matrices_first, 0)
+transformed_info_tibia  = apply_transformations_new(tib_info_array, tib_matrices, -1)
 #%%
-transformed_dicts = {}
+transformed_dicts_tib = {}
 
-for i, arr in enumerate(transformed_info):
-    transformed_dicts.update(reconstruct_dict(i, arr))
+for i, arr in enumerate(transformed_info_tibia):
+    transformed_dicts_tib.update(reconstruct_dict(i, arr))
 
 #%%
-fem_info = process_frame(viewer1.layers['Shapes'].data)
+fem_shapes_data = viewer1.layers['fem_NW_last'].data
+
 #%%
-show_stuff(transformed_dicts, 'tib_wt', viewer1)
+single_fem_info = process_frame([fem_shapes_data[-1]])
+#%%
+
+fem_info_array = dict_to_array(single_fem_info)
+#%%
+transformed_info_fem = apply_transformations_new(fem_info_array, transformation_matrices_last, -1)
+#%%
+transformed_dicts_fem = {}
+
+for i, arr in enumerate(transformed_info_fem):
+    transformed_dicts_fem.update(reconstruct_dict(i, arr))
+
+
+#%%
+show_stuff(transformed_dicts_tib, 'tib_wt', viewer1)
     
 #%%
-show_stuff(fem_info, 'fem_wt', viewer1)
+show_stuff(transformed_dicts_fem, 'fem_wt', viewer1)
 #%%
 screenshot = viewer1.screenshot()
 viewer1.add_image(screenshot, rgb=True, name='screenshot')  
@@ -286,7 +301,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_matplotlib.svg'
+    output_path = 'mosaic_MM_NW.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -352,7 +367,13 @@ def calculate_distance_betwn_centroids (fem_info, tib_info):
     plt.plot(origin_distances)
     plt.xlabel('Frame number')
     plt.title('Distance between femur and tibia centroids across the frames')
-    
+
+def normalize_vector(vector):
+    """Normalize a vector to unit length."""
+    norm = np.linalg.norm(vector)
+    if norm == 0:  # Avoid division by zero
+        return vector
+    return vector / norm    
     
     
 # Assuming femur_info and tibia_info have the same keys (frames)
@@ -361,11 +382,11 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     angles = []
     
     for frame in frames:
-        femur_vector = femur_info[frame]['U']
-        tibia_vector = tibia_info[frame]['U']
-        angle = calculate_angle(femur_vector, tibia_vector)
+        femur_vector = femur_info[frame]['V']
+        tibia_vector = tibia_info[frame]['V']
+        angle = calculate_angle(normalize_vector(femur_vector), normalize_vector(tibia_vector) )
         angles.append(angle)
-    angles = (180 - np.array(angles) ) 
+    angles = (np.array(angles) ) 
     # Plot
     plt.scatter(frames, angles, marker='x', color='k')
     plt.plot(frames, angles, label=f'{label}')
@@ -374,8 +395,10 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     plt.title("Angle Between long axes of Femur and Tibia Over Frames")
     plt.grid(True)
     plt.legend()
-    plt.savefig('angle_between_bones.svg')
+    plt.savefig(f'{label}angle_between_bones.svg')
     plt.show()
+
+
 
 #%%
 track_origin(tib_info, 'W_0_ai2_tibia')
@@ -383,8 +406,69 @@ track_origin(tib_info, 'W_0_ai2_tibia')
 #%%
 track_origin(fem_info, 'NW_0_ai2_femur')
 #%%
-plot_angle_vs_frame(fem_info, tib_info, 'W_ai2')
+plot_angle_vs_frame(transformed_dicts_fem, transformed_dicts_tib, 'NW_ai2')
 
+#%%
+def calculate_angle_between_bones(bone1, bone2, axis='long'):
+    """
+    Calculate the angle between two bones based on their coordinate system.
+
+    :param bone1: Dictionary with bone data (femur or tibia).
+    :param bone2: Dictionary with bone data (femur or tibia).
+    :param axis: 'long' or 'short' to choose which axis to compare.
+    :return: Angle in degrees between the two bones.
+    """
+    def get_axis_vector(bone, axis_type):
+        """Extract the vector for the specified axis from the bone data."""
+        points = bone[f'points_{axis_type}_axis']
+        return points[1] - points[0]  # Vector from first point to second point
+
+    # Get vectors for the specified axis
+    vector1 = get_axis_vector(bone1, axis)
+    vector2 = get_axis_vector(bone2, axis)
+
+    # Calculate the dot product and magnitudes of the vectors
+    dot_product = np.dot(vector1, vector2)
+    magnitude1 = np.linalg.norm(vector1)
+    magnitude2 = np.linalg.norm(vector2)
+
+    # Calculate the angle in radians and then convert to degrees
+    angle_radians = np.arccos(dot_product / (magnitude1 * magnitude2))
+    angle_degrees = np.degrees(angle_radians)
+
+    return angle_degrees
+
+
+
+def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
+    """
+    Calculate the angles between two bones for each frame and plot the angles.
+
+    :param bone1: Dictionary with bone data (femur or tibia) for multiple frames.
+    :param bone2: Dictionary with bone data (femur or tibia) for multiple frames.
+    :param axis: 'long' or 'short' to choose which axis to compare.
+    """
+    angles = []
+    frames = []
+
+    for frame in bone1.keys():
+        if frame in bone2:
+            angle = calculate_angle_between_bones(bone1[frame], bone2[frame], axis)
+            print(f"Frame {frame}: Angle = {angle} degrees")
+            angles.append(angle)
+            frames.append(frame)
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(frames, angles, marker='o')
+    plt.xlabel('Frame')
+    plt.ylabel('Angle (degrees)')
+    plt.title(f'Angle between Bones over Frames ({axis.capitalize()} Axis)')
+    plt.grid(True)
+    plt.show()
+
+
+
+calculate_and_plot_angles_between_bones(transformed_dicts_fem, transformed_dicts_tib)
 #%%
 # Saving the dictionary to a file
 with open('MM_W_tib_info_ai2.pkl', 'wb') as f:
