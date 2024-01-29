@@ -433,40 +433,36 @@ def apply_transformations_new(reference_frame, transformation_matrices, referenc
 
 
 
-'''
-def sample_points_in_polygon(polygon, n_samples=1000):
-    """
-    Generates uniformly distributed points within the given polygon.
+def dict_to_array(dictionary):
+    points_list = [] 
+    
+    for key, value in dictionary[0].items():
+        if (value.shape == (2,2) ):
+            points_list.extend([value[0], value[1]])
+        else:
+            points_list.append(value)
+    
+    points_array = np.array(points_list)
+    
+    return points_array 
 
-    Parameters:
-    polygon (array-like): An Nx3 array where each row represents [frame, x, y].
-    n_samples (int): Number of points to sample within the polygon.
 
-    Returns:
-    np.ndarray: An array of points within the polygon.
-    """
+def reconstruct_dict(frame_number, array):
+    if array.shape != (8, 2):
+        raise ValueError("Array must be of shape (8, 2)")
 
-    # Extract the x and y coordinates
-    x_coords = polygon[:, 1]
-    y_coords = polygon[:, 2]
-
-    # Define the bounding box
-    min_x, min_y = np.min(x_coords), np.min(y_coords)
-    max_x, max_y = np.max(x_coords), np.max(y_coords)
-
-    # Generate random points within the bounding box
-    random_points = np.random.uniform([min_x, min_y], [max_x, max_y], (n_samples, 2))
-
-    # Create a Path object for the polygon
-    path = Path(polygon[:, 1:])
-
-    # Filter points that are inside the polygon
-    inside_points = random_points[path.contains_points(random_points)]
-
-    return inside_points
-
-'''
-
+    # Assuming the order of points in each array matches the original dictionary
+    nested_dict =  {
+        'points_long_axis': np.array([array[0], array[1]]),
+        'U': array[2],
+        'V': array[3],
+        'centroid': array[4],
+        'points_short_axis': np.array([array[5], array[6]]),
+        'origin': array[7]
+    }
+    return {frame_number: nested_dict}
+    
+        
 def sample_points_in_polygon(polygon, n_samples=1000):
     """
     Generates uniformly distributed points within the given polygon, including the frame number.
@@ -569,8 +565,8 @@ def process_frame(shapes_data):
         print("Uniform points shape:", uniform_points.shape)
         
         # Calculate PCA line points
-        line_points = fit_pca_line(shape_coords[:, 1:])
-        #line_points = fit_pca_line(uniform_points[:, 1:])
+        #line_points = fit_pca_line(shape_coords[:, 1:])
+        line_points = fit_pca_line(uniform_points[:, 1:])
         #print(line_points, 'the shape is', line_points.shape)
          
         # Get unit vectors
@@ -585,7 +581,7 @@ def process_frame(shapes_data):
         centroid = np.mean(shape_coords[:, 1:], axis=0)
         
         # Find extreme points
-        #extreme_points = np.array(find_edges_new(centroid, shape_coords, V))
+        
         extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=200))
         # Debug check 2: check if the extreme points line is indeed perpendicualr to U  
         extreme_vector = extreme_points[1] - extreme_points[0]

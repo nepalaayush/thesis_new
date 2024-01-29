@@ -7,7 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -15,12 +16,12 @@ from shapely.geometry import LineString, MultiPoint
 import napari
 from sklearn.metrics import mean_absolute_error
 
-from utils import (open_nii, normalize, shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff)
+from utils import (open_nii, normalize, shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff, dict_to_array, reconstruct_dict)
 
     # Extract phi angles and convert to degrees
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/t_matrices_first.pkl', 'rb') as file:
-    t_matrices_first = pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/MM_W/MM_W_tib_info_ai2.pkl', 'rb') as file:
+    tib_info = pickle.load(file)
 #%%
 def plot_transformations(transformation_matrices, index):
     # Extracting the rotation angles from the transformation matrices and converting to degrees
@@ -143,7 +144,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW_ai2_tgv_5e-2_neg.nii'
+path1 = '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/MM_W/MM_W_ai2_tgv_5e-2_neg_r0_r40.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
@@ -210,16 +211,25 @@ plt.tight_layout()
 plt.savefig('NW_MM_segmented_tibia.svg')
 
 #%%
-shapes_data = viewer1.layers['Shapes'].data
+shapes_data = viewer1.layers['tibia_W'].data
 #%%
 # After manually segmenting, find the info of the shapes. 
-tib_info = process_frame(viewer1.layers['Shapes'].data)
+single_tib_info = process_frame([shapes_data[0]])
+#%%
+info_array = dict_to_array(single_tib_info)
+#%%
+transformed_info = applied_transformation = apply_transformations_new(info_array, t_matrices_first, 0)
+#%%
+transformed_dicts = {}
+
+for i, arr in enumerate(transformed_info):
+    transformed_dicts.update(reconstruct_dict(i, arr))
 
 #%%
 fem_info = process_frame(viewer1.layers['Shapes'].data)
 #%%
-show_stuff(tib_info, 'tib_wt', viewer1)
-
+show_stuff(transformed_dicts, 'tib_wt', viewer1)
+    
 #%%
 show_stuff(fem_info, 'fem_wt', viewer1)
 #%%
