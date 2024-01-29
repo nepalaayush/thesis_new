@@ -21,7 +21,7 @@ from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleto
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW_ai2_tgv_5e-2_neg.nii'
+path = '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/MM_NW_ai2_tgv_5e-2_neg.nii'
 image = open_nii(path)
 image = normalize(image)
 image = np.moveaxis(image, 1, 0)
@@ -126,7 +126,7 @@ final_label_3d = final_label_3d==1
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
-final_label = viewer.layers['final_label_3d'].data # or final_label_3d
+final_label = viewer.layers['final_label_fem_NW_MM'].data # or final_label_3d
 #Step 11: once the final edge has been found, convert it to a list of arrays.
 #%% 
 tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
@@ -134,7 +134,7 @@ tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used
 find_array_with_min_n(tib_coords)
 #%%
 # Step 12, starting with either the first or the last frame. 
-reference_frame_last = downsample_points(tib_coords, -1, 50, bone_type='tibia')
+reference_frame_last = downsample_points(tib_coords, -1, 50, bone_type='femur')
 new_tib_coords_last = tib_coords.copy() 
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
@@ -153,5 +153,5 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 import pickle
-with open('t_matrices_last_NW_MM.pkl', 'wb') as file:
+with open('femur_t_matrices_last_NW_MM.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_last, file)
