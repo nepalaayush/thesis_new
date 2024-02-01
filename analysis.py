@@ -1,4 +1,4 @@
-_#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan  5 11:47:23 2024
@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -18,36 +18,14 @@ from sklearn.metrics import mean_absolute_error
 
 from utils import (open_nii, normalize, shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff, dict_to_array, reconstruct_dict)
 
-    # Extract phi angles and convert to degrees
-#%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/t_matrices_last_NW_MM.pkl', 'rb') as file:
-    tib_matrices= pickle.load(file)
-#%%
-def plot_transformations(transformation_matrices, index):
-    # Extracting the rotation angles from the transformation matrices and converting to degrees
-    phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
 
-    # Creating the plot
-    plt.figure(figsize=(10, 6))
-    if index==0:
-        plt.scatter(np.arange(1, len(phis[1:]) + 1), phis[1:], color='blue')  # Plotting the points
-        plt.plot(np.arange(1, len(phis[1:]) + 1), phis[1:], linestyle='dotted', color='red')  # Connecting the points with a dotted line
-    else:
-        plt.scatter(np.arange(1, len(phis[:-1]) + 1), phis[:-1], color='blue')
-        plt.plot(np.arange(1, len(phis[:-1]) + 1), phis[:-1], linestyle='dotted', color='red')  # Connecting the points with a dotted line
-    
-    plt.grid(True)  # Adding grid
-    plt.xlabel('Transformation Index')
-    plt.ylabel('Rotation Angle (Degrees)')
-    plt.title(f'Rotation Angles from Transformation Matrices using {index} frame as reference')
-    plt.savefig(f'phi_plot_{index}.svg') 
-    plt.show()
-    
-   
-plot_transformations(t_matrices_last_ai2, -1)
+#%%
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_NW_t_matrices_last_tib.pkl', 'rb') as file:
+    t_matrices_NW=  pickle.load(file)
+
 #%%
 
-def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index):
+def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, ax=None):
     # Extract phi values from transformation matrices and convert to degrees
     phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
     
@@ -82,38 +60,54 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     # Calculating Mean Absolute Error (MAE)
     mae = mean_absolute_error(cumulative_phis, perfect_increment)
 
-    # Creating plots
-    plt.figure(figsize=(10, 12))
+    # Check if an axis is provided, if not, create a new figure and axis
+    if ax is None:
+        fig, ax = plt.subplots(2, 1, figsize=(10, 12))
+        ax1, ax2 = ax
+        created_new_figure = True
+    else:
+        ax1, ax2 = ax
+        created_new_figure = False
 
-    # Adjusted graph (Top Graph)
-    plt.subplot(2, 1, 1)
-    plt.plot(x_values_shifted, cumulative_phis, label='Cumulative Phi Data', marker='o')
-    plt.plot(x_values_shifted, perfect_increment, label='Perfect ' + str(angle_increment) + '-Degree Increment (Start ' + str(-offset) + ')', linestyle='--')
-    plt.title(f'Deviation from Perfect theoretical Line when using frame {reference_index} as reference')
-    plt.xlabel("Rotary angle encoder")
-    plt.ylabel('Rotation angle of tibia (in degrees)')
-    plt.legend()
-    plt.grid(True, which='both', linestyle='-', linewidth=0.5)
-    plt.xticks(x_values_shifted)
-    plt.yticks(np.arange(np.max(perfect_increment), np.min(perfect_increment), -1))
-    # Residuals plot (Bottom Graph)
-    plt.subplot(2, 1, 2)
-    plt.plot(x_values_shifted, residuals, label='Residuals', marker='o', color='red')
-    plt.title('Residuals at Each Frame')
-    plt.xlabel('Frame (Starting from ' + str(offset) + ')')
-    plt.ylabel('Residual Value')
-    plt.legend()
-    plt.grid(True, which='both', linestyle='-', linewidth=0.5)
-    plt.xticks(x_values_shifted)
-    plt.yticks(np.arange(np.floor(np.min(residuals)), np.ceil(np.max(residuals)) + 1, 1))
-    
-    plt.tight_layout()
-    plt.savefig(f'angle_residuals_ai2_{reference_index}_MM_NW.svg') 
-    plt.show()
+    # Plotting on the provided or new axes
+    ax1.plot(x_values_shifted, cumulative_phis, label=f'Cumulative Phi Data Ref {reference_index}', marker='o')
+    ax1.plot(x_values_shifted, perfect_increment, label=f'Perfect Increment Ref {reference_index}', linestyle='--')
+    ax1.set_title(f'Deviation from Perfect theoretical Line using frame {reference_index} as reference')
+    ax1.set_xlabel("Rotary angle encoder")
+    ax1.set_ylabel('Rotation angle of tibia (in degrees)')
+    ax1.legend()
+    ax1.grid(True, which='both', linestyle='-', linewidth=0.5)
+    ax1.set_xticks(x_values_shifted)
+    ax1.set_yticks(np.arange(np.max(perfect_increment), np.min(perfect_increment), -1))
 
-    # Print the Mean Absolute Error
-    print(f"Mean Absolute Error (MAE): {mae}")    
-plot_transformations_and_calculate_MAE(tib_matrices, offset=5, angle_increment=2, reference_index=-1)
+    ax2.plot(x_values_shifted, residuals, label=f'Residuals Ref {reference_index}', marker='o', color='red')
+    ax2.set_title('Residuals at Each Frame')
+    ax2.set_xlabel('Frame (Starting from ' + str(offset) + ')')
+    ax2.set_ylabel('Residual Value')
+    ax2.legend()
+    ax2.grid(True, which='both', linestyle='-', linewidth=0.5)
+    ax2.set_xticks(x_values_shifted)
+    ax2.set_yticks(np.arange(np.floor(np.min(residuals)), np.ceil(np.max(residuals)) + 1, 1))
+    ax2.text(x=min(x_values_shifted), y=max(residuals), s=f"Mean Absolute Error (MAE): {mae:.2f}", color='blue', fontsize=10)
+
+    if created_new_figure:
+        plt.tight_layout()
+        plt.show()
+
+    print(f"Mean Absolute Error (MAE): {mae}")
+
+# Example usage:
+#%%
+# For a single plot
+plot_transformations_and_calculate_MAE(t_matrices_first, offset=5, angle_increment=2, reference_index=0, ax=None)
+#%%
+# For overlaying multiple plots
+fig, ax = plt.subplots(2, 1, figsize=(10, 12))
+plot_transformations_and_calculate_MAE(transformation_matrices_last, offset=5, angle_increment=2, reference_index=-1, ax=ax)
+plot_transformations_and_calculate_MAE(t_matrices_NW, offset=5, angle_increment=2, reference_index=-1, ax=ax)
+plt.tight_layout()
+plt.show()
+
 
 #%%
 def plot_cost_values(values):
@@ -144,7 +138,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/26.01.24/MM_NW_ai2_tgv_5e-2_neg.nii'
+path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_NW_ai2_tgv_5e-2_pos.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
@@ -181,7 +175,7 @@ for frame_number in range(number_of_frames):
 viewer1.add_shapes(reference_frame_last, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_shape'].data[0]
+ref_points = viewer1.layers['expanded_shape_femur'].data[0]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_last, -1)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
@@ -197,7 +191,7 @@ frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
 disp_layer = viewer1.layers["Shapes"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(0,300)
+xrange=slice(0,450)
 yrange=slice(150,400)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
@@ -208,25 +202,47 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('NW_MM_segmented_femur.svg')
+plt.savefig('MK_NW_segmented_femur.svg')
 
 #%%
-shapes_data = viewer1.layers['tibia_NW_last'].data
+shapes_data = viewer1.layers['tibia_NW'].data
 #%%
-# After manually segmenting, find the info of the shapes. 
+# After manually segmenting, find the info of the shapes.
+#do the pca on just the reference frame 
 single_tib_info = process_frame([shapes_data[-1]])
 #%%
+# convert the dictionary into an array to later on transform it using the same t matrix 
 tib_info_array = dict_to_array(single_tib_info)
 #%%
-transformed_info_tibia  = apply_transformations_new(tib_info_array, tib_matrices, -1)
+transformed_info_tibia  = apply_transformations_new(tib_info_array, transformation_matrices_last, -1)
 #%%
 transformed_dicts_tib = {}
 
 for i, arr in enumerate(transformed_info_tibia):
     transformed_dicts_tib.update(reconstruct_dict(i, arr))
 
+
 #%%
-fem_shapes_data = viewer1.layers['fem_NW_last'].data
+def process_and_transform_shapes(shapes_data, transformation_matrices):
+    # Process the reference frame (assuming the last one in the shapes data)
+    single_shape_info = process_frame([shapes_data[-1]])
+
+    # Convert the dictionary into an array for transformation
+    shape_info_array = dict_to_array(single_shape_info)
+
+    # Apply transformations to the shape data
+    transformed_info = apply_transformations_new(shape_info_array, transformation_matrices, -1)
+
+    # Reconstruct the dictionary for each transformed frame
+    transformed_dicts = {}
+    for i, arr in enumerate(transformed_info):
+        transformed_dicts.update(reconstruct_dict(i, arr))
+
+    return transformed_dicts
+
+modified_tib_info= process_and_transform_shapes(shapes_data, new_tibia_transforms)
+#%%
+fem_shapes_data = viewer1.layers['femur_NW'].data
 
 #%%
 single_fem_info = process_frame([fem_shapes_data[-1]])
@@ -285,14 +301,12 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     fig, axes = plt.subplots(nrows=rows, ncols=columns, figsize=figsize, facecolor='black')
     # Calculate frame indices to include the first and last frames and others equally spaced
     #frame_indices = [0] + list(np.linspace(1, total_frames - 2, columns * rows - 2, dtype=int)) + [total_frames - 1]
-    frame_indices = [ 0, 3, 6, 9 , 12, 13]
+    frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
     print(frame_indices)
     plt.subplots_adjust(wspace=0, hspace=0)
     # Flatten the axes array for easy iteration and fill each subplot
-    for ax, (screenshot, frame_idx) in zip(axes.flatten(), zip(screenshots, frame_indices)):
-        ax.imshow(screenshot)
-        ax.set_xticks([])
-        ax.set_yticks([])
+    for ax, frame_idx in zip(axes.flatten(), frame_indices):
+        ax.imshow(screenshots[frame_idx])
         ax.set_title(f"Frame {frame_idx}", color='white')
     # Remove any excess plots if screenshots are less than grid size
     #for i in range(len(screenshots), rows*columns):
@@ -301,7 +315,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MM_NW.svg'
+    output_path = 'mosaic_MK_NW_both_axes.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -309,25 +323,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
 
 mosaic_path = create_mosaic_matplotlib(screenshots, total_frames=len(image1))
 
-#%%
-fig, axes = plt.subplots( 2, 3, figsize= (14,12), facecolor='black')
-# Adjust subplot parameters
-#plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0, hspace=0)
 
-print(frame_indices)
-total_frames = len(image1) 
-desired_frames = 6
-frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
-xrange=slice(50,350)
-yrange=slice(150,400)
-for ax, indi in zip(axes.flatten(), frame_indices):
-    ax.imshow(screenshots[indi])
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_title(f"Frame {indi}", color='white')
-
-plt.tight_layout()
-plt.savefig('simple_mosaic.svg')
 #%%
 def track_origin(all_frame_info, bone_name):
     # Extract x and y coordinates of the origin for each frame
@@ -401,10 +397,10 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 
 
 #%%
-track_origin(tib_info, 'W_0_ai2_tibia')
+track_origin(transformed_dicts_tib, 'MK_NW_tib')
 
 #%%
-track_origin(fem_info, 'NW_0_ai2_femur')
+track_origin(transformed_dicts_fem, 'MK_NW_fem')
 #%%
 plot_angle_vs_frame(transformed_dicts_fem, transformed_dicts_tib, 'NW_ai2')
 
@@ -435,6 +431,8 @@ def calculate_angle_between_bones(bone1, bone2, axis='long'):
     # Calculate the angle in radians and then convert to degrees
     angle_radians = np.arccos(dot_product / (magnitude1 * magnitude2))
     angle_degrees = np.degrees(angle_radians)
+    if angle_degrees > 90:
+        angle_degrees =  180 - angle_degrees
 
     return angle_degrees
 
@@ -450,7 +448,7 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
     """
     angles = []
     frames = []
-
+    
     for frame in bone1.keys():
         if frame in bone2:
             angle = calculate_angle_between_bones(bone1[frame], bone2[frame], axis)
@@ -469,13 +467,94 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
 
 
 calculate_and_plot_angles_between_bones(transformed_dicts_fem, transformed_dicts_tib)
+
+#%%
+def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
+    angles = []
+    frames = []
+
+    for frame in bone1.keys():
+        if frame in bone2:
+            angle = calculate_angle_between_bones(bone1[frame], bone2[frame], axis)
+            print(f"Frame {frame}: Angle = {angle} degrees")
+            angles.append(angle)
+            frames.append(frame)
+
+    # Assuming linear increment for theoretical line
+    theoretical_angles = np.array([angles[0] + 2 * i for i in range(len(frames))])
+
+    # Calculating residuals
+    residuals = np.array(angles) - theoretical_angles
+
+    # Calculating Mean Absolute Error
+    mae = np.mean(np.abs(residuals))
+
+    # Plotting
+    plt.figure(figsize=(12, 10))
+
+    # Plot angles and theoretical line
+    plt.subplot(2, 1, 1)
+    plt.plot(frames, angles, marker='o', label='Actual Angles')
+    plt.plot(frames, theoretical_angles, linestyle='--', color='grey', label='Theoretical Line')
+    plt.xlabel('Frame')
+    plt.ylabel('Angle (degrees)')
+    plt.title(f'Actual vs Theoretical Angles ({axis.capitalize()} Axis)')
+    plt.legend()
+    plt.grid(True)
+
+    # Plot residuals
+    plt.subplot(2, 1, 2)
+    plt.plot(frames, residuals, marker='o', color='red', label='Residuals')
+    plt.xlabel('Frame')
+    plt.ylabel('Residual Value')
+    plt.title('Residuals at Each Frame')
+    plt.legend()
+    plt.grid(True)
+    mae_text = f"Mean Absolute Error (MAE): {mae:.2f}"
+    plt.text(x=min(frames), y=max(residuals), s=mae_text, color='blue', fontsize=10)
+    plt.tight_layout()
+    
+    plt.savefig('MK_NW_mae_angle_between_bones_wrt_fem.svg') 
+    plt.show()
+
+    # Print the Mean Absolute Error
+    print(f"Mean Absolute Error (MAE): {mae:.2f}")
+
+calculate_and_plot_angles_with_theoretical_line(transformed_dicts_fem, modified_tib_info, axis='long')
+
+
+#%%
+def nullify_fem(femur_matrices, tibia_matrices):
+    new_tibia_transforms = []
+
+    for femur_matrix, tibia_matrix in zip(femur_matrices, tibia_matrices):
+        # Inverting femur transformation
+        inverted_femur_x, inverted_femur_y, inverted_femur_phi = -femur_matrix[0], -femur_matrix[1], -femur_matrix[2]
+
+        # Combining with tibia transformation
+        combined_x = inverted_femur_x + tibia_matrix[0]
+        combined_y = inverted_femur_y + tibia_matrix[1]
+        combined_phi = inverted_femur_phi + tibia_matrix[2]
+
+        # Append the combined transformation to the new list
+        new_tibia_transforms.append([combined_x, combined_y, combined_phi])
+
+    return new_tibia_transforms
+
+# Use the function with your transformation matrices
+new_tibia_transforms = nullify_fem(transformation_matrices_last, t_matrices_tib)
+
+#%%
+# for plotting multiple transformation matrices on the same plot: 
+
+
 #%%
 # Saving the dictionary to a file
-with open('MM_W_tib_info_ai2.pkl', 'wb') as f:
-    pickle.dump(tib_info, f)
-    
-with open('MM_W_fem_info_ai2.pkl', 'wb') as f:
-    pickle.dump(fem_info, f)
+with open('MK_NW_tib_info_modified.pkl', 'wb') as f:
+    pickle.dump(modified_tib_info, f)
+#%%    
+with open('MK_NW_fem_info.pkl', 'wb') as f:
+    pickle.dump(transformed_dicts_fem, f)
 
 ''' to load do: 
     with open('my_dict.pkl', 'rb') as f:
