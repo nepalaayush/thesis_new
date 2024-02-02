@@ -8,29 +8,30 @@ Created on Fri Jan  5 14:31:24 2024
 
 #%%
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
 import time 
 from scipy import ndimage
 
-from utils import (open_nii, normalize, apply_canny, apply_remove, apply_skeleton, points_for_napari,
+from utils import (open_nii, normalize, path_to_image, apply_canny, apply_remove, apply_skeleton, points_for_napari,
                    boolean_to_coords, apply_label, find_tibia_edges, find_array_with_min_n, downsample_points,
                    combined_consecutive_transform)
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_W/MK_W_ai2_tgv_5e-2_pos.nii'
-image = open_nii(path)
-image = normalize(image)
-image = np.moveaxis(image, 1, 0)
+path = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-02-02/65_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_right.nii'
+#%%
+image = path_to_image(path)
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='W_MK')
+viewer = napari.view_image(image,  name='NW_MK')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
+#%%
 # Step 4: find the best suitable low and high range for edge detection
 start_time = time.time() 
 
@@ -48,10 +49,10 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (10,30) # 
-high_range = (20,40 ) # 
+low_range = (0,10) # 
+high_range = (10,20 ) # 
 num_steps = 10
-sigma = 1.5
+sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
@@ -59,14 +60,14 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='MK_W')
+viewer3.add_image(canny_multi_edge, name='MK_NW_2')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[0]
-viewer.add_image(tib_canny, name='after_edge_detection_sigma_1.5')
+tib_canny = canny_multi_edge[6]
+viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
-tib_canny = viewer.layers['after_edge_detection_sigma_1.5'].data.astype(bool)
+tib_canny = viewer.layers['after_edge_detection_sigma_2'].data.astype(bool)
 #%%
 #Step 7: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
@@ -94,7 +95,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
-bone_canny = removed_4d[11] 
+bone_canny = removed_4d[17] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # step 9 skeletonize the edge 
@@ -122,11 +123,11 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==5
+final_label_3d = final_label_3d==4
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
-final_label = viewer.layers['final_label_tib_MK_W'].data # or final_label_3d
+final_label = viewer.layers['final_label_3d'].data # or final_label_3d
 #Step 11: once the final edge has been found, convert it to a list of arrays.
 #%% 
 tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
@@ -153,5 +154,5 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 import pickle
-with open('MK_W_t_matrices_last_tib.pkl', 'wb') as file:
+with open('MK_NW_t_matrices_last_tib.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_last, file)

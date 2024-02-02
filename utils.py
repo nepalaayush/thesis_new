@@ -35,6 +35,12 @@ def normalize (image):
     
     return scaled_img 
 
+def path_to_image(path):
+    image = open_nii(path)
+    image = normalize(image)
+    image = np.moveaxis(image, 1, 0)
+    return image
+
 def gradify(pixelarray):
     dy, dx = np.gradient(pixelarray, axis=(1, 2))
 
