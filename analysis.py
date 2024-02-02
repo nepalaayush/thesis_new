@@ -7,20 +7,19 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
-from shapely.geometry import LineString, MultiPoint
 import napari
 from sklearn.metrics import mean_absolute_error
 
-from utils import (open_nii, normalize, shapes_for_napari, apply_transformations_new, coords_to_boolean, process_frame, show_stuff, dict_to_array, reconstruct_dict)
+from utils import (open_nii, normalize, shapes_for_napari, apply_transformations_new, process_frame, show_stuff, dict_to_array, reconstruct_dict)
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_NW_t_matrices_last_tib.pkl', 'rb') as file:
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/02.02.24/MK_NW/MK_NW_t_matrices_last_tib.pkl', 'rb') as file:
     t_matrices_NW=  pickle.load(file)
 
 #%%
@@ -28,20 +27,23 @@ with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_N
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, ax=None):
     # Extract phi values from transformation matrices and convert to degrees
     phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
-    
+    if np.sum(phis) < 0:
+        phis = [-1 * value for value in phis]
+    print(phis)
     if reference_index == -1:
         # Reverse phis for reference at the end
         phis.reverse()
-
+        ref_label = 'last'
     if reference_index == 0:
         cumulative_phis = np.cumsum(phis) - offset
-        print(cumulative_phis)
+        ref_label = 'first'
+        #print(cumulative_phis)
     else:
        # Reverse the cumulative sum to reflect decreasing trend
         cumulative_phis = np.cumsum(phis[::-1])[::-1]
         # Adjust for the offset
         cumulative_phis = cumulative_phis - cumulative_phis[-1] + offset
-        print(cumulative_phis)
+        #print(cumulative_phis)
     # Adjusting x-axis to start from the specified offset
     x_values_shifted = np.arange(offset, offset + len(cumulative_phis) * angle_increment, angle_increment)
 
@@ -68,11 +70,18 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     else:
         ax1, ax2 = ax
         created_new_figure = False
-
+    
+    # Adjusting labels depending on the condition
+    condition_label = 'Unloaded' if condition == 'unloaded' else 'Loaded'
+    cumulative_label = f'Cumulative Phi Data for {condition_label}'
+    perfect_increment_label = f'Perfect two degree increment for {condition_label}'
+    residuals_label = f'Residuals for {condition_label}'
+    residuals_color = 'blue' if condition == 'unloaded' else 'red'
+    
     # Plotting on the provided or new axes
-    ax1.plot(x_values_shifted, cumulative_phis, label=f'Cumulative Phi Data Ref {reference_index}', marker='o')
-    ax1.plot(x_values_shifted, perfect_increment, label=f'Perfect Increment Ref {reference_index}', linestyle='--')
-    ax1.set_title(f'Deviation from Perfect theoretical Line using frame {reference_index} as reference')
+    ax1.plot(x_values_shifted, cumulative_phis, label=cumulative_label, marker='o')
+    ax1.plot(x_values_shifted, perfect_increment, label=perfect_increment_label, linestyle='--')
+    ax1.set_title(f'Deviation from Perfect theoretical Line using {ref_label} frame as reference')
     ax1.set_xlabel("Rotary angle encoder")
     ax1.set_ylabel('Rotation angle of tibia (in degrees)')
     ax1.legend()
@@ -80,7 +89,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     ax1.set_xticks(x_values_shifted)
     ax1.set_yticks(np.arange(np.max(perfect_increment), np.min(perfect_increment), -1))
 
-    ax2.plot(x_values_shifted, residuals, label=f'Residuals Ref {reference_index}', marker='o', color='red')
+    ax2.plot(x_values_shifted, residuals, label=residuals_label, marker='o', color=residuals_color)
     ax2.set_title('Residuals at Each Frame')
     ax2.set_xlabel('Frame (Starting from ' + str(offset) + ')')
     ax2.set_ylabel('Residual Value')
@@ -99,12 +108,12 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 # Example usage:
 #%%
 # For a single plot
-plot_transformations_and_calculate_MAE(t_matrices_first, offset=5, angle_increment=2, reference_index=0, ax=None)
+plot_transformations_and_calculate_MAE(t_matrices_NW, offset=5, angle_increment=2, reference_index=-1, condition='unloaded', ax=None)
 #%%
 # For overlaying multiple plots
 fig, ax = plt.subplots(2, 1, figsize=(10, 12))
-plot_transformations_and_calculate_MAE(transformation_matrices_last, offset=5, angle_increment=2, reference_index=-1, ax=ax)
-plot_transformations_and_calculate_MAE(t_matrices_NW, offset=5, angle_increment=2, reference_index=-1, ax=ax)
+plot_transformations_and_calculate_MAE(t_matrices_W, offset=5, angle_increment=2, reference_index=-1, condition='loaded', ax=ax)
+plot_transformations_and_calculate_MAE(t_matrices_NW[1:], offset=5, angle_increment=2,reference_index=-1, condition='unloaded', ax=ax)
 plt.tight_layout()
 plt.show()
 
@@ -138,7 +147,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_NW_ai2_tgv_5e-2_pos.nii'
+path1 = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-02-02/65_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_right.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
@@ -175,7 +184,7 @@ for frame_number in range(number_of_frames):
 viewer1.add_shapes(reference_frame_last, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_shape_femur'].data[0]
+ref_points = viewer1.layers['expanded_shape'].data[0]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_last, -1)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
