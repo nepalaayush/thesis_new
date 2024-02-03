@@ -22,12 +22,15 @@ from utils import (open_nii, normalize, path_to_image, apply_canny, apply_remove
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-02-02/65_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_right.nii'
+path = 'C:/Users/Aayush/Documents/thesis_files/MM/MM_NW_aw2_tgv_5e-2_pos.nii'
 #%%
 image = path_to_image(path)
 #%%
+im = open_nii(path)
+im = normalize(im)[1:]
+#%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='NW_MK')
+viewer = napari.view_image(image,  name='MM_NW_old')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -60,10 +63,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='MK_NW_2')
+viewer3.add_image(canny_multi_edge, name='MM_NW_old')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[6]
+tib_canny = canny_multi_edge[3]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -95,7 +98,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
-bone_canny = removed_4d[17] 
+bone_canny = removed_4d[10] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # step 9 skeletonize the edge 
@@ -123,7 +126,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==4
+final_label_3d = final_label_3d==5
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
@@ -154,5 +157,5 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 import pickle
-with open('MK_NW_t_matrices_last_tib.pkl', 'wb') as file:
-    pickle.dump(transformation_matrices_last, file)
+with open('MM_NW_t_matrices_old.pkl', 'wb') as file:
+    pickle.dump(transformation_matrices_first, file)

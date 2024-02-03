@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -19,48 +19,39 @@ from utils import (open_nii, normalize, shapes_for_napari, apply_transformations
 
 
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/02.02.24/MK_NW/MK_NW_t_matrices_last_tib.pkl', 'rb') as file:
-    t_matrices_NW=  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW/t_matrices_first_NW_MM.pkl', 'rb') as file:
+    t_matrices_NW_MM=  pickle.load(file)
 
 #%%
 
-def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, ax=None):
+def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, residuals_color, ax=None):
     # Extract phi values from transformation matrices and convert to degrees
     phis = [np.rad2deg(transformation[2]) for transformation in transformation_matrices]
     if np.sum(phis) < 0:
         phis = [-1 * value for value in phis]
-    print(phis)
-    if reference_index == -1:
-        # Reverse phis for reference at the end
-        phis.reverse()
-        ref_label = 'last'
-    if reference_index == 0:
-        cumulative_phis = np.cumsum(phis) - offset
-        ref_label = 'first'
-        #print(cumulative_phis)
+    # Adjust phis and calculate cumulative_phis based on the reference frame
+    if reference_index == -1:  # Reference frame is last
+        reversed_phis_excluding_last = phis[:-1][::-1]
+        cumulative_phis_from_end_with_offset = [offset]
+        for phi in reversed_phis_excluding_last:
+            next_value = cumulative_phis_from_end_with_offset[-1] + phi
+            cumulative_phis_from_end_with_offset.append(next_value)
+        cumulative_phis_corrected_order = np.array(cumulative_phis_from_end_with_offset[::-1])
+        cumulative_phis = cumulative_phis_corrected_order
+        perfect_line = np.arange(offset + (len(phis) - 1) * angle_increment, offset - angle_increment, -angle_increment)
+        print(cumulative_phis, 'cumulative_phis')
+    elif reference_index == 0:  # Reference frame is first
+        cumulative_phis = np.cumsum(phis)
+        cumulative_phis = cumulative_phis - cumulative_phis[0] + offset
+        perfect_line = np.arange(offset, offset + len(phis) * angle_increment, angle_increment)
     else:
-       # Reverse the cumulative sum to reflect decreasing trend
-        cumulative_phis = np.cumsum(phis[::-1])[::-1]
-        # Adjust for the offset
-        cumulative_phis = cumulative_phis - cumulative_phis[-1] + offset
-        #print(cumulative_phis)
+        raise ValueError("reference_index must be 0 or -1")
+    
     # Adjusting x-axis to start from the specified offset
     x_values_shifted = np.arange(offset, offset + len(cumulative_phis) * angle_increment, angle_increment)
 
-    
-    if reference_index == 0:
-        # Perfect increment line, starting from -offset and decreasing by angle_increment
-        perfect_increment = np.arange(-offset, -offset - len(cumulative_phis) * angle_increment, -angle_increment)
-    else:  
-        # For reference at the end, start high and decrease towards the offset
-        num_steps = len(cumulative_phis)
-        high_value = offset + angle_increment * (num_steps - 1)
-        perfect_increment = np.linspace(high_value, offset, num_steps)
-    # Calculating residuals
-    residuals = cumulative_phis - perfect_increment
-
-    # Calculating Mean Absolute Error (MAE)
-    mae = mean_absolute_error(cumulative_phis, perfect_increment)
+    residuals = cumulative_phis - perfect_line
+    mae = mean_absolute_error(cumulative_phis, perfect_line)
 
     # Check if an axis is provided, if not, create a new figure and axis
     if ax is None:
@@ -72,51 +63,79 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
         created_new_figure = False
     
     # Adjusting labels depending on the condition
-    condition_label = 'Unloaded' if condition == 'unloaded' else 'Loaded'
-    cumulative_label = f'Cumulative Phi Data for {condition_label}'
-    perfect_increment_label = f'Perfect two degree increment for {condition_label}'
-    residuals_label = f'Residuals for {condition_label}'
-    residuals_color = 'blue' if condition == 'unloaded' else 'red'
+    cumulative_label = f'Cumulative Phi Data for {condition}'
+    perfect_line_label = 'Perfect two degree line '
+    residuals_label = f'Residuals for {condition}'
+    
     
     # Plotting on the provided or new axes
     ax1.plot(x_values_shifted, cumulative_phis, label=cumulative_label, marker='o')
-    ax1.plot(x_values_shifted, perfect_increment, label=perfect_increment_label, linestyle='--')
-    ax1.set_title(f'Deviation from Perfect theoretical Line using {ref_label} frame as reference')
+    ax1.plot(x_values_shifted, perfect_line, label=perfect_line_label, linestyle='--')
+    ax1.set_title(f'Deviation from Perfect Line using {("last" if reference_index == -1 else "first")} frame as reference')
     ax1.set_xlabel("Rotary angle encoder")
     ax1.set_ylabel('Rotation angle of tibia (in degrees)')
     ax1.legend()
     ax1.grid(True, which='both', linestyle='-', linewidth=0.5)
     ax1.set_xticks(x_values_shifted)
-    ax1.set_yticks(np.arange(np.max(perfect_increment), np.min(perfect_increment), -1))
+    ax1.set_yticks(np.arange(np.min(perfect_line), np.max(perfect_line), 1))
 
     ax2.plot(x_values_shifted, residuals, label=residuals_label, marker='o', color=residuals_color)
     ax2.set_title('Residuals at Each Frame')
     ax2.set_xlabel('Frame (Starting from ' + str(offset) + ')')
     ax2.set_ylabel('Residual Value')
-    ax2.legend()
+    #ax2.legend()
     ax2.grid(True, which='both', linestyle='-', linewidth=0.5)
     ax2.set_xticks(x_values_shifted)
     ax2.set_yticks(np.arange(np.floor(np.min(residuals)), np.ceil(np.max(residuals)) + 1, 1))
-    ax2.text(x=min(x_values_shifted), y=max(residuals), s=f"Mean Absolute Error (MAE): {mae:.2f}", color='blue', fontsize=10)
+    ax2.text(x=min(x_values_shifted), y=max(residuals), s=f"Mean Absolute Error (MAE): {mae:.2f}", color=residuals_color, fontsize=10)
 
     if created_new_figure:
         plt.tight_layout()
+        plt.savefig(f'matrix_angles_{condition}.svg') 
         plt.show()
-
     print(f"Mean Absolute Error (MAE): {mae}")
 
 # Example usage:
 #%%
 # For a single plot
-plot_transformations_and_calculate_MAE(t_matrices_NW, offset=5, angle_increment=2, reference_index=-1, condition='unloaded', ax=None)
+plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment=1, reference_index=0, residuals_color='red', condition='nowt', ax=None)
 #%%
 # For overlaying multiple plots
 fig, ax = plt.subplots(2, 1, figsize=(10, 12))
-plot_transformations_and_calculate_MAE(t_matrices_W, offset=5, angle_increment=2, reference_index=-1, condition='loaded', ax=ax)
-plot_transformations_and_calculate_MAE(t_matrices_NW[1:], offset=5, angle_increment=2,reference_index=-1, condition='unloaded', ax=ax)
+plot_transformations_and_calculate_MAE(t_matrices_W_MM, offset=5, angle_increment=2, reference_index=0, residuals_color='blue', condition='Unloaded MM', ax=ax)
+plot_transformations_and_calculate_MAE(t_matrices_NW_MM[:-1], offset=5, angle_increment=2,reference_index=0,residuals_color='red', condition='Loaded MM', ax=ax)
+plt.tight_layout()
+plt.savefig('Overlayed_matrix_angles_MM.svg')
+plt.show()
+#%%
+fig, ax = plt.subplots(2, 1, figsize=(10, 12))
+
+plot_transformations_and_calculate_MAE(
+    transformation_matrices=t_matrices_W_right, 
+    offset=5, 
+    angle_increment=2, 
+    reference_index=-1, 
+    condition="Cumulative Phi Data for Loaded Right", 
+    perfect_line_label="Perfect Line for Loaded Right", 
+    residuals_label="Residuals for Loaded Right", 
+    residuals_color='red',  # Example color for loaded right
+    ax=ax
+)
+
+plot_transformations_and_calculate_MAE(
+    transformation_matrices=t_matrices_W_left, 
+    offset=5, 
+    angle_increment=2,
+    reference_index=-1, 
+    condition="Cumulative Phi Data for Unloaded Left", 
+    perfect_line_label="Perfect Line for Unloaded Left", 
+    residuals_label="Residuals for Unloaded Left", 
+    residuals_color='blue',  # Example color for unloaded left
+    ax=ax
+)
+
 plt.tight_layout()
 plt.show()
-
 
 #%%
 def plot_cost_values(values):
