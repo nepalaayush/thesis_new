@@ -15,12 +15,12 @@ import matplotlib.pylab as plt
 import napari
 from sklearn.metrics import mean_absolute_error
 
-from utils import (open_nii, normalize, shapes_for_napari, apply_transformations_new, process_frame, show_stuff, dict_to_array, reconstruct_dict)
+from utils import (open_nii, normalize, shapes_for_napari, boolean_to_coords, apply_transformations_new, process_frame, show_stuff, dict_to_array, reconstruct_dict)
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW/t_matrices_first_NW_MM.pkl', 'rb') as file:
-    t_matrices_NW_MM=  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_NW_t_matrices_first_tib.pkl', 'rb') as file:
+    t_matrices_NW_MK_left=  pickle.load(file)
 
 #%%
 
@@ -98,7 +98,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 # Example usage:
 #%%
 # For a single plot
-plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment=1, reference_index=0, residuals_color='red', condition='nowt', ax=None)
+plot_transformations_and_calculate_MAE(new_tibia_transforms, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='new_tib_transforms', ax=None)
 #%%
 # For overlaying multiple plots
 fig, ax = plt.subplots(2, 1, figsize=(10, 12))
@@ -166,7 +166,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-02-02/65_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_right.nii'
+path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_NW_ai2_tgv_5e-2_pos.nii'
 image1 = open_nii(path1)
 image1 = normalize(image1)
 image1 = np.moveaxis(image1, 1, 0)
@@ -200,12 +200,12 @@ for frame_number in range(number_of_frames):
 
 #%%
 # add the reference points and manually segment the reference frame 
-viewer1.add_shapes(reference_frame_last, shape_type='polygon')
+viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_shape'].data[0]
+ref_points = viewer1.layers['expanded_shape_fem'].data[0]
 #%%
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_last, -1)    
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
@@ -230,67 +230,55 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('MK_NW_segmented_femur.svg')
+plt.savefig('MK_NW_segmented_fem.svg')
 
 #%%
 shapes_data = viewer1.layers['tibia_NW'].data
 #%%
+'''
+needs a lot more work so just leave it as is 
+shapes_data_test = viewer1.layers['tibia_NW copy'].data.astype(bool)
+shape_data_coords = boolean_to_coords(shapes_data_test)
+single_frame_true_values = shapes_for_napari(shape_data_coords)[0]
+single_tib_binary = process_frame([single_frame_true_values])
+'''
+#%%
 # After manually segmenting, find the info of the shapes.
 #do the pca on just the reference frame 
-single_tib_info = process_frame([shapes_data[-1]])
+single_tib_info = process_frame([shapes_data[0]])
+
 #%%
 # convert the dictionary into an array to later on transform it using the same t matrix 
 tib_info_array = dict_to_array(single_tib_info)
 #%%
-transformed_info_tibia  = apply_transformations_new(tib_info_array, transformation_matrices_last, -1)
+transformed_info_tibia  = apply_transformations_new(tib_info_array, transformation_matrices_first, 0)
 #%%
 transformed_dicts_tib = {}
 
 for i, arr in enumerate(transformed_info_tibia):
     transformed_dicts_tib.update(reconstruct_dict(i, arr))
 
-
 #%%
-def process_and_transform_shapes(shapes_data, transformation_matrices):
-    # Process the reference frame (assuming the last one in the shapes data)
-    single_shape_info = process_frame([shapes_data[-1]])
+show_stuff(transformed_dicts_tib, 'tib_NW', viewer1)
 
-    # Convert the dictionary into an array for transformation
-    shape_info_array = dict_to_array(single_shape_info)
-
-    # Apply transformations to the shape data
-    transformed_info = apply_transformations_new(shape_info_array, transformation_matrices, -1)
-
-    # Reconstruct the dictionary for each transformed frame
-    transformed_dicts = {}
-    for i, arr in enumerate(transformed_info):
-        transformed_dicts.update(reconstruct_dict(i, arr))
-
-    return transformed_dicts
-
-modified_tib_info= process_and_transform_shapes(shapes_data, new_tibia_transforms)
 #%%
 fem_shapes_data = viewer1.layers['femur_NW'].data
 
 #%%
-single_fem_info = process_frame([fem_shapes_data[-1]])
+single_fem_info = process_frame([fem_shapes_data[0]])
 #%%
 
 fem_info_array = dict_to_array(single_fem_info)
 #%%
-transformed_info_fem = apply_transformations_new(fem_info_array, transformation_matrices_last, -1)
+transformed_info_fem = apply_transformations_new(fem_info_array, transformation_matrices_first, 0)
 #%%
 transformed_dicts_fem = {}
 
 for i, arr in enumerate(transformed_info_fem):
     transformed_dicts_fem.update(reconstruct_dict(i, arr))
-
-
-#%%
-show_stuff(transformed_dicts_tib, 'tib_wt', viewer1)
     
 #%%
-show_stuff(transformed_dicts_fem, 'fem_wt', viewer1)
+show_stuff(transformed_dicts_fem, 'fem_NW', viewer1)
 #%%
 screenshot = viewer1.screenshot()
 viewer1.add_image(screenshot, rgb=True, name='screenshot')  
@@ -343,7 +331,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MK_NW_both_axes.svg'
+    output_path = 'mosaic_MK_NW_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -426,11 +414,14 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 
 #%%
 track_origin(transformed_dicts_tib, 'MK_NW_tib')
-
+#%%
+calculate_distance_betwn_centroids(transformed_dicts_fem, transformed_dicts_tib)
+#%%
+calculate_distance_betwn_origins(transformed_dicts_fem, transformed_dicts_tib)
 #%%
 track_origin(transformed_dicts_fem, 'MK_NW_fem')
 #%%
-plot_angle_vs_frame(transformed_dicts_fem, transformed_dicts_tib, 'NW_ai2')
+plot_angle_vs_frame(transformed_dicts_fem, transformed_dicts_tib, 'NW_left')
 
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
@@ -496,6 +487,7 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
 
 calculate_and_plot_angles_between_bones(transformed_dicts_fem, transformed_dicts_tib)
 
+
 #%%
 def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
     angles = []
@@ -542,13 +534,13 @@ def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
     plt.text(x=min(frames), y=max(residuals), s=mae_text, color='blue', fontsize=10)
     plt.tight_layout()
     
-    plt.savefig('MK_NW_mae_angle_between_bones_wrt_fem.svg') 
+    plt.savefig('MK_NW_mae_angle_between_bones.svg') 
     plt.show()
 
     # Print the Mean Absolute Error
     print(f"Mean Absolute Error (MAE): {mae:.2f}")
 
-calculate_and_plot_angles_with_theoretical_line(transformed_dicts_fem, modified_tib_info, axis='long')
+calculate_and_plot_angles_with_theoretical_line(transformed_dicts_fem, transformed_dicts_tib, axis='long')
 
 
 #%%
@@ -570,30 +562,49 @@ def nullify_fem(femur_matrices, tibia_matrices):
     return new_tibia_transforms
 
 # Use the function with your transformation matrices
-new_tibia_transforms = nullify_fem(transformation_matrices_last, t_matrices_tib)
+new_tibia_transforms = nullify_fem(transformation_matrices_first, t_matrices_tib)
 
 #%%
-# for plotting multiple transformation matrices on the same plot: 
+# 
+def process_and_transform_shapes(shapes_data, transformation_matrices):
+    # Process the reference frame (assuming the last one in the shapes data)
+    single_shape_info = process_frame([shapes_data[0]])
 
+    # Convert the dictionary into an array for transformation
+    shape_info_array = dict_to_array(single_shape_info)
+
+    # Apply transformations to the shape data
+    transformed_info = apply_transformations_new(shape_info_array, transformation_matrices, 0)
+
+    # Reconstruct the dictionary for each transformed frame
+    transformed_dicts = {}
+    for i, arr in enumerate(transformed_info):
+        transformed_dicts.update(reconstruct_dict(i, arr))
+
+    return transformed_dicts
+
+modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data, new_tibia_transforms)
 
 #%%
 # Saving the dictionary to a file
 with open('MK_NW_tib_info_modified.pkl', 'wb') as f:
     pickle.dump(modified_tib_info, f)
-#%%    
+    
+with open('MK_NW_tib_info.pkl', 'wb') as f:
+    pickle.dump(transformed_dicts_tib, f)
+
 with open('MK_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(transformed_dicts_fem, f)
-
 ''' to load do: 
     with open('my_dict.pkl', 'rb') as f:
     my_dict_loaded = pickle.load(f)'''    
     
 #%%
 # what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_W_tib_info_ai2.pkl', 'rb') as file:
-    tib_info = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_t_matrices_left_tib_first.pkl', 'rb') as file:
+    t_matrices_tib = pickle.load(file)    
 
-
+#%%
 
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_W_fem_info_ai2.pkl', 'rb') as file:
     fem_info = pickle.load(file)  
