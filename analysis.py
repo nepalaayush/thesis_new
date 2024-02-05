@@ -19,8 +19,8 @@ from utils import (open_nii, normalize, shapes_for_napari, boolean_to_coords, ap
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/MK_NW_t_matrices_first_tib.pkl', 'rb') as file:
-    t_matrices_NW_MK_left=  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW/t_matrices_first_NW_MM.pkl', 'rb') as file:
+    t_matrices_NW_MM=  pickle.load(file)
 
 #%%
 
@@ -98,7 +98,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 # Example usage:
 #%%
 # For a single plot
-plot_transformations_and_calculate_MAE(new_tibia_transforms, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='new_tib_transforms', ax=None)
+plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='MM_NW', ax=None)
 #%%
 # For overlaying multiple plots
 fig, ax = plt.subplots(2, 1, figsize=(10, 12))
@@ -106,35 +106,6 @@ plot_transformations_and_calculate_MAE(t_matrices_W_MM, offset=5, angle_incremen
 plot_transformations_and_calculate_MAE(t_matrices_NW_MM[:-1], offset=5, angle_increment=2,reference_index=0,residuals_color='red', condition='Loaded MM', ax=ax)
 plt.tight_layout()
 plt.savefig('Overlayed_matrix_angles_MM.svg')
-plt.show()
-#%%
-fig, ax = plt.subplots(2, 1, figsize=(10, 12))
-
-plot_transformations_and_calculate_MAE(
-    transformation_matrices=t_matrices_W_right, 
-    offset=5, 
-    angle_increment=2, 
-    reference_index=-1, 
-    condition="Cumulative Phi Data for Loaded Right", 
-    perfect_line_label="Perfect Line for Loaded Right", 
-    residuals_label="Residuals for Loaded Right", 
-    residuals_color='red',  # Example color for loaded right
-    ax=ax
-)
-
-plot_transformations_and_calculate_MAE(
-    transformation_matrices=t_matrices_W_left, 
-    offset=5, 
-    angle_increment=2,
-    reference_index=-1, 
-    condition="Cumulative Phi Data for Unloaded Left", 
-    perfect_line_label="Perfect Line for Unloaded Left", 
-    residuals_label="Residuals for Unloaded Left", 
-    residuals_color='blue',  # Example color for unloaded left
-    ax=ax
-)
-
-plt.tight_layout()
 plt.show()
 
 #%%
@@ -413,7 +384,7 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 
 
 #%%
-track_origin(transformed_dicts_tib, 'MK_NW_tib')
+track_origin(transformed_dicts_tib, 'MM_NW_tib_new')
 #%%
 calculate_distance_betwn_centroids(transformed_dicts_fem, transformed_dicts_tib)
 #%%
