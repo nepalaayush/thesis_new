@@ -19,8 +19,8 @@ from utils import (open_nii, normalize, shapes_for_napari, boolean_to_coords, ap
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW/t_matrices_first_NW_MM.pkl', 'rb') as file:
-    t_matrices_NW_MM=  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_t_matrices_left_tib_first.pkl', 'rb') as file:
+    tib_matrices=  pickle.load(file)
 
 #%%
 
@@ -83,12 +83,21 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
     ax2.set_title('Residuals at Each Frame')
     ax2.set_xlabel('Frame (Starting from ' + str(offset) + ')')
     ax2.set_ylabel('Residual Value')
-    #ax2.legend()
+    ax2.legend()
     ax2.grid(True, which='both', linestyle='-', linewidth=0.5)
     ax2.set_xticks(x_values_shifted)
     ax2.set_yticks(np.arange(np.floor(np.min(residuals)), np.ceil(np.max(residuals)) + 1, 1))
-    ax2.text(x=min(x_values_shifted), y=max(residuals), s=f"Mean Absolute Error (MAE): {mae:.2f}", color=residuals_color, fontsize=10)
-
+    #ax2.text(x=min(x_values_shifted), y=max(residuals), s=f"Mean Absolute Error (MAE): {mae:.2f}", color=residuals_color, fontsize=10)
+    
+    if condition == 'original_matrices':
+        # For the original matrices, place text at minimum x and maximum y
+        ax2.text(x=min(x_values_shifted), y=max(residuals), 
+                s=f"MAE: {mae:.2f}", color=residuals_color, fontsize=10)
+    else:  # Assuming this means it's the modified_matrices or any other condition
+        # For the modified matrices, place text at maximum x and minimum y
+        ax2.text(x=max(x_values_shifted) - 1, y=min(residuals), 
+                s=f"MAE: {mae:.2f}", color=residuals_color, fontsize=10)
+    
     if created_new_figure:
         plt.tight_layout()
         plt.savefig(f'matrix_angles_{condition}.svg') 
@@ -98,14 +107,14 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 # Example usage:
 #%%
 # For a single plot
-plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='MM_NW', ax=None)
+plot_transformations_and_calculate_MAE(tib_matrices, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='MK_NW_', ax=None)
 #%%
 # For overlaying multiple plots
 fig, ax = plt.subplots(2, 1, figsize=(10, 12))
-plot_transformations_and_calculate_MAE(t_matrices_W_MM, offset=5, angle_increment=2, reference_index=0, residuals_color='blue', condition='Unloaded MM', ax=ax)
-plot_transformations_and_calculate_MAE(t_matrices_NW_MM[:-1], offset=5, angle_increment=2,reference_index=0,residuals_color='red', condition='Loaded MM', ax=ax)
+plot_transformations_and_calculate_MAE(tib_matrices, offset=5, angle_increment=2, reference_index=0, residuals_color='blue', condition='original_matrices', ax=ax)
+plot_transformations_and_calculate_MAE(new_tibia_transforms, offset=5, angle_increment=2,reference_index=0,residuals_color='red', condition='modified_matrices', ax=ax)
 plt.tight_layout()
-plt.savefig('Overlayed_matrix_angles_MM.svg')
+plt.savefig('original_vs_modified_tib_matrices.svg')
 plt.show()
 
 #%%
@@ -339,9 +348,18 @@ def calculate_angle(vector_a, vector_b):
 def calculate_distance_betwn_origins (fem_info, tib_info):
     indices = sorted(fem_info)
     origin_distances = [ np.linalg.norm(fem_info[ind]['origin']  -  tib_info[ind]['origin']) for ind in indices  ]
+    total_distance = np.sum(origin_distances)
+    
+    x_values = range(len(origin_distances))
+    
     plt.plot(origin_distances)
+    plt.scatter(x_values, origin_distances, marker='x', color='k')
     plt.xlabel('Frame number')
+    plt.ylabel('Distances')
+    plt.grid(True)
     plt.title('Distance between femur and tibia origins across the frames')
+    plt.text(0, np.max(origin_distances), f'The total distance is: {total_distance:.2f}') 
+    plt.savefig('dist_origins.svg')
     
 
 def calculate_distance_betwn_centroids (fem_info, tib_info):
@@ -386,9 +404,9 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 #%%
 track_origin(transformed_dicts_tib, 'MM_NW_tib_new')
 #%%
-calculate_distance_betwn_centroids(transformed_dicts_fem, transformed_dicts_tib)
+calculate_distance_betwn_centroids(tib_info, fem_info)
 #%%
-calculate_distance_betwn_origins(transformed_dicts_fem, transformed_dicts_tib)
+calculate_distance_betwn_origins(tib_info, fem_info)
 #%%
 track_origin(transformed_dicts_fem, 'MK_NW_fem')
 #%%
@@ -455,7 +473,7 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
     plt.show()
 
 
-
+#%%
 calculate_and_plot_angles_between_bones(transformed_dicts_fem, transformed_dicts_tib)
 
 
@@ -505,13 +523,13 @@ def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
     plt.text(x=min(frames), y=max(residuals), s=mae_text, color='blue', fontsize=10)
     plt.tight_layout()
     
-    plt.savefig('MK_NW_mae_angle_between_bones.svg') 
+    plt.savefig('MK_NW_mae_angle_between_bones_modified.svg') 
     plt.show()
 
     # Print the Mean Absolute Error
     print(f"Mean Absolute Error (MAE): {mae:.2f}")
 
-calculate_and_plot_angles_with_theoretical_line(transformed_dicts_fem, transformed_dicts_tib, axis='long')
+calculate_and_plot_angles_with_theoretical_line(fem_info, tib_info_modified, axis='long')
 
 
 #%%
@@ -533,7 +551,7 @@ def nullify_fem(femur_matrices, tibia_matrices):
     return new_tibia_transforms
 
 # Use the function with your transformation matrices
-new_tibia_transforms = nullify_fem(transformation_matrices_first, t_matrices_tib)
+new_tibia_transforms = nullify_fem(fem_matrices, tib_matrices)
 
 #%%
 # 
