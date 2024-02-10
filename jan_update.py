@@ -7,6 +7,7 @@ Created on Fri Jan  5 14:31:24 2024
 """
 
 #%%
+import pickle
 import os 
 os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
 #os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
@@ -16,21 +17,19 @@ import napari
 import time 
 from scipy import ndimage
 
-from utils import (open_nii, normalize, path_to_image, apply_canny, apply_remove, apply_skeleton, points_for_napari,
+from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, points_for_napari,
                    boolean_to_coords, apply_label, find_tibia_edges, find_array_with_min_n, downsample_points,
                    combined_consecutive_transform)
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MM_NW/MM_NW_ai2_tgv_5e-2_neg.nii'
+path ='C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/AN_NW/AN_NW_ai2_tgv_5e-2_neg_right.nii'
 #%%
-image = path_to_image(path)
-#%%
-im = open_nii(path)
-im = normalize(im)[1:]
+image = path_to_image(path)[::-1]
+
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='MM_NW')
+viewer = napari.view_image(image,  name='AN_NW')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -52,8 +51,8 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
     
     return canny_multi_edge
 
-low_range = (0,10) # 
-high_range = (10,20 ) # 
+low_range = (0,5) # 
+high_range = (5,10 ) # 
 num_steps = 10
 sigma = 2
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
@@ -63,7 +62,7 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='MM_NW')
+viewer3.add_image(canny_multi_edge, name='AN_NW_02.02_2')
 #%%
 #Step 5: pick the right index and add it to viewer
 tib_canny = canny_multi_edge[3]
@@ -98,7 +97,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
-bone_canny = removed_4d[10] 
+bone_canny = removed_4d[6] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # step 9 skeletonize the edge 
@@ -126,11 +125,11 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==7
+final_label_3d = final_label_3d==4
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
-final_label = viewer.layers['final_label_3d'].data # or final_label_3d
+final_label = viewer.layers['final_label_3d'].data  # or final_label_3d
 #Step 11: once the final edge has been found, convert it to a list of arrays.
 #%% 
 tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
@@ -143,7 +142,7 @@ new_tib_coords_last = tib_coords.copy()
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='tibia')
+reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='femur')
 new_tib_coords_first = tib_coords.copy() 
 new_tib_coords_first[0] = reference_frame_first
 viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
@@ -156,7 +155,11 @@ viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='green'
 transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(new_tib_coords_first)
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
-import pickle
-with open('MM_NW_t_matrices_tib.pkl', 'wb') as file:
+
+with open('AN_NW_t_matrices_fem.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_first, file)
-    
+#%%
+#for pickle load
+ 
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/MK_NW_t_matrices_last_tib.pkl', 'rb') as file:
+    t_matrices_fem=  pickle.load(file)    
