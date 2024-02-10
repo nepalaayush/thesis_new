@@ -621,6 +621,16 @@ def show_origin(all_frame_data, viewer):
     viewer.add_points(point_data, symbol='x')
  
 
+def show_centroid(all_frame_data, viewer):
+    point_data = []
+    
+    for frame_index, frame_data in all_frame_data.items():
+        x, y = frame_data['centroid'] 
+        cross = [frame_index, x , y] 
+        print(cross) 
+        point_data.append(cross)
+    viewer.add_points(point_data, symbol='+')
+
 def show_axis(all_frame_data, axis_name, viewer):
     lines_data = []
     
@@ -640,7 +650,8 @@ def show_axis(all_frame_data, axis_name, viewer):
 def show_stuff(frame_data, frame_name, viewer):
     home_directory = os.path.expanduser('~')
     show_axis(frame_data,'points_short_axis', viewer)         
-    show_origin(frame_data, viewer) 
+    show_origin(frame_data, viewer)
+    show_centroid(frame_data, viewer)
     show_axis(frame_data,'points_long_axis', viewer) 
     save_path = os.path.join(home_directory, 'Pictures', frame_name)
     np.save(save_path,frame_data)
