@@ -19,8 +19,8 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/MK_W_t_matrices_last_tib.pkl', 'rb') as file:
-    tib_mat_old=  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/flipping_first/t_matrices_tib.pkl', 'rb') as file:
+    tib_mat=  pickle.load(file)
 
 #%%
 
@@ -107,7 +107,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 # Example usage:
 #%%
 # For a single plot
-plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='AN_NW_02.02', ax=None)
+plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='MK_NW_02.02', ax=None)
 #%%
 # For overlaying multiple plots
 fig, ax = plt.subplots(2, 1, figsize=(10, 12))
@@ -140,13 +140,13 @@ def plot_cost_values(values):
     plt.grid(True)
     
     # Show the plot
-    plt.savefig('26.01.24/cost_values_tibia_0.svg')
+    plt.savefig('cost_values_tib.svg')
     plt.show()
     print('The sum of all the cost function values is:', np.sum(values))
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 =  'C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/AN_NW/AN_NW_ai2_tgv_5e-2_neg_right.nii'
+path1 =  'C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/MK_NW_ai2_tgv_5e-2_neg_right.nii'
 image1 = path_to_image(path1)[::-1]
 #%%
 viewer1 = napari.view_image(image1)
@@ -203,13 +203,13 @@ yrange=slice(100,350)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
     ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
-    ax.imshow(tib_label[idi,xrange,yrange], alpha=(tib_label[idi,xrange,yrange] > 0).astype(float), cmap='autumn')
+    #ax.imshow(tib_label[idi,xrange,yrange], alpha=(tib_label[idi,xrange,yrange] > 0).astype(float), cmap='autumn')
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('AN_NW_segmented_fem_02.02.svg')
+plt.savefig('segmented_fem_02.02.svg')
 
 #%%
 shapes_data = viewer1.layers['fem_NW'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
@@ -288,7 +288,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_AN_NW_both_bones.svg'
+    output_path = 'mosaic_MK_NW_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -332,9 +332,9 @@ def calculate_angle(vector_a, vector_b):
     angle_deg = np.degrees(angle_rad)
     return angle_deg
 
-def calculate_distance_betwn_origins (fem_info, tib_info):
+def calculate_distance_betwn_origins (fem_info, tib_info, point_name):
     indices = sorted(fem_info)
-    origin_distances = [ np.linalg.norm(fem_info[ind]['origin']  -  tib_info[ind]['origin']) for ind in indices  ]
+    origin_distances = [ np.linalg.norm(fem_info[ind][f'{point_name}']  -  tib_info[ind][f'{point_name}']) for ind in indices  ]
     total_distance = np.sum(origin_distances)
     
     x_values = range(len(origin_distances))
@@ -344,18 +344,12 @@ def calculate_distance_betwn_origins (fem_info, tib_info):
     plt.xlabel('Frame number')
     plt.ylabel('Distances')
     plt.grid(True)
-    plt.title('Distance between femur and tibia origins across the frames')
+    plt.title(f'Distance between femur and tibia {point_name} across the frames')
     plt.text(0, np.max(origin_distances), f'The total distance is: {total_distance:.2f}') 
-    plt.savefig('dist_origins.svg')
+    plt.savefig(f'dist_betwn_{point_name}.svg')
     
-
-def calculate_distance_betwn_centroids (fem_info, tib_info):
-    indices = sorted(fem_info)
-    origin_distances = [ np.linalg.norm(fem_info[ind]['centroid']  -  tib_info[ind]['centroid']) for ind in indices  ]
-    plt.plot(origin_distances)
-    plt.xlabel('Frame number')
-    plt.title('Distance between femur and tibia centroids across the frames')
-
+    return origin_distances
+    
 def normalize_vector(vector):
     """Normalize a vector to unit length."""
     norm = np.linalg.norm(vector)
@@ -389,12 +383,11 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 #%%
 track_origin(fem_info, 'AN_NW_fem', 'centroid')
 #%%
-calculate_distance_betwn_centroids(tib_info, fem_info)
 #%%
-calculate_distance_betwn_origins(tib_info, fem_info)
+centroid_dist = calculate_distance_betwn_origins(tib_info, fem_info, 'centroid')
 
 #%%
-plot_angle_vs_frame(transformed_dicts_fem, transformed_dicts_tib, 'NW_left')
+plot_angle_vs_frame(fem_info, tib_info, 'MK_NW')
 
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
@@ -454,11 +447,12 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
     plt.ylabel('Angle (degrees)')
     plt.title(f'Angle between Bones over Frames ({axis.capitalize()} Axis)')
     plt.grid(True)
+    plt.savefig('Angle_betwn_long_axes.svg')
     plt.show()
 
-
+    return angles
 #%%
-calculate_and_plot_angles_between_bones(fem_info, tib_info)
+angles = calculate_and_plot_angles_between_bones(fem_info, tib_info)
 
 
 #%%
@@ -474,7 +468,7 @@ def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
             frames.append(frame)
 
     # Assuming linear increment for theoretical line
-    theoretical_angles = np.array([angles[0] - 2 * i for i in range(len(frames))])
+    theoretical_angles = np.array([angles[0] + 2 * i for i in range(len(frames))])
 
     # Calculating residuals
     residuals = np.array(angles) - theoretical_angles
@@ -515,6 +509,21 @@ def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
 
 calculate_and_plot_angles_with_theoretical_line(fem_info, tib_info, axis='long')
 
+#%%
+
+def plot_angles_vs_dist(angles, distances, point_name):
+    
+    plt.figure(figsize=(10, 6))
+    plt.scatter(angles, distances, marker='x')
+    plt.plot(angles,distances)
+    plt.xlabel('Angle between the long axes of femur and tibia')
+    plt.ylabel(f'Distance between {point_name}s ')
+    plt.title(f'Distance between {point_name} measured at each angle')
+    plt.grid(True)
+    plt.savefig(f'Angle_vs_{point_name}.svg')
+    plt.show()
+
+plot_angles_vs_dist(angles, centroid_dist, 'centroid')
 
 #%%
 def nullify_fem(femur_matrices, tibia_matrices):
@@ -538,9 +547,6 @@ def nullify_fem(femur_matrices, tibia_matrices):
 new_tibia_transforms = nullify_fem(fem_matrices, tib_matrices)
 
 #%%
-# 
-
-
 modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data, new_tibia_transforms)
 
 #%%
@@ -549,8 +555,8 @@ with open('AN_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(fem_info, f)
 #%%    
 with open('MK_NW_tib_info.pkl', 'wb') as f:
-    pickle.dump(transformed_dicts_tib, f)
-
+    pickle.dump(tib_info, f)
+#%%
 with open('MK_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(transformed_dicts_fem, f)
 ''' to load do: 
@@ -559,8 +565,8 @@ with open('MK_NW_fem_info.pkl', 'wb') as f:
     
 #%%
 # what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_t_matrices_left_tib_first.pkl', 'rb') as file:
-    t_matrices_tib = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/flipping_first/MK_NW_tib_info.pkl', 'rb') as file:
+    tib_info = pickle.load(file)    
 
 #%%
 

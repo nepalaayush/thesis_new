@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path ='C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/AN_NW/AN_NW_ai2_tgv_5e-2_neg_right.nii'
+path = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/MK_NW_ai2_tgv_5e-2_neg_right.nii'
 #%%
 image = path_to_image(path)[::-1]
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='AN_NW')
+viewer = napari.view_image(image,  name='MK_NW')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -54,7 +54,7 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
 low_range = (0,5) # 
 high_range = (5,10 ) # 
 num_steps = 10
-sigma = 2
+sigma = 1.5
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
@@ -62,10 +62,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='AN_NW_02.02_2')
+viewer3.add_image(canny_multi_edge, name='MK_NW_02.02_2')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[3]
+tib_canny = canny_multi_edge[9]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -97,7 +97,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
-bone_canny = removed_4d[6] 
+bone_canny = removed_4d[13] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # step 9 skeletonize the edge 
@@ -125,7 +125,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==4
+final_label_3d = final_label_3d==2
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
@@ -156,7 +156,7 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 
-with open('AN_NW_t_matrices_fem.pkl', 'wb') as file:
+with open('t_matrices_fem.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_first, file)
 #%%
 #for pickle load

@@ -571,9 +571,9 @@ def process_frame(shapes_data):
         print("Uniform points shape:", uniform_points.shape)
         
         # Calculate PCA line points
-        line_points = fit_pca_line(shape_coords[:, 1:])
+        #line_points = fit_pca_line(shape_coords[:, 1:])
         #line_points = fit_pca_line(shape_coords) # when using binary mask 
-        #line_points = fit_pca_line(uniform_points[:, 1:]) # when not using binary mask 
+        line_points = fit_pca_line(uniform_points[:, 1:]) # when not using binary mask 
         #print(line_points, 'the shape is', line_points.shape)
          
         # Get unit vectors
