@@ -19,7 +19,7 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/flipping_first/t_matrices_tib.pkl', 'rb') as file:
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/MK_W_t_matrices_tib_new.pkl', 'rb') as file:
     tib_mat=  pickle.load(file)
 
 #%%
@@ -146,7 +146,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 =  'C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/MK_NW_ai2_tgv_5e-2_neg_right.nii'
+path1 =  'C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/MK_W_ai2_tgv_5e-2_neg_right.nii'
 image1 = path_to_image(path1)[::-1]
 #%%
 viewer1 = napari.view_image(image1)
@@ -212,7 +212,7 @@ plt.tight_layout()
 plt.savefig('segmented_fem_02.02.svg')
 
 #%%
-shapes_data = viewer1.layers['fem_NW'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
+shapes_data = viewer1.layers['fem_W'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
 
 
 def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index):
@@ -242,7 +242,7 @@ single_frame_true_values = shapes_for_napari(shape_data_coords)[0]
 single_tib_binary = process_frame([single_frame_true_values])
 '''
 #%%
-show_stuff(tib_info, 'tib_NW', viewer1)
+show_stuff(tib_info, 'tib_W', viewer1)
 #%%
 show_stuff(fem_info, 'fem_NW', viewer1)
 
@@ -288,7 +288,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MK_NW_both_bones.svg'
+    output_path = 'mosaic_MK_W_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -384,10 +384,9 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 track_origin(fem_info, 'AN_NW_fem', 'centroid')
 #%%
 #%%
-centroid_dist = calculate_distance_betwn_origins(tib_info, fem_info, 'centroid')
+centroid_dist_W = calculate_distance_betwn_origins(tib_info, fem_info, 'centroid')
 
-#%%
-plot_angle_vs_frame(fem_info, tib_info, 'MK_NW')
+origin_dist_W = calculate_distance_betwn_origins(tib_info, fem_info, 'origin')
 
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
@@ -452,7 +451,7 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
 
     return angles
 #%%
-angles = calculate_and_plot_angles_between_bones(fem_info, tib_info)
+angles_W = calculate_and_plot_angles_between_bones(fem_info, tib_info)
 
 
 #%%
@@ -513,18 +512,44 @@ calculate_and_plot_angles_with_theoretical_line(fem_info, tib_info, axis='long')
 
 def plot_angles_vs_dist(angles, distances, point_name):
     
-    plt.figure(figsize=(10, 6))
+    #plt.figure(figsize=(10, 6))
     plt.scatter(angles, distances, marker='x')
     plt.plot(angles,distances)
     plt.xlabel('Angle between the long axes of femur and tibia')
     plt.ylabel(f'Distance between {point_name}s ')
-    plt.title(f'Distance between {point_name} measured at each angle')
+    plt.title(f'Distance between {point_name}s measured at each angle')
     plt.grid(True)
     plt.savefig(f'Angle_vs_{point_name}.svg')
     plt.show()
+    
+#%%
+def plot_angles_vs_dist(angles, distances, point_name, new_figure=True, label=None):
+    # Only create a new figure if requested
+    if new_figure:
+        plt.figure(figsize=(10, 6))
+   
+    plt.scatter(angles, distances, marker='x')
+    plt.plot(angles, distances, label=f'{label}' if label else None)
+    plt.xlabel('Angle between the long axes of femur and tibia')
+    plt.ylabel(f'Distance between {point_name}s')
+    plt.title(f'Distance between {point_name}s measured at each angle')
+    plt.grid(True)
+   
+    # Only add a legend if a label is provided
+    if label:
+        plt.legend()
 
-plot_angles_vs_dist(angles, centroid_dist, 'centroid')
+    # Save the figure with a unique name based on the label
+    if label:
+        plt.savefig(f'Angle_vs_{point_name}_{label}.svg')
 
+#%%
+plot_angles_vs_dist(angles_W, origin_dist_W, 'origin', new_figure=True, label='loaded')
+
+plot_angles_vs_dist(angles, origin_dist, 'origin', new_figure=False, label='unloaded')
+
+# Now, show the combined plot
+plt.show()
 #%%
 def nullify_fem(femur_matrices, tibia_matrices):
     new_tibia_transforms = []
@@ -551,10 +576,10 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('AN_NW_fem_info.pkl', 'wb') as f:
+with open('MK_W_fem_info.pkl', 'wb') as f:
     pickle.dump(fem_info, f)
 #%%    
-with open('MK_NW_tib_info.pkl', 'wb') as f:
+with open('MK_W_tib_info.pkl', 'wb') as f:
     pickle.dump(tib_info, f)
 #%%
 with open('MK_NW_fem_info.pkl', 'wb') as f:
