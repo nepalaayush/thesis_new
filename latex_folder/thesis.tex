@@ -1,0 +1,193 @@
+% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+%                                                                            !
+% Adapt this file so that you can use it for your thesis					 !
+%                                                                            !
+% !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+\documentclass{micro-econ-thesis}
+\usepackage{graphicx}
+\usepackage{setspace}
+
+\usepackage[utf8]{inputenc} % depends on the font encoding that you are using
+
+% For formatting of your bibliography, please use the following package with options 
+\usepackage[giveninits=true, uniquename=init, authordate]{biblatex-chicago}
+
+\addbibresource{bibliography.bib} % add a bib-reference file
+
+\begin{document}
+% ----------------------------------------------------------------------------
+% Details for the titlepage
+% ----------------------------------------------------------------------------
+\thesisTitle{Develeopment of Analysis Techniques for dynamic magnetic resonance imaging}
+\thesisType{Master Thesis} % 'Master Thesis' or 'Seminar Paper'
+\thesisAuthor{Aayush Nepal}
+\thesisMail{aayush.nepal@uni-jena.de}
+\thesisGrade{Master of Science in Medical Photonics} % leave empty for seminar papers
+\thesisTutora{Prof. Dr. rer. nat. med. habil. Jürgen Reichenbach}
+\thesisTutorb{Dr. rer. nat. Martin Krämer}
+\thesisMatrikel{198683}
+\thesisAddress{Schützenggase 2\\[.5ex]
+								99423 Weimar}
+\thesisDate{\today}
+% In case of external supervisor
+\thesisCompany{}
+
+% Print titlepage
+\thesisMakeTitle
+
+% ----------------------------------------------------------------------------
+% Abstract
+% ----------------------------------------------------------------------------
+\cleardoublepage
+\pagenumbering{roman}
+\pagestyle{plain}
+%\thispagestyle{empty}
+\subsection*{Abstract}
+Short summary of your thesis (max. 250 words) \ldots
+
+\clearpage
+\subsection*{Acknowledgements}
+If you want to thank anyone (optional) \ldots
+
+% ----------------------------------------------------------------------------
+% Table of contents
+% ----------------------------------------------------------------------------
+\cleardoublepage
+%\thispagestyle{empty}
+\tableofcontents
+
+% ----------------------------------------------------------------------------
+% List of figures/tables
+% ----------------------------------------------------------------------------
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{section}{List of Figures}
+\listoffigures
+% --------------------------
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{section}{List of Tables}
+\listoftables
+% --------------------------
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{section}{List of Acronyms}
+\section*{List of Acronyms}
+\begin{tabular}{@{}ll}
+FSU Jena & Friedrich-Schiller-Universität Jena\\
+\end{tabular}
+
+% --------------------------
+
+% ----------------------------------------------------------------------------
+% Contents
+% ----------------------------------------------------------------------------
+\cleardoublepage
+\pagestyle{headings}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+% Contents
+\onehalfspacing % for linespacing 1.5, you can turn it off with \singlespacing, e.g. for quotes or tables with multiline cells
+
+
+\section{Introduction}
+\label{sec:intro}
+
+Some of your text. Maybe with an acronym, such as Friedrich-Schiller-Universität Jena (FSU Jena).
+
+\subsection{Background and Rationale}
+Outline the importance of dynamic knee MRI and its applications in biomechanics. 
+\subsection{Research Objectives}
+State the goal of developing new analysis techniques for dynamic MRI data.
+\subsection{Thesis Structure}
+Explain why this research is a logical next step following the development of the MRI knee loading device. 
+\section{Literature Review}
+\label{sec:first}
+Review existing methods for analyzing dynamic knee MRI data.
+
+\subsection{Theoretical Framework}
+Foundational Theories: Start with the theoretical underpinnings that relate to MRI imaging and biomechanics of the knee.
+Biomechanical Models: Discuss any relevant biomechanical models or theories that apply to knee movement and loading. 
+\label{subsec:first}
+
+
+\subsection{Review of Related Work}
+Current Techniques: Within this subsection, critically analyze existing literature on analysis techniques for dynamic knee MRI. This is where you provide a detailed account of what has been done in the field. \parencite{Lund1992}
+Comparative Analysis: Compare and contrast different approaches to illustrate the diversity in the field and to position your work in the context of existing research.
+\label{subsec:second}
+
+\subsection{Research Gap}
+Limitations: Highlight the limitations in current methodologies as a way to show where the gaps in the literature exist. Explain how these limitations could affect the understanding or the application of the biomechanical data from knee MRI.
+Relevance to Biomechanics: Connect the limitations and gaps directly to their relevance in biomechanics, outlining why addressing these gaps is crucial for the field. This sets the stage for your research to be viewed as a necessary step forward.
+
+\section{Methodology}
+\label{sec:second}
+some text 
+\subsection{Data Collection Methods}
+Data Collection Methods: Detail the specific techniques used to collect the MRI data, such as the types of knee movements, loading conditions, and the parameters set on the MRI machine.
+Sample Description: Describe the characteristics of your sample, such as the number of knees imaged, the population demographics, and any inclusion or exclusion criteria for your study.
+\subsection{Tools and Software}
+Software Utilization: Explain the use of software tools such as Python, including any libraries or frameworks that were particularly important for your analysis.
+Handling of Multi-dimensional Data: Describe the techniques employed to manage and analyze the multi-dimensional MRI data sets.
+\subsection{Data Analysis}
+Analytical Approach: Outline the methods used to process and analyze the MRI data. Include any specific software or custom algorithms developed for this purpose.
+Segmentation Techniques: Describe the semi-automatic segmentation process in detail, explaining how the different knee structures were identified and analyzed frame by frame.
+
+
+\subsection{Validity and Reliability}
+Validation Methods: Detail the steps taken to validate the segmentation techniques and the biomechanical parameters you derived.
+Reliability Measures: Describe any repeat analyses or cross-verifications done to ensure the consistency and reliability of your results.
+
+\section{Results}
+\label{sec:yetanother}
+
+\subsection{Segmentation}
+\label{subsec:last}
+some text 
+
+\subsection{Parameter Extraction}
+some text 
+
+\section{Discussion}
+\subsection{Technique Evaluation}
+Assess the effectiveness and accuracy of your segmentation techniques. 
+\subsection{Biomechanical Insights}
+Discuss the biomechanical parameters obtained and their implications for understanding knee movement. 
+\subsection{Comparison with Existing Methods}
+Compare your results with current analysis techniques. 
+ 
+
+\section{Conclusion}
+\subsection{Summary of Contributions}
+Recap the novel analysis techniques developed and their significance. 
+\subsection{Limitations and Challenges}
+Discuss any limitations encountered and the challenges in the analysis process 
+\subsection{Future Work}
+Suggest potential improvements and future directions for research
+
+% ----------------------------------------------------------------------------
+% Bibliography
+% ----------------------------------------------------------------------------
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{section}{\refname} % to add Bibliography to toc
+\printbibliography
+
+% --------------------------
+\cleardoublepage
+\begin{appendix}
+\section{Appendix}
+If needed for supplementary material, such as detailed description of data collection, tables, or figures.
+
+\end{appendix}
+
+% ----------------------------------------------------------------------------
+% Statutory declaration
+% ----------------------------------------------------------------------------
+\makeThesisDeclaration
+
+\end{document}
+
