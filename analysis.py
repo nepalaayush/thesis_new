@@ -19,8 +19,8 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/MK_W_t_matrices_tib_new.pkl', 'rb') as file:
-    tib_mat=  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/flipping_first/t_matrices_fem.pkl', 'rb') as file:
+    fem_mat=  pickle.load(file)
 
 #%%
 
@@ -179,12 +179,13 @@ for frame_number in range(number_of_frames):
 '''
 #%%
 # add the reference points and manually segment the reference frame 
-viewer1.add_shapes(reference_frame_first, shape_type='polygon')
+viewer1.add_shapes(ref_tib, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_shape_fem'].data[0]
+#ref_points = viewer1.layers['tib_shape'].data[0]
+ref_points = viewer1.layers['fem_shape'].data[0][:,1:3]
 #%%
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
+applied_transformation = apply_transformations_new(ref_points, fem_mat, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
@@ -232,7 +233,7 @@ def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index
 
     return transformed_dicts
 
-fem_info = process_and_transform_shapes(shapes_data, transformation_matrices_first, 0)
+fem_info_new = process_and_transform_shapes(shapes_data, fem_mat, 0)
 #%%
 '''
 needs a lot more work so just leave it as is 
@@ -242,9 +243,9 @@ single_frame_true_values = shapes_for_napari(shape_data_coords)[0]
 single_tib_binary = process_frame([single_frame_true_values])
 '''
 #%%
-show_stuff(tib_info, 'tib_W', viewer1)
+show_stuff(tib_info_new, 'tib_W', viewer1)
 #%%
-show_stuff(fem_info, 'fem_NW', viewer1)
+show_stuff(fem_info_new, 'fem_W', viewer1)
 
 #%%
 screenshots = []
@@ -384,9 +385,9 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 track_origin(fem_info, 'AN_NW_fem', 'centroid')
 #%%
 #%%
-centroid_dist_W = calculate_distance_betwn_origins(tib_info, fem_info, 'centroid')
-
-origin_dist_W = calculate_distance_betwn_origins(tib_info, fem_info, 'origin')
+centroid_dist_W_new = calculate_distance_betwn_origins(tib_info_new, fem_info_new, 'centroid')
+#%%
+origin_dist_W_new = calculate_distance_betwn_origins(tib_info_new, fem_info_new, 'origin')
 
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
@@ -451,7 +452,7 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
 
     return angles
 #%%
-angles_W = calculate_and_plot_angles_between_bones(fem_info, tib_info)
+angles_W_new = calculate_and_plot_angles_between_bones(fem_info_new, tib_info_new)
 
 
 #%%
@@ -508,19 +509,6 @@ def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
 
 calculate_and_plot_angles_with_theoretical_line(fem_info, tib_info, axis='long')
 
-#%%
-
-def plot_angles_vs_dist(angles, distances, point_name):
-    
-    #plt.figure(figsize=(10, 6))
-    plt.scatter(angles, distances, marker='x')
-    plt.plot(angles,distances)
-    plt.xlabel('Angle between the long axes of femur and tibia')
-    plt.ylabel(f'Distance between {point_name}s ')
-    plt.title(f'Distance between {point_name}s measured at each angle')
-    plt.grid(True)
-    plt.savefig(f'Angle_vs_{point_name}.svg')
-    plt.show()
     
 #%%
 def plot_angles_vs_dist(angles, distances, point_name, new_figure=True, label=None):
@@ -544,9 +532,9 @@ def plot_angles_vs_dist(angles, distances, point_name, new_figure=True, label=No
         plt.savefig(f'Angle_vs_{point_name}_{label}.svg')
 
 #%%
-plot_angles_vs_dist(angles_W, origin_dist_W, 'origin', new_figure=True, label='loaded')
+plot_angles_vs_dist(angles_W_new, centroid_dist_W_new, 'centroid', new_figure=True, label='loaded')
 
-plot_angles_vs_dist(angles, origin_dist, 'origin', new_figure=False, label='unloaded')
+plot_angles_vs_dist(angles_NW, centroid_dist_NW, 'centroid', new_figure=False, label='unloaded')
 
 # Now, show the combined plot
 plt.show()
@@ -590,8 +578,8 @@ with open('MK_NW_fem_info.pkl', 'wb') as f:
     
 #%%
 # what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/flipping_first/MK_NW_tib_info.pkl', 'rb') as file:
-    tib_info = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_NW/flipping_first/origin_dist.pkl', 'rb') as file:
+    origin_dist_NW = pickle.load(file)    
 
 #%%
 
