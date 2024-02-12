@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/MK_W_ai2_tgv_5e-2_neg_right.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2023-12-08/47_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_tgv_5e-2_pos.nii'
 #%%
 image = path_to_image(path)[::-1]
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='MK_W')
+viewer = napari.view_image(image,  name='NB_NW')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -54,7 +54,7 @@ def apply_canny_multiple_thresholds(pixelarray, low_range, high_range, num_steps
 low_range = (0,5) # 
 high_range = (5,10 ) # 
 num_steps = 10
-sigma = 2
+sigma = 1.5
 print(np.linspace(low_range[0] , low_range[1], num_steps) )
 print(np.linspace(high_range[0] , high_range[1], num_steps) )
 
