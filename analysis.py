@@ -146,7 +146,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 =  'C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/MK_W_ai2_tgv_5e-2_neg_right.nii'
+path1 =  '/data/projects/ma-nepal-segmentation/data/Nepal^Aayush/2023-12-01/44_MK_Radial_NW_CINE_30bpm_CGA/NW_tgv.nii'
 image1 = path_to_image(path1)[::-1]
 #%%
 viewer1 = napari.view_image(image1)
