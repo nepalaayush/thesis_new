@@ -65,7 +65,7 @@ print(f"Elapsed Time: {end_time - start_time} seconds")
 viewer3.add_image(canny_multi_edge, name='US_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[3]
+tib_canny = canny_multi_edge[2]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -97,7 +97,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
-bone_canny = removed_4d[12] 
+bone_canny = removed_4d[10] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # step 9 skeletonize the edge 
@@ -125,7 +125,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==6
+final_label_3d = final_label_3d==4
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
@@ -142,7 +142,7 @@ new_tib_coords_last = tib_coords.copy()
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='tibia')
+reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='femur')
 new_tib_coords_first = tib_coords.copy() 
 new_tib_coords_first[0] = reference_frame_first
 viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
@@ -158,7 +158,7 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 
-with open('US_NW_t_matrices_tib.pkl', 'wb') as file:
+with open('US_NW_t_matrices_fem.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_first, file)
 #%%
 #for pickle load
