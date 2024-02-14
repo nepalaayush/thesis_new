@@ -182,7 +182,7 @@ for frame_number in range(number_of_frames):
 viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_tib'].data[0]
+ref_points = viewer1.layers['expanded_fem'].data[0]
 #ref_points = viewer1.layers['expanded_tib'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
@@ -199,7 +199,7 @@ frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
 disp_layer = viewer1.layers["Shapes"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(150,450)
+xrange=slice(100,350)
 yrange=slice(150,450)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
@@ -210,10 +210,10 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('US_NW_segmented_tib.svg')
+plt.savefig('US_NW_segmented_fem.svg')
 
 #%%
-shapes_data = viewer1.layers['tib_NW'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
+shapes_data = viewer1.layers['fem_NW'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
 
 
 def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index):
@@ -233,7 +233,7 @@ def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index
 
     return transformed_dicts
 
-tib_info = process_and_transform_shapes(shapes_data, transformation_matrices_first, 0)
+fem_info = process_and_transform_shapes(shapes_data, transformation_matrices_first, 0)
 #%%
 '''
 needs a lot more work so just leave it as is 
@@ -243,9 +243,9 @@ single_frame_true_values = shapes_for_napari(shape_data_coords)[0]
 single_tib_binary = process_frame([single_frame_true_values])
 '''
 #%%
-show_stuff(tib_info, 'tib_NW', viewer1)
+show_stuff(tib_info, 'tib_NW_', viewer1)
 #%%
-show_stuff(fem_info, 'fem_W', viewer1)
+show_stuff(fem_info, 'fem_NW', viewer1)
 
 #%%
 screenshots = []
@@ -289,7 +289,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_AN_W_both_bones.svg'
+    output_path = 'mosaic_US_NW_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -564,10 +564,10 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('AN_W_fem_info.pkl', 'wb') as f:
+with open('US_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(fem_info, f)
 #%%    
-with open('AN_W_tib_info.pkl', 'wb') as f:
+with open('US_NW_tib_info.pkl', 'wb') as f:
     pickle.dump(tib_info, f)
 #%%
 with open('MK_NW_fem_info.pkl', 'wb') as f:
