@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/US/US_NW_ai2_tgv_5e-2_neg.nii'
+path = 'C:/Users/Aayush/Documents/thesis_files/US/W/US_W_ai2_tgv_5e-2_neg.nii'
 #%%
 image = path_to_image(path)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='US_NW')
+viewer = napari.view_image(image,  name='US_W')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -62,10 +62,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='US_NW')
+viewer3.add_image(canny_multi_edge, name='US_W')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[2]
+tib_canny = canny_multi_edge[3]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -125,7 +125,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==4
+final_label_3d = final_label_3d==6
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
@@ -146,8 +146,8 @@ reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='femur')
 new_tib_coords_first = tib_coords.copy() 
 new_tib_coords_first[0] = reference_frame_first
 viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
-#new_tib_coords_first[0] = AN_NW_ref_frame_tib
-#viewer.add_points(AN_NW_ref_frame_tib, face_color='orange', size =1, name='reference_frame_first_NW')
+#new_tib_coords_first[0] = US_NW_ref_frame_tib
+#viewer.add_points(US_NW_ref_frame_tib, face_color='freen', size =1, name='reference_frame_first_NW')
 #%%
 #Step 13. find the transformation matrices, list of coordinates and minimized cost function values per frame 
 transformation_matrices_last, giant_list_last, cost_values_last = combined_consecutive_transform(new_tib_coords_last)
@@ -158,7 +158,7 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 
-with open('US_NW_t_matrices_fem.pkl', 'wb') as file:
+with open('US_W_t_matrices_fem.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_first, file)
 #%%
 #for pickle load
