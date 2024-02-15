@@ -585,8 +585,8 @@ def process_frame(shapes_data):
         if not is_perpendicular_uv:
            print(f"Debug Check 1: For shape {idx}, U and V are not perpendicular.")
         # Compute centroid
-        centroid = np.mean(shape_coords[:, 1:], axis=0)
-        
+        #centroid = np.mean(shape_coords[:, 1:], axis=0)
+        centroid = np.mean(uniform_points[:, 1:], axis=0)
         # Find extreme points
         
         extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=200))
