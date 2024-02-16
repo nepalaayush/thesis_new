@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = 'C:/Users/Aayush/Documents/thesis_files/US/W/US_W_ai2_tgv_5e-2_neg.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/24_MK_Radial_W_CINE_30bpm_CGA/MM_W_ai2_tgv_5e-2_pos_r20_r60.nii'
 #%%
 image = path_to_image(path)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='US_W')
+viewer = napari.view_image(image,  name='MM_W')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -62,7 +62,7 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='US_W')
+viewer3.add_image(canny_multi_edge, name='MM_W')
 #%%
 #Step 5: pick the right index and add it to viewer
 tib_canny = canny_multi_edge[3]
@@ -125,7 +125,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = final_label_3d==6
+final_label_3d = final_label_3d==4
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
@@ -158,7 +158,7 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='ref_frame_first')
 #%%
 
-with open('US_W_t_matrices_fem.pkl', 'wb') as file:
+with open('MM_W_t_matrices_fem.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_first, file)
 #%%
 #for pickle load

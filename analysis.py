@@ -146,7 +146,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = 'C:/Users/Aayush/Documents/thesis_files/US/W/US_W_ai2_tgv_5e-2_neg.nii'
+path1 = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/24_MK_Radial_W_CINE_30bpm_CGA/MM_W_ai2_tgv_5e-2_pos_r20_r60.nii'
 image1 = path_to_image(path1)
 #%%
 viewer1 = napari.view_image(image1)
@@ -197,9 +197,9 @@ desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["Shapes"].to_labels(image1.shape)
+disp_layer = viewer1.layers["fem_W"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(80,350)
+xrange=slice(50,350)
 yrange=slice(150,450)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
@@ -210,10 +210,10 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('US_W_segmented_fem.svg')
+plt.savefig('MM_W_segmented_fem.svg')
 
 #%%
-shapes_data = viewer1.layers['tib_W'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
+shapes_data = viewer1.layers['fem_W'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
 
 
 def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index):
@@ -233,7 +233,7 @@ def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index
 
     return transformed_dicts
 
-tib_info = process_and_transform_shapes(shapes_data, t_matrices_tib, 0)
+fem_info = process_and_transform_shapes(shapes_data, transformation_matrices_first, 0)
 #%%
 '''
 needs a lot more work so just leave it as is 
@@ -289,7 +289,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_US_W_both_bones.svg'
+    output_path = 'mosaic_MM_W_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -459,7 +459,7 @@ angles_W = calculate_and_plot_angles_between_bones(fem_info, tib_info)
 def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
     angles = []
     frames = []
-
+t_matrices_tib
     for frame in bone1.keys():
         if frame in bone2:
             angle = calculate_angle_between_bones(bone1[frame], bone2[frame], axis)
@@ -564,10 +564,10 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('US_W_fem_info.pkl', 'wb') as f:
+with open('MM_W_fem_info.pkl', 'wb') as f:
     pickle.dump(fem_info, f)
 #%%    
-with open('US_W_tib_info.pkl', 'wb') as f:
+with open('MM_W_tib_info.pkl', 'wb') as f:
     pickle.dump(tib_info, f)
 #%%
 with open('MK_NW_fem_info.pkl', 'wb') as f:
