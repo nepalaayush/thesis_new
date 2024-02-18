@@ -19,9 +19,17 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/02.02.24/MK_W/flipping_first/t_matrices_fem.pkl', 'rb') as file:
-    fem_mat=  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_fem_info.pkl', 'rb') as file:
+    fem_info_NW =  pickle.load(file)
 
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_tib_info.pkl', 'rb') as file:
+    tib_info_NW =  pickle.load(file)
+#%%    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/US_W_tib_info.pkl', 'rb') as file:
+    tib_info_W =  pickle.load(file)
+    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/US_W_fem_info.pkl', 'rb') as file:
+    fem_info_W =  pickle.load(file)
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, residuals_color, ax=None):
@@ -146,7 +154,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/24_MK_Radial_W_CINE_30bpm_CGA/MM_W_ai2_tgv_5e-2_pos_r20_r60.nii'
+path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_W/MK_W_ai2_tgv_5e-2_pos.nii'
 image1 = path_to_image(path1)
 #%%
 viewer1 = napari.view_image(image1)
@@ -182,10 +190,10 @@ for frame_number in range(number_of_frames):
 viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_fem'].data[0]
-#ref_points = viewer1.layers['expanded_tib'].data[0][:,1:3]
+#ref_points = viewer1.layers['expanded_fem'].data[0]
+ref_points = viewer1.layers['expanded_fem'].data[0][:,1:3]
 #%%
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
+applied_transformation = apply_transformations_new(ref_points, t_matrices_fem, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
@@ -233,7 +241,7 @@ def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index
 
     return transformed_dicts
 
-fem_info = process_and_transform_shapes(shapes_data, transformation_matrices_first, 0)
+fem_info_W = process_and_transform_shapes(shapes_data, t_matrices_fem, 0)
 #%%
 '''
 needs a lot more work so just leave it as is 
@@ -243,9 +251,9 @@ single_frame_true_values = shapes_for_napari(shape_data_coords)[0]
 single_tib_binary = process_frame([single_frame_true_values])
 '''
 #%%
-show_stuff(tib_info, 'tib_W', viewer1)
+show_stuff(tib_info_W, 'tib_W', viewer1)
 #%%
-show_stuff(fem_info, 'fem_W', viewer1)
+show_stuff(fem_info_W, 'fem_W', viewer1)
 
 #%%
 screenshots = []
@@ -275,7 +283,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     fig, axes = plt.subplots(nrows=rows, ncols=columns, figsize=figsize, facecolor='black')
     # Calculate frame indices to include the first and last frames and others equally spaced
     #frame_indices = [0] + list(np.linspace(1, total_frames - 2, columns * rows - 2, dtype=int)) + [total_frames - 1]
-    frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
+    frame_indices = np.linspace(0, total_frames - 1, 6, dtype=int)
     print(frame_indices)
     plt.subplots_adjust(wspace=0, hspace=0)
     # Flatten the axes array for easy iteration and fill each subplot
@@ -289,7 +297,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MM_W_both_bones.svg'
+    output_path = 'mosaic_MK_W_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -299,7 +307,7 @@ mosaic_path = create_mosaic_matplotlib(screenshots, total_frames=len(image1))
 
 
 #%%
-def track_origin(all_frame_info, bone_name, point_name):
+def track_origin(all_frame_info, point_name, bone_name, new_figure,  marker, label):
     # Extract x and y coordinates of the origin for each frame
     x_coords = [all_frame_info[frame][f'{point_name}'][0] for frame in sorted(all_frame_info)]
     y_coords = [all_frame_info[frame][f'{point_name}'][1] for frame in sorted(all_frame_info)]
@@ -310,21 +318,23 @@ def track_origin(all_frame_info, bone_name, point_name):
     )
     print(total_distance)
     
+    #plt.clf()
     # Plot
-    plt.figure(figsize=(10, 8))
-    plt.scatter(y_coords, x_coords, c=sorted(all_frame_info), cmap='viridis', s=50)
-    plt.plot(y_coords, x_coords, '-o', markersize=5, alpha=0.6)
-    plt.colorbar(label='Frame Number')
+    if new_figure:
+        plt.figure(figsize=(10, 8))
+
+    plt.scatter(y_coords, x_coords, c=sorted(all_frame_info), cmap='viridis', s=50, marker=marker, label=f'{label} : {total_distance:.2f} (Total Distance)')
+    plt.plot(y_coords, x_coords, markersize=5, alpha=0.6)
+    
     plt.title(f'Movement of {bone_name} {point_name} Over Frames')
     plt.xlabel('X-coordinate')
     plt.ylabel('Y-coordinate')
     plt.grid(True)
-    
-    plt.text(min(y_coords), max(x_coords), f'The total distance travelled by the {point_name} is {total_distance:.2f} units')
-    
-    plt.savefig(f'{point_name}_track_{bone_name}.svg')
-    plt.show()
-
+    plt.legend()
+    #plt.text(min(y_coords), max(x_coords), f'{point_name} travels {total_distance:.2f} units')
+    #plt.savefig(f'{bone_name}_{point_name}_track.svg')
+    #plt.show()
+    return total_distance
     
 def calculate_angle(vector_a, vector_b):
     """Calculate angle in degrees between two vectors."""
@@ -333,20 +343,21 @@ def calculate_angle(vector_a, vector_b):
     angle_deg = np.degrees(angle_rad)
     return angle_deg
 
-def calculate_distance_betwn_origins (fem_info, tib_info, point_name):
+def calculate_distance_betwn_origins (fem_info, tib_info, point_name, label):
     indices = sorted(fem_info)
     origin_distances = [ np.linalg.norm(fem_info[ind][f'{point_name}']  -  tib_info[ind][f'{point_name}']) for ind in indices  ]
     total_distance = np.sum(origin_distances)
     
     x_values = range(len(origin_distances))
-    
-    plt.plot(origin_distances)
+    label_with_distance = f'{label}: Total distance {total_distance:.2f}'
+    plt.plot(origin_distances, label=label_with_distance)
     plt.scatter(x_values, origin_distances, marker='x', color='k')
     plt.xlabel('Frame number')
     plt.ylabel('Distances')
     plt.grid(True)
     plt.title(f'Distance between femur and tibia {point_name} across the frames')
-    plt.text(0, np.max(origin_distances), f'The total distance is: {total_distance:.2f}') 
+    #plt.text(0, np.max(origin_distances), f'The total distance is: {total_distance:.2f}')
+    plt.legend()
     plt.savefig(f'dist_betwn_{point_name}.svg')
     
     return origin_distances
@@ -382,12 +393,41 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
     plt.show()
 
 #%%
-track_origin(fem_info, 'AN_NW_fem', 'centroid')
+
+total_centroid_W = track_origin(tib_info_W, 'centroid',  bone_name = 'tibia', marker='x', new_figure=True, label='loaded')
+
+total_centroid_NW = track_origin(tib_info_NW,  'centroid',  bone_name = 'tibia', marker='o', new_figure=False, label='unloaded')
+plt.colorbar(label='Frame Number')
+plt.savefig('MK_centroid_track_tibia_both_cases.svg')
+
 #%%
+total_origin_W = track_origin(tib_info_W, 'origin',  bone_name = 'tibia', marker='x', new_figure=True, label='loaded')
+
+total_origin_NW = track_origin(tib_info_NW,  'origin',  bone_name = 'tibia', marker='o', new_figure=False, label='unloaded')
+plt.colorbar(label='Frame Number')
+plt.savefig('MK_origin_track_tibia_both_cases.svg')
+
 #%%
-centroid_dist_W = calculate_distance_betwn_origins(tib_info, fem_info, 'centroid')
+total_centroid_W_fem = track_origin(fem_info_W, 'centroid',  bone_name = 'femur', marker='x', new_figure=True, label='loaded')
+
+total_centroid_NW_fem = track_origin(fem_info_NW,  'centroid',  bone_name = 'femur', marker='o', new_figure=False, label='unloaded')
+plt.colorbar(label='Frame Number')
+plt.savefig('MK_centroid_track_femur_both_cases.svg')
+
 #%%
-origin_dist_W_new = calculate_distance_betwn_origins(tib_info_new, fem_info_new, 'origin')
+total_origin_W_fem = track_origin(fem_info_W, 'origin',  bone_name = 'femur', marker='x', new_figure=True, label='loaded')
+
+total_origin_NW_fem = track_origin(fem_info_NW,  'origin',  bone_name = 'femur', marker='o', new_figure=False, label='unloaded')
+plt.colorbar(label='Frame Number')
+plt.savefig('MK_origin_track_femur_both_cases.svg')
+
+#%%
+centroid_dist_W = calculate_distance_betwn_origins(tib_info_W, fem_info_W, 'centroid', label='loaded')
+centroid_dist_NW = calculate_distance_betwn_origins(tib_info_NW, fem_info_NW, 'centroid', label='unloaded' )
+
+#%%
+origin_dist_W = calculate_distance_betwn_origins(tib_info_W, fem_info_W, 'origin', label='loaded')
+origin_dist_NW = calculate_distance_betwn_origins(tib_info_NW, fem_info_NW, 'origin', label='unloaded')
 
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
@@ -423,7 +463,7 @@ def calculate_angle_between_bones(bone1, bone2, axis='long'):
 
 
 
-def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
+def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', new_figure=True):
     """
     Calculate the angles between two bones for each frame and plot the angles.
 
@@ -440,26 +480,29 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long'):
             print(f"Frame {frame}: Angle = {angle} degrees")
             angles.append(angle)
             frames.append(frame)
-    
-    plt.figure(figsize=(10, 6))
-    plt.plot(frames, angles, marker='o')
+    #if new_figure:
+     #   plt.figure(figsize=(10, 6))
+    #plt.figure(figsize=(10, 6))
+    plt.plot(frames, angles, marker='o', label=name)
     plt.xlabel('Frame')
     plt.ylabel('Angle (degrees)')
     plt.title(f'Angle between Bones over Frames ({axis.capitalize()} Axis)')
     plt.grid(True)
-    plt.savefig('Angle_betwn_long_axes.svg')
-    plt.show()
+    plt.legend()
+    if new_figure:
+        plt.savefig(f'{name}_Angle_betwn_long_axes.svg')
+    
 
     return angles
 #%%
-angles_W = calculate_and_plot_angles_between_bones(fem_info, tib_info)
-
-
+plt.figure(figsize=(10, 6))
+angles_W = calculate_and_plot_angles_between_bones(fem_info_W, tib_info_W, name='MK_W', new_figure=False)
+angles_NW = calculate_and_plot_angles_between_bones(fem_info_NW, tib_info_NW, name='MK_NW',new_figure=True )
+plt.show()
 #%%
 def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
     angles = []
     frames = []
-t_matrices_tib
     for frame in bone1.keys():
         if frame in bone2:
             angle = calculate_angle_between_bones(bone1[frame], bone2[frame], axis)
@@ -501,13 +544,13 @@ t_matrices_tib
     plt.text(x=min(frames), y=max(residuals), s=mae_text, color='blue', fontsize=10)
     plt.tight_layout()
     
-    plt.savefig('MK_NW_mae_angle_between_bones_02.02.svg') 
+    plt.savefig('AN_NW_mae_angle_between_bones.svg') 
     plt.show()
 
     # Print the Mean Absolute Error
     print(f"Mean Absolute Error (MAE): {mae:.2f}")
 
-calculate_and_plot_angles_with_theoretical_line(fem_info, tib_info, axis='long')
+calculate_and_plot_angles_with_theoretical_line(fem_info_NW, tib_info_NW, axis='long')
 
     
 #%%
@@ -526,17 +569,26 @@ def plot_angles_vs_dist(angles, distances, point_name, new_figure=True, label=No
     # Only add a legend if a label is provided
     if label:
         plt.legend()
-
-    # Save the figure with a unique name based on the label
-    if label:
-        plt.savefig(f'Angle_vs_{point_name}_{label}.svg')
+        
+        
 
 #%%
-plot_angles_vs_dist(angles_W_new, centroid_dist_W_new, 'centroid', new_figure=True, label='loaded')
+plot_angles_vs_dist(angles_NW, origin_dist_NW, 'origin', new_figure=True, label='unloaded')
 
-plot_angles_vs_dist(angles_NW, centroid_dist_NW, 'centroid', new_figure=False, label='unloaded')
+plot_angles_vs_dist(angles_W, origin_dist_W, 'origin', new_figure=False, label='loaded')
 
 # Now, show the combined plot
+plt.savefig('Angle_vs_origin_both_bones.svg')
+plt.show()
+
+#%%
+plot_angles_vs_dist(angles_NW, centroid_dist_NW, 'centroid', new_figure=True, label='unloaded')
+
+plot_angles_vs_dist(angles_W, centroid_dist_W, 'centroid', new_figure=False, label='loaded')
+
+# Now, show the combined plot
+plt.savefig('Angle_vs_centroid_both_bones.svg')
+
 plt.show()
 #%%
 def nullify_fem(femur_matrices, tibia_matrices):
@@ -564,11 +616,11 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('MM_W_fem_info.pkl', 'wb') as f:
-    pickle.dump(fem_info, f)
+with open('MK_W_fem_info.pkl', 'wb') as f:
+    pickle.dump(fem_info_W, f)
 #%%    
-with open('MM_W_tib_info.pkl', 'wb') as f:
-    pickle.dump(tib_info, f)
+with open('MK_W_tib_info.pkl', 'wb') as f:
+    pickle.dump(tib_info_W, f)
 #%%
 with open('MK_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(transformed_dicts_fem, f)
@@ -578,8 +630,8 @@ with open('MK_NW_fem_info.pkl', 'wb') as f:
     
 #%%
 # what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/US_W_t_matrices_tib.pkl', 'rb') as file:
-    t_matrices_tib = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_W/MK_W_t_matrices_fem_new.pkl', 'rb') as file:
+    t_matrices_fem = pickle.load(file)    
 
 #%%
 
