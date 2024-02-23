@@ -1,5 +1,5 @@
 % $ biblatex auxiliary file $
-% $ biblatex bbl format version 3.2 $
+% $ biblatex bbl format version 2.9 $
 % Do not modify the above lines!
 %
 % This is an auxiliary file used by the 'biblatex' package.
@@ -18,36 +18,133 @@
 
 
 \refsection{0}
-  \datalist[entry]{cms/global//global/global}
-    \entry{Lund1992}{book}{}
-      \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=d3d570782a6c9f444fce0260ebd8b6d6}{%
-           family={Lundvall},
-           familyi={L\bibinitperiod},
-           given={Bengt-{Å}ke},
-           giveni={B\bibinithyphendelim Å\bibinitperiod},
+  \datalist[entry]{nyt/global//global/global}
+    \entry{brisson_novel_2022}{article}{}
+      \name{author}{6}{}{%
+        {{uniquename=0,uniquepart=base,hash=5d046e4f52fb6fc61dda554852a12724}{%
+           family={Brisson},
+           familyi={B\bibinitperiod},
+           given={Nicholas\bibnamedelima M.},
+           giveni={N\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=649d24f04a2ef7624293458d54b21dd8}{%
+           family={Krämer},
+           familyi={K\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=f9d8d3b47fc7a634bdfdc1a27ec49915}{%
+           family={Krahl},
+           familyi={K\bibinitperiod},
+           given={Leonie\bibnamedelima A.N.},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=e9356608ca3b129934d5552d1b57f3fd}{%
+           family={Schill},
+           familyi={S\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=0cf0f02a43cd3292bdd691b10fe91185}{%
+           family={Duda},
+           familyi={D\bibinitperiod},
+           given={Georg\bibnamedelima N.},
+           giveni={G\bibinitperiod\bibinitdelim N\bibinitperiod},
+           givenun=0}}%
+        {{uniquename=0,uniquepart=base,hash=c63c6d1685b85f82ca7f4ea77ac2d138}{%
+           family={Reichenbach},
+           familyi={R\bibinitperiod},
+           given={Jürgen\bibnamedelima R.},
+           giveni={J\bibinitperiod\bibinitdelim R\bibinitperiod},
            givenun=0}}%
       }
-      \list{location}{1}{%
-        {London}%
+      \list{language}{1}{%
+        {en}%
       }
-      \list{publisher}{1}{%
-        {Pinter Publishers}%
+      \strng{namehash}{bc668b3d35169ebe042e1e1e27d147ba}
+      \strng{fullhash}{f058b41a544fdf7781ab610b2b5c4e70}
+      \strng{bibnamehash}{bc668b3d35169ebe042e1e1e27d147ba}
+      \strng{authorbibnamehash}{bc668b3d35169ebe042e1e1e27d147ba}
+      \strng{authornamehash}{bc668b3d35169ebe042e1e1e27d147ba}
+      \strng{authorfullhash}{f058b41a544fdf7781ab610b2b5c4e70}
+      \field{sortinit}{B}
+      \field{sortinithash}{276475738cc058478c1677046f857703}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Introduction: This work aimed to develop a novel multipurpose device for guided knee ﬂexion-extension, both passively using a motorized pneumatic system and actively (muscle-driven) with the joint unloaded or loaded during dynamic MRI. Secondary objectives were to characterize the participant experience during device use, and present preliminary dynamic MRI data to demonstrate the different device capabilities. Material and methods: Self-reported outcomes were used to characterize the pain, physical exertion and discomfort levels experienced by 10 healthy male participants during four different active knee motion and loading protocols using the novel device. Knee angular data were recorded during the protocols to determine the maximum knee range of motion achievable. Dynamic MRI was acquired for three healthy volunteers during passive, unloaded knee motion using 2D Cartesian TSE, 2D radial GRE and 3D UTE sequences; and during active, unloaded and loaded knee motion using 2D radial GRE imaging. Because of the different MRI sequences used, spatial resolution was inherently lower for active knee motion than for passive motion acquisitions. Results: Depending on the protocol, some participants reported slight pain, mild discomfort and varying levels of physical exertion. On average, participants achieved ∼40◦ of knee ﬂexion; loaded conditions can create knee moments up to 27 Nm. High quality imaging data were obtained during different motion and loading conditions. Dynamic 3D data allowed to retrospectively extract arbitrarily oriented slices. Conclusion: A novel multipurpose device for guided, physiologically relevant knee motion and loading during dynamic MRI was developed. Device use was well tolerated and suitable for acquiring high quality images during different motion and loading conditions. Different bone positions between loaded and unloaded conditions were likely due to out-of-plane motion, particularly because image registration was not performed. Ultimately, this device could be used to advance our understanding of physiological and pathological joint mechanics.}
+      \field{issn}{09393889}
+      \field{journaltitle}{Zeitschrift für Medizinische Physik}
+      \field{month}{11}
+      \field{number}{4}
+      \field{title}{A novel multipurpose device for guided knee motion and loading during dynamic magnetic resonance imaging}
+      \field{urlday}{12}
+      \field{urlmonth}{2}
+      \field{urlyear}{2024}
+      \field{volume}{32}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \field{pages}{500\bibrangedash 513}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1016/j.zemedi.2021.12.002
+      \endverb
+      \verb{file}
+      \verb Brisson et al. - 2022 - A novel multipurpose device for guided knee motion:/home/aayush/Zotero/storage/LPZV85XC/Brisson et al. - 2022 - A novel multipurpose device for guided knee motion:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S093938892100115X
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S093938892100115X
+      \endverb
+    \endentry
+    \entry{canny_computational_1986}{article}{}
+      \name{author}{1}{}{%
+        {{uniquename=0,uniquepart=base,hash=fa344b67077711bfaa0525254de2977a}{%
+           family={Canny},
+           familyi={C\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
       }
-      \strng{namehash}{d3d570782a6c9f444fce0260ebd8b6d6}
-      \strng{fullhash}{d3d570782a6c9f444fce0260ebd8b6d6}
-      \strng{bibnamehash}{d3d570782a6c9f444fce0260ebd8b6d6}
-      \strng{authorbibnamehash}{d3d570782a6c9f444fce0260ebd8b6d6}
-      \strng{authornamehash}{d3d570782a6c9f444fce0260ebd8b6d6}
-      \strng{authorfullhash}{d3d570782a6c9f444fce0260ebd8b6d6}
-      \field{sortinit}{L}
-      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \strng{namehash}{fa344b67077711bfaa0525254de2977a}
+      \strng{fullhash}{fa344b67077711bfaa0525254de2977a}
+      \strng{bibnamehash}{fa344b67077711bfaa0525254de2977a}
+      \strng{authorbibnamehash}{fa344b67077711bfaa0525254de2977a}
+      \strng{authornamehash}{fa344b67077711bfaa0525254de2977a}
+      \strng{authorfullhash}{fa344b67077711bfaa0525254de2977a}
+      \field{sortinit}{C}
+      \field{sortinithash}{963e9d84a3da2344e8833203de5aed05}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{title}{National Systems of Innovation: Towards a Theory of Innovation and Interactive Learning}
-      \field{year}{1992}
+      \field{issn}{0162-8828}
+      \field{journaltitle}{{IEEE} Transactions on Pattern Analysis and Machine Intelligence}
+      \field{month}{11}
+      \field{number}{6}
+      \field{shortjournal}{{IEEE} Trans. Pattern Anal. Mach. Intell.}
+      \field{title}{A Computational Approach to Edge Detection}
+      \field{urlday}{18}
+      \field{urlmonth}{2}
+      \field{urlyear}{2024}
+      \field{volume}{{PAMI}-8}
+      \field{year}{1986}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{679\bibrangedash 698}
+      \range{pages}{20}
+      \verb{doi}
+      \verb 10.1109/TPAMI.1986.4767851
+      \endverb
+      \verb{urlraw}
+      \verb https://ieeexplore.ieee.org/document/4767851
+      \endverb
+      \verb{url}
+      \verb https://ieeexplore.ieee.org/document/4767851
+      \endverb
     \endentry
   \enddatalist
 \endrefsection
