@@ -21,4 +21,4 @@ pmr.py reco radial_cine_2d -i data.twix -o NB_NW_ai2_tgv_5e-3_pos.nii -g ../scan
 
 ____   
 without admm:   
-pmr.py reco radial_cine_2d -i data.twix -o MM_NW_aw2_pos_base.nii -g ../scan_data_081223_2DRadial_MM_NW_30bpm.dat -aw 2 -os 5 -d pos -zf 2 -v 
+pmr.py reco radial_cine_2d -i data.twix -o MM_NW_aw2_pos_base.nii -g ../scan_data_081223_2DRadial_MM_NW_30bpm.dat -aw 2 -os 5 -d pos -zf 2 -v -ngn

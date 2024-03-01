@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2023-12-08/24_MK_Radial_W_CINE_30bpm_CGA/MM_W_ai2_tgv_5e-2_pos_r20_r60.nii'
+path ='/data/projects/ma-nepal-segmentation/data/Singh^Udai/2023-09-11/72_MK_Radial_NW_CINE_60bpm_CGA/US_NW_ai2_tgv_5e-2_pos_ngn_60bpm.nii'
 #%%
 image = path_to_image(path)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='MM_W')
+viewer = napari.view_image(image,  name='US_NW')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 

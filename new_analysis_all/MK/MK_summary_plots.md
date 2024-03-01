@@ -22,3 +22,5 @@ W:
 ![Angle_vs_centroid_both_bones.svg](Angle_vs_centroid_both_bones.svg)
 
 ![Angle_vs_origin_both_bones.svg](Angle_vs_origin_both_bones.svg)
+
+/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/02.02/
