@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -21,9 +21,9 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 #%%
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_fem_info.pkl', 'rb') as file:
     fem_info_NW =  pickle.load(file)
-
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_tib_info.pkl', 'rb') as file:
-    tib_info_NW =  pickle.load(file)
+#%%
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_t_matrices_tib.pkl', 'rb') as file:
+    t_matrices_tib =  pickle.load(file)
 #%%    
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/US_W_tib_info.pkl', 'rb') as file:
     tib_info_W =  pickle.load(file)
@@ -154,8 +154,8 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_W/MK_W_ai2_tgv_5e-2_pos.nii'
-image1 = path_to_image(path1)
+path1 = 'C:/Users/Aayush/Documents/thesis_files/_first_march_data/01.03/AN_W_ai2_tgv_5e-2_neg_ngn.nii'
+image1 = path_to_image(path1)[2:]
 #%%
 viewer1 = napari.view_image(image1)
 #%%
@@ -191,9 +191,9 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
 #ref_points = viewer1.layers['expanded_fem'].data[0]
-ref_points = viewer1.layers['expanded_fem'].data[0][:,1:3]
+ref_points = viewer1.layers['AN_NW_fem_shape'].data[0][:,1:3]
 #%%
-applied_transformation = apply_transformations_new(ref_points, t_matrices_fem, 0)    
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
@@ -207,8 +207,8 @@ frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
 disp_layer = viewer1.layers["fem_W"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(50,350)
-yrange=slice(150,450)
+xrange=slice(70,350)
+yrange=slice(150,350)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
     ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
@@ -218,10 +218,10 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('MM_W_segmented_fem.svg')
+plt.savefig('AN_W_segmented_fem.svg')
 
 #%%
-shapes_data = viewer1.layers['fem_W'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
+shapes_data = viewer1.layers['AN_NW_fem_shape'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
 
 
 def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index):
@@ -241,7 +241,7 @@ def process_and_transform_shapes(shapes_data, transformation_matrices, ref_index
 
     return transformed_dicts
 
-fem_info_W = process_and_transform_shapes(shapes_data, t_matrices_fem, 0)
+fem_info_NW_test = process_and_transform_shapes(shapes_data, transformation_matrices_first, 0)
 #%%
 '''
 needs a lot more work so just leave it as is 
@@ -251,7 +251,7 @@ single_frame_true_values = shapes_for_napari(shape_data_coords)[0]
 single_tib_binary = process_frame([single_frame_true_values])
 '''
 #%%
-show_stuff(tib_info_W, 'tib_W', viewer1)
+show_stuff(tib_info_W_using_NW_ref, 'tib_W', viewer1)
 #%%
 show_stuff(fem_info_W, 'fem_W', viewer1)
 
@@ -297,7 +297,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MK_W_both_bones.svg'
+    output_path = 'mosaic_AN_W_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -329,11 +329,9 @@ def track_origin(all_frame_info, point_name, bone_name, new_figure,  marker, lab
     plt.title(f'Movement of {bone_name} {point_name} Over Frames')
     plt.xlabel('X-coordinate')
     plt.ylabel('Y-coordinate')
+    
     plt.grid(True)
     plt.legend()
-    #plt.text(min(y_coords), max(x_coords), f'{point_name} travels {total_distance:.2f} units')
-    #plt.savefig(f'{bone_name}_{point_name}_track.svg')
-    #plt.show()
     return total_distance
     
 def calculate_angle(vector_a, vector_b):
@@ -394,18 +392,20 @@ def plot_angle_vs_frame(femur_info , tibia_info, label):
 
 #%%
 
-total_centroid_W = track_origin(tib_info_W, 'centroid',  bone_name = 'tibia', marker='x', new_figure=True, label='loaded')
+total_centroid_W = track_origin(tib_info_W_using_NW_ref, 'centroid',  bone_name = 'tibia', marker='x', new_figure=True, label='loaded')
 
 total_centroid_NW = track_origin(tib_info_NW,  'centroid',  bone_name = 'tibia', marker='o', new_figure=False, label='unloaded')
+plt.gca().invert_yaxis()  # Invert the y-axis to align with image coordinates
 plt.colorbar(label='Frame Number')
-plt.savefig('MK_centroid_track_tibia_both_cases.svg')
+plt.savefig('AN_centroid_track_tibia_both_cases.svg')
 
 #%%
-total_origin_W = track_origin(tib_info_W, 'origin',  bone_name = 'tibia', marker='x', new_figure=True, label='loaded')
+total_origin_W = track_origin(tib_info_W_using_NW_ref, 'origin',  bone_name = 'tibia', marker='x', new_figure=True, label='loaded')
 
 total_origin_NW = track_origin(tib_info_NW,  'origin',  bone_name = 'tibia', marker='o', new_figure=False, label='unloaded')
+plt.gca().invert_yaxis()
 plt.colorbar(label='Frame Number')
-plt.savefig('MK_origin_track_tibia_both_cases.svg')
+plt.savefig('AN_origin_track_tibia_both_cases.svg')
 
 #%%
 total_centroid_W_fem = track_origin(fem_info_W, 'centroid',  bone_name = 'femur', marker='x', new_figure=True, label='loaded')
@@ -428,6 +428,50 @@ centroid_dist_NW = calculate_distance_betwn_origins(tib_info_NW, fem_info_NW, 'c
 #%%
 origin_dist_W = calculate_distance_betwn_origins(tib_info_W, fem_info_W, 'origin', label='loaded')
 origin_dist_NW = calculate_distance_betwn_origins(tib_info_NW, fem_info_NW, 'origin', label='unloaded')
+
+#%%
+voxel_size = [0.7272727272727273, 0.7272727272727273]
+def plot_translations(all_frame_info, point_name, label, plot_type):
+    # Sort frames for consistent ordering
+    sorted_frames = sorted(all_frame_info)
+    
+    # Extract x and y coordinates of the point for each frame
+    y_coords = [all_frame_info[frame][point_name][0] for frame in sorted_frames]
+    x_coords = [all_frame_info[frame][point_name][1] for frame in sorted_frames]
+    
+    translations_mm = []
+      
+    # Plot A-P translations
+    if plot_type== 'AP':
+        ap_translations = [x - x_coords[0] for x in x_coords]
+        translations_mm = [ap * voxel_size[1] for ap in ap_translations]
+        plt.plot(sorted_frames, translations_mm, label=f'A-P Translation {label}')
+        plt.axhline(0, color='gray', linewidth=0.5)  # Zero line for reference
+        plt.xlabel('Frame Number')
+        plt.ylabel('Translation (mm)')
+        plt.title('Anterior-Posterior Translation over Time')
+        plt.legend()
+        plt.grid(True)
+    #plt.show()
+    
+    # Plot I-S translations
+    if plot_type== 'IS':
+        is_translations = [y_coords[0] - y  for y in y_coords] # so that positive means decrease in y value, positive is superior 
+        translations_mm = [is_ * voxel_size[0] for is_ in is_translations]
+        #plt.figure(figsize=(10, 5))
+        plt.plot(sorted_frames, translations_mm, label=f'I-S Translation {label}')
+        plt.axhline(0, color='gray', linewidth=0.5)  # Zero line for reference
+        plt.xlabel('Frame Number')
+        plt.ylabel('Translation (mm)')
+        plt.title('Inferior-Superior Translation over Time')
+        plt.legend()
+        plt.grid(True)
+    #plt.show()
+    return np.array ( translations_mm ) 
+
+ap_W_tib = plot_translations(tib_info_W_using_NW_ref, 'centroid', label='loaded', plot_type='AP')
+ap_NW_tib = plot_translations(tib_info_NW, 'centroid', label='unloaded', plot_type='AP')
+
 
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
@@ -616,11 +660,11 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('MK_W_fem_info.pkl', 'wb') as f:
-    pickle.dump(fem_info_W, f)
+with open('AN_W_tib_ap.pkl', 'wb') as f:
+    pickle.dump(ap_W_tib, f)
 #%%    
-with open('MK_W_tib_info.pkl', 'wb') as f:
-    pickle.dump(tib_info_W, f)
+with open('AN_W_fem_info_using_NW_ref.pkl', 'wb') as f:
+    pickle.dump(fem_info_W, f)
 #%%
 with open('MK_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(transformed_dicts_fem, f)
@@ -630,8 +674,8 @@ with open('MK_NW_fem_info.pkl', 'wb') as f:
     
 #%%
 # what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_W/MK_W_t_matrices_fem_new.pkl', 'rb') as file:
-    t_matrices_fem = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_t_matrices_tib.pkl', 'rb') as file:
+    NW_t_matrices_tib = pickle.load(file)    
 
 #%%
 
