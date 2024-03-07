@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path ='C:/Users/Aayush/Documents/thesis_files/_first_march_data/01.03/AN_W_ai2_tgv_5e-2_neg_ngn.nii'
+path ='C:/Users/Aayush/Documents/thesis_files/_first_march_data/01.03/MK_W_ai2_tgv_5e-2_neg_ngn.nii'
 #%%
-image = path_to_image(path)[2:]
+image = path_to_image(path)[1:]
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='AN_W')
+viewer = napari.view_image(image,  name='MK_NW')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -62,10 +62,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='AN_W')
+viewer3.add_image(canny_multi_edge, name='MK_NW')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[3]
+tib_canny = canny_multi_edge[4]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -97,7 +97,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
-bone_canny = removed_4d[9] 
+bone_canny = removed_4d[10] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # step 9 skeletonize the edge 
@@ -125,8 +125,8 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 
 #%%
 final_label_3d = ndlabel.copy()
-final_label_3d = (final_label_3d == 3) | (final_label_3d == 23) | (final_label_3d == 25)
-#final_label_3d = (final_label_3d == 3
+#final_label_3d = (final_label_3d == 3) | (final_label_3d == 23) | (final_label_3d == 25)
+final_label_3d = (final_label_3d == 5 ) 
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
@@ -143,12 +143,12 @@ new_tib_coords_last = tib_coords.copy()
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-#reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='tibia')
+reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='tibia')
 new_tib_coords_first = tib_coords.copy() 
-#new_tib_coords_first[0] = reference_frame_first
-new_tib_coords_first[0] = AN_NW_ref_frame_fem
-#viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
-viewer.add_points(AN_NW_ref_frame_fem, face_color='green', size =1, name='reference_frame_first_using_NW_fem')
+new_tib_coords_first[0] = reference_frame_first
+#new_tib_coords_first[0] = AN_NW_ref_frame_fem
+viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
+#viewer.add_points(AN_NW_ref_frame_fem, face_color='green', size =1, name='reference_frame_first_using_NW_fem')
 #%%
 #Step 13. find the transformation matrices, list of coordinates and minimized cost function values per frame 
 transformation_matrices_last, giant_list_last, cost_values_last = combined_consecutive_transform(new_tib_coords_last)
@@ -156,10 +156,10 @@ viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='green'
             
 #%%
 transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(new_tib_coords_first)
-viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='transformed_frame_using_NW')
+viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='transformed_frame_NW')
 #%%
 
-with open('AN_W_t_matrices_fem_using_NW_ref.pkl', 'wb') as file:
+with open('MK_NW_t_matrices_tib.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_first, file)
 #%%
 #for pickle load
