@@ -571,10 +571,10 @@ def process_frame(shapes_data):
         print("Uniform points shape:", uniform_points.shape)
         
         # Calculate PCA line points
-        #line_points = fit_pca_line(shape_coords[:, 1:])
+        line_points = fit_pca_line(shape_coords[:, 1:])
         #line_points = fit_pca_line(shape_coords) # when using binary mask 
-        line_points = fit_pca_line(uniform_points[:, 1:]) # when not using binary mask 
-        #print(line_points, 'the shape is', line_points.shape)
+        #line_points = fit_pca_line(uniform_points[:, 1:]) # when not using binary mask 
+        print(line_points, 'the line_points shape is', line_points.shape)
          
         # Get unit vectors
         U, V = get_uv_from_pca(line_points)
@@ -585,8 +585,8 @@ def process_frame(shapes_data):
         if not is_perpendicular_uv:
            print(f"Debug Check 1: For shape {idx}, U and V are not perpendicular.")
         # Compute centroid
-        #centroid = np.mean(shape_coords[:, 1:], axis=0)
-        centroid = np.mean(uniform_points[:, 1:], axis=0)
+        centroid = np.mean(shape_coords[:, 1:], axis=0)
+        #centroid = np.mean(uniform_points[:, 1:], axis=0)
         # Find extreme points
         
         extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=200))
