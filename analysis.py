@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -19,16 +19,17 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/26.01.24/MK_NW/re_assessing_using_first/MK_NW_fem_info.pkl', 'rb') as file:
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_fem_info.pkl', 'rb') as file:
     fem_info_NW =  pickle.load(file)
-#%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_t_matrices_tib.pkl', 'rb') as file:
-    t_matrices_tib =  pickle.load(file)
+    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_tib_info.pkl', 'rb') as file:
+    tib_info_NW =  pickle.load(file)    
+
 #%%    
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/US_W_tib_info.pkl', 'rb') as file:
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_W_tib_info_using_NW_ref.pkl', 'rb') as file:
     tib_info_W =  pickle.load(file)
     
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/US_W_fem_info.pkl', 'rb') as file:
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_W_fem_info_using_NW_ref.pkl', 'rb') as file:
     fem_info_W =  pickle.load(file)
 #%%
 

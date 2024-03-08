@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path ='C:/Users/Aayush/Documents/thesis_files/_first_march_data/01.03/MK_W_ai2_tgv_5e-2_neg_ngn.nii'
+path ='/data/projects/ma-nepal-segmentation/data/Nepal^Aayush/2024-03-08/39_MK_Radial_NW_CINE_30bpm_CGA/AN_NW_ai2_tgv_5e-2_neg_ngn.nii'
 #%%
-image = path_to_image(path)[1:]
+image = path_to_image(path)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='MK_NW')
+viewer = napari.view_image(image,  name='AN_NW')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
