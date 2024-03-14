@@ -1,5 +1,5 @@
 % $ biblatex auxiliary file $
-% $ biblatex bbl format version 2.9 $
+% $ biblatex bbl format version 3.2 $
 % Do not modify the above lines!
 %
 % This is an auxiliary file used by the 'biblatex' package.
@@ -19,39 +19,119 @@
 
 \refsection{0}
   \datalist[entry]{nyt/global//global/global}
-    \entry{brisson_novel_2022}{article}{}
+    \entry{aleksiev_high-resolution_2022}{article}{}
       \name{author}{6}{}{%
-        {{uniquename=0,uniquepart=base,hash=5d046e4f52fb6fc61dda554852a12724}{%
-           family={Brisson},
-           familyi={B\bibinitperiod},
-           given={Nicholas\bibnamedelima M.},
-           giveni={N\bibinitperiod\bibinitdelim M\bibinitperiod},
+        {{un=0,uniquepart=base,hash=d2db559402e43f32eef455d95363e254}{%
+           family={Aleksiev},
+           familyi={A\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=649d24f04a2ef7624293458d54b21dd8}{%
+        {{un=0,uniquepart=base,hash=649d24f04a2ef7624293458d54b21dd8}{%
            family={Krämer},
            familyi={K\bibinitperiod},
            given={Martin},
            giveni={M\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=f9d8d3b47fc7a634bdfdc1a27ec49915}{%
-           family={Krahl},
-           familyi={K\bibinitperiod},
-           given={Leonie\bibnamedelima A.N.},
-           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod},
+        {{un=0,uniquepart=base,hash=0ae0e98b5d713a2cc1085a4d3e61ffd4}{%
+           family={Brisson},
+           familyi={B\bibinitperiod},
+           given={Nicholas\bibnamedelima M.},
+           giveni={N\bibinitperiod\bibinitdelim M\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=e9356608ca3b129934d5552d1b57f3fd}{%
-           family={Schill},
-           familyi={S\bibinitperiod},
-           given={Alexander},
-           giveni={A\bibinitperiod},
+        {{un=0,uniquepart=base,hash=29573f447ac12f9f905a97f23e58deff}{%
+           family={Maggioni},
+           familyi={M\bibinitperiod},
+           given={Marta\bibnamedelima B.},
+           giveni={M\bibinitperiod\bibinitdelim B\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=0cf0f02a43cd3292bdd691b10fe91185}{%
+        {{un=0,uniquepart=base,hash=585aad513257402c0b7d7496f91b176c}{%
            family={Duda},
            familyi={D\bibinitperiod},
            given={Georg\bibnamedelima N.},
            giveni={G\bibinitperiod\bibinitdelim N\bibinitperiod},
            givenun=0}}%
-        {{uniquename=0,uniquepart=base,hash=c63c6d1685b85f82ca7f4ea77ac2d138}{%
+        {{un=0,uniquepart=base,hash=f9801e296a77f8b8b1816d89e64e9ee1}{%
+           family={Reichenbach},
+           familyi={R\bibinitperiod},
+           given={Jürgen\bibnamedelima R.},
+           giveni={J\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{49285e75da104beb491d0680070d29c1}
+      \strng{fullhash}{33f87aa106513a71c8590ae529cfc8e7}
+      \strng{bibnamehash}{49285e75da104beb491d0680070d29c1}
+      \strng{authorbibnamehash}{49285e75da104beb491d0680070d29c1}
+      \strng{authornamehash}{49285e75da104beb491d0680070d29c1}
+      \strng{authorfullhash}{33f87aa106513a71c8590ae529cfc8e7}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{To explore and extend on dynamic imaging of joint motion, an {MRI}-safe device guiding knee motion with an attached rotary encoder was used in {MRI} measurements of multiple knee flexion-extension cycles using radial gradient echo imaging with the golden-angle as azimuthal angle increment. Reproducibility of knee motion was investigated. Real-time and {CINE} mode anatomical images were reconstructed for different knee flexion angles by synchronizing the encoder information with the {MRI} data, and performing flexion angle selective gating across multiple motion cycles. When investigating the influence of the rotation angle window width on recon­ structed {CINE} images, it was found that angle windows between 0.5◦ and 3◦ exhibited acceptable image sharpness without suffering from significant motion-induced blurring. Furthermore, due to flexible retrospective image reconstruction afforded by the radial golden-angle imaging, the number of motion cycles included in the reconstruction could be retrospectively reduced to investigate the corresponding influence of acquisition time on image quality. Finally, motion reproducibility between motion cycles and accuracy of the flexion angle selective gating were sufficient to acquire whole-knee 3D dynamic imaging with a retrospectively gated 3D cone {UTE} sequence.}
+      \field{issn}{0730725X}
+      \field{journaltitle}{Magnetic Resonance Imaging}
+      \field{langid}{english}
+      \field{month}{10}
+      \field{shortjournal}{Magnetic Resonance Imaging}
+      \field{title}{High-resolution {CINE} imaging of active guided knee motion using continuously acquired golden-angle radial {MRI} and rotary sensor information}
+      \field{urlday}{12}
+      \field{urlmonth}{2}
+      \field{urlyear}{2024}
+      \field{volume}{92}
+      \field{year}{2022}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{161\bibrangedash 168}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1016/j.mri.2022.06.015
+      \endverb
+      \verb{file}
+      \verb Aleksiev et al. - 2022 - High-resolution CINE imaging of active guided knee.pdf:C\:\\Users\\Aayush\\Zotero\\storage\\LASX48WR\\Aleksiev et al. - 2022 - High-resolution CINE imaging of active guided knee.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0730725X22001096
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S0730725X22001096
+      \endverb
+    \endentry
+    \entry{brisson_novel_2022}{article}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=0ae0e98b5d713a2cc1085a4d3e61ffd4}{%
+           family={Brisson},
+           familyi={B\bibinitperiod},
+           given={Nicholas\bibnamedelima M.},
+           giveni={N\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=649d24f04a2ef7624293458d54b21dd8}{%
+           family={Krämer},
+           familyi={K\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=63de0be4c29420f3b6b40bfc9ef7f304}{%
+           family={Krahl},
+           familyi={K\bibinitperiod},
+           given={Leonie\bibnamedelima A.N.},
+           giveni={L\bibinitperiod\bibinitdelim A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e9356608ca3b129934d5552d1b57f3fd}{%
+           family={Schill},
+           familyi={S\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=585aad513257402c0b7d7496f91b176c}{%
+           family={Duda},
+           familyi={D\bibinitperiod},
+           given={Georg\bibnamedelima N.},
+           giveni={G\bibinitperiod\bibinitdelim N\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f9801e296a77f8b8b1816d89e64e9ee1}{%
            family={Reichenbach},
            familyi={R\bibinitperiod},
            given={Jürgen\bibnamedelima R.},
@@ -61,16 +141,16 @@
       \list{language}{1}{%
         {en}%
       }
-      \strng{namehash}{bc668b3d35169ebe042e1e1e27d147ba}
-      \strng{fullhash}{f058b41a544fdf7781ab610b2b5c4e70}
-      \strng{bibnamehash}{bc668b3d35169ebe042e1e1e27d147ba}
-      \strng{authorbibnamehash}{bc668b3d35169ebe042e1e1e27d147ba}
-      \strng{authornamehash}{bc668b3d35169ebe042e1e1e27d147ba}
-      \strng{authorfullhash}{f058b41a544fdf7781ab610b2b5c4e70}
+      \strng{namehash}{0f07472d203ea450f4deee9c17f85f56}
+      \strng{fullhash}{6336c6cc7656e8cd4fe3e7864a5e05ae}
+      \strng{bibnamehash}{0f07472d203ea450f4deee9c17f85f56}
+      \strng{authorbibnamehash}{0f07472d203ea450f4deee9c17f85f56}
+      \strng{authornamehash}{0f07472d203ea450f4deee9c17f85f56}
+      \strng{authorfullhash}{6336c6cc7656e8cd4fe3e7864a5e05ae}
       \field{sortinit}{B}
-      \field{sortinithash}{276475738cc058478c1677046f857703}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
       \field{extradatescope}{labelyear}
-      \field{labeldatesource}{year}
+      \field{labeldatesource}{}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Introduction: This work aimed to develop a novel multipurpose device for guided knee ﬂexion-extension, both passively using a motorized pneumatic system and actively (muscle-driven) with the joint unloaded or loaded during dynamic MRI. Secondary objectives were to characterize the participant experience during device use, and present preliminary dynamic MRI data to demonstrate the different device capabilities. Material and methods: Self-reported outcomes were used to characterize the pain, physical exertion and discomfort levels experienced by 10 healthy male participants during four different active knee motion and loading protocols using the novel device. Knee angular data were recorded during the protocols to determine the maximum knee range of motion achievable. Dynamic MRI was acquired for three healthy volunteers during passive, unloaded knee motion using 2D Cartesian TSE, 2D radial GRE and 3D UTE sequences; and during active, unloaded and loaded knee motion using 2D radial GRE imaging. Because of the different MRI sequences used, spatial resolution was inherently lower for active knee motion than for passive motion acquisitions. Results: Depending on the protocol, some participants reported slight pain, mild discomfort and varying levels of physical exertion. On average, participants achieved ∼40◦ of knee ﬂexion; loaded conditions can create knee moments up to 27 Nm. High quality imaging data were obtained during different motion and loading conditions. Dynamic 3D data allowed to retrospectively extract arbitrarily oriented slices. Conclusion: A novel multipurpose device for guided, physiologically relevant knee motion and loading during dynamic MRI was developed. Device use was well tolerated and suitable for acquiring high quality images during different motion and loading conditions. Different bone positions between loaded and unloaded conditions were likely due to out-of-plane motion, particularly because image registration was not performed. Ultimately, this device could be used to advance our understanding of physiological and pathological joint mechanics.}
@@ -102,7 +182,7 @@
     \endentry
     \entry{canny_computational_1986}{article}{}
       \name{author}{1}{}{%
-        {{uniquename=0,uniquepart=base,hash=fa344b67077711bfaa0525254de2977a}{%
+        {{un=0,uniquepart=base,hash=fa344b67077711bfaa0525254de2977a}{%
            family={Canny},
            familyi={C\bibinitperiod},
            given={John},
@@ -116,7 +196,7 @@
       \strng{authornamehash}{fa344b67077711bfaa0525254de2977a}
       \strng{authorfullhash}{fa344b67077711bfaa0525254de2977a}
       \field{sortinit}{C}
-      \field{sortinithash}{963e9d84a3da2344e8833203de5aed05}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
       \field{labelnamesource}{author}
