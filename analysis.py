@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -21,8 +21,8 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 #%%
 with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_fem_info.pkl', 'rb') as file:
     fem_info_NW =  pickle.load(file)
-    
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_tib_info.pkl', 'rb') as file:
+#%%    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MM/03.08/MM_NW_t_matrices_tib.pkl', 'rb') as file:
     tib_info_NW =  pickle.load(file)    
 
 #%%    
@@ -155,7 +155,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2024-03-08/108_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path1 = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MM/03.08/MM_NW_ai2_tgv_5e-2_neg_ngn.nii'
 image1 = path_to_image(path1)[2:]
 #%%
 viewer1 = napari.view_image(image1)
@@ -188,28 +188,30 @@ for frame_number in range(number_of_frames):
 '''
 #%%
 # add the reference points and manually segment the reference frame 
-viewer1.add_shapes(reference_frame_first, shape_type='polygon')
+#viewer1.add_shapes(reference_frame_first, shape_type='polygon')
+viewer1.add_shapes(MM_NW_ref_frame, shape_type='polygon')
+
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-#ref_points = viewer1.layers['expanded_fem'].data[0]
-ref_points = viewer1.layers['AN_NW_fem_shape'].data[0][:,1:3]
+ref_points = viewer1.layers['expanded_tib'].data[0]
+#ref_points = viewer1.layers['AN_NW_fem_shape'].data[0][:,1:3]
 #%%
-applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
+applied_transformation = apply_transformations_new(ref_points, tib_info_NW, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
 
 #%%
 # tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
-tib_label = final_label
+tib_label = MM_NW_final_label
 
 total_frames = len(tib_label) 
 desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["fem_W"].to_labels(image1.shape)
+disp_layer = viewer1.layers["tib_NW_shape"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(70,350)
-yrange=slice(150,350)
+xrange=slice(150,500)
+yrange=slice(160,350)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
     ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
@@ -219,7 +221,7 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('AN_W_segmented_fem.svg')
+plt.savefig('MM_NW_segmented_tib.svg')
 
 #%%
 shapes_data = viewer1.layers['AN_NW_fem_shape'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
