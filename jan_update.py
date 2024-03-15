@@ -23,13 +23,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path ='/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2024-03-08/107_MK_Radial_W_CINE_30bpm_CGA/MM_W_ai2_tgv_5e-2_neg_ngn.nii'
+path = '/data/projects/ma-nepal-segmentation/data/Schulz^Helena/2024-03-15/63_MK_Radial_W_CINE_30bpm_CGA/HS_W_ai2_tgv_5e-2_neg_ngn.nii'
 #%%
 image = path_to_image(path)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(image,  name='MM_W')
+viewer = napari.view_image(image,  name='HS_W')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -62,7 +62,7 @@ canny_multi_edge = apply_canny_multiple_thresholds(image, low_range, high_range,
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='MM_W')
+viewer3.add_image(canny_multi_edge, name='HS_W')
 #%%
 #Step 5: pick the right index and add it to viewer
 tib_canny = canny_multi_edge[9]
