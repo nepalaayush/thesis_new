@@ -534,8 +534,9 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
         perp_line = LineString([point - 150 * V, point + 150 * V]) # using 150 instead of 50 
 
         # Convert shape coordinates to LineString
-        shape_line = LineString(shape_coords[:, 1:])
-
+        #shape_line = LineString(shape_coords[:, 1:])
+        shape_line = LineString(shape_coords)
+        
         # Find intersection
         intersection = perp_line.intersection(shape_line)
 
@@ -608,6 +609,47 @@ def process_frame(shapes_data):
             "points_short_axis": extreme_points,
             "origin": intersection
         }
+    return results
+
+
+def process_single_frame(binary_coords):
+    # Calculate PCA line points
+    line_points = fit_pca_line(binary_coords) # when using binary mask 
+    #line_points = fit_pca_line(uniform_points[:, 1:]) # when not using binary mask 
+    print(line_points, 'the line_points shape is', line_points.shape)
+     
+    # Get unit vectors
+    U, V = get_uv_from_pca(line_points)
+    
+    
+    # Debug Check 1: Check if U and V are perpendicular
+    is_perpendicular_uv = np.abs(np.dot(U, V)) < 1e-5
+    if not is_perpendicular_uv:
+       print("Debug Check 1: For shape, U and V are not perpendicular.")
+    # Compute centroid
+    centroid = np.mean(binary_coords, axis=0)
+    # Find extreme points
+    
+    extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, binary_coords, num_points=200))
+    # Debug check 2: check if the extreme points line is indeed perpendicualr to U  
+    extreme_vector = extreme_points[1] - extreme_points[0]
+    is_perpendicular_extreme = np.abs(np.dot(extreme_vector, U)) < 1e-5
+    
+    if not is_perpendicular_extreme:
+        print('Debug Check 2: For shape, extreme poitns line is not perp to U ')
+    #viewer.add_points(extreme_points) 
+    # Compute intersection
+    intersection = find_intersection(line_points[0], line_points[1], extreme_points[0], extreme_points[1])
+    
+    results = {
+        "points_long_axis": line_points,
+        "U": U,
+        "V": V,
+        "centroid": centroid,
+        "points_short_axis": extreme_points,
+        "origin": intersection
+    }
+    
     return results
 
 def show_origin(all_frame_data, viewer):
