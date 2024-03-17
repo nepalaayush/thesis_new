@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import matplotlib.pylab as plt 
@@ -32,10 +32,11 @@ with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analy
 with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_W_fem_info_using_NW_ref.pkl', 'rb') as file:
     fem_info_W =  pickle.load(file)
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MM/03.08/MM_W_t_matrices_tib.pkl', 'rb') as file:
-    t_matrices_W =  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_W_t_matrices_fem_using_NW_ref.pkl', 'rb') as file:
+    AN_t_matrices_W_fem =  pickle.load(file)
 
-    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_W_t_matrices_tib_using_NW_ref.pkl', 'rb') as file:
+    AN_t_matrices_W_tib =  pickle.load(file)    
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, residuals_color, ax=None):
@@ -160,7 +161,7 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2024-03-08/107_MK_Radial_W_CINE_30bpm_CGA/MM_W_ai2_tgv_5e-2_neg_ngn.nii'
+path1 ='C:/Users/Aayush/Documents/thesis_files/_first_march_data/01.03/MK_W_ai2_tgv_5e-2_neg_ngn.nii'
 image1 = path_to_image(path1)
 #%%
 viewer1 = napari.view_image(image1)
@@ -193,30 +194,31 @@ for frame_number in range(number_of_frames):
 '''
 #%%
 # add the reference points and manually segment the reference frame 
-#viewer1.add_shapes(reference_frame_first, shape_type='polygon')
-viewer1.add_shapes(MM_NW_ref_frame, shape_type='polygon')
+viewer1.add_shapes(reference_frame_first, shape_type='polygon')
+#viewer1.add_shapes(MM_NW_ref_frame, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-#ref_points = viewer1.layers['expanded_tib'].data[0]
-ref_points = viewer1.layers['MM_NW_tib_shape'].data[0][:,1:3]
+#ref_points = viewer1.layers['expanded_fem'].data[0]
+ref_points = viewer1.layers['MK_NW_tib_shape'].data[0][:,1:3]
 #%%
-applied_transformation = apply_transformations_new(ref_points, t_matrices_W, 0)    
-viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='green')
+applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
+viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
 
 #%%
 # tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
-tib_label = MM_W_final_label_tib
+tib_label = final_label
 
 total_frames = len(tib_label) 
 desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["MM_W_tib_shape"].to_labels(image1.shape)
+disp_layer = viewer1.layers["MK_W_tib_shape"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(150,500)
-yrange=slice(160,350)
+xrange=slice(150,480)
+#xrange = slice(80,350)
+yrange=slice(140,350)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
     ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
@@ -226,11 +228,13 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('MM_W_segmented_tib.svg')
+plt.savefig('MK_W_segmented_tib.svg')
 
 #%%
-shapes_data = viewer1.layers['MM_W_tib_shape'].data  # need to reverse if last frame is extended (or in the future, simply reverse the source image)
-binary_frame = (viewer1.layers['MM_W_tib_shape_binary'].data == 1 )[0] 
+shapes_data = viewer1.layers['MK_W_tib_shape']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+#binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
+binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
+
 binary_coords = np.column_stack(np.where(binary_frame))
 
 
@@ -250,31 +254,15 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
     for i, arr in enumerate(transformed_info):
         transformed_dicts.update(reconstruct_dict(i, arr))
 
-    return transformed_dicts, single_shape_info
+    return transformed_dicts
 
-tib_info_W, shape_info = process_and_transform_shapes(binary_coords, t_matrices_W, 0)
+MK_W_tib_info = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+
 
 #%%
-  # this has shape (frame, y ,x ) so the first is actually the binary iamge of the first frame only 
-viewer1.add_image(binary_frame)
+show_stuff(MK_W_tib_info, 'MK_tib_W', viewer1)
 #%%
-binary_coords = np.column_stack(np.where(binary_frame))
-single_frame_process= process_single_frame(binary_coords)
-#%%
-
-single_shape_ori = process_frame([shapes_data[0]])
-#%%
-'''
-needs a lot more work so just leave it as is 
-shapes_data_test = viewer1.layers['tibia_NW copy'].data.astype(bool)
-shape_data_coords = boolean_to_coords(shapes_data_test)
-single_frame_true_values = shapes_for_napari(shape_data_coords)[0]
-single_tib_binary = process_frame([single_frame_true_values])
-'''
-#%%
-show_stuff(tib_info_W, 'tib_W', viewer1)
-#%%
-show_stuff(fem_info_W, 'fem_W', viewer1)
+show_stuff(MK_W_fem_info, 'MK_fem_W', viewer1)
 
 #%%
 screenshots = []
@@ -318,7 +306,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_AN_W_both_bones.svg'
+    output_path = 'mosaic_MK_W_both_bones.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -490,11 +478,29 @@ def plot_translations(all_frame_info, point_name, label, plot_type):
     #plt.show()
     return np.array ( translations_mm ) 
 
-is_W_tib = plot_translations(tib_info_W, 'centroid', label='loaded', plot_type='IS')
+MK_W_is_fem = plot_translations(MK_W_fem_info, 'centroid', label='loaded', plot_type='IS')
+MK_NW_is_fem = plot_translations(MK_NW_fem_info, 'centroid', label='unloaded', plot_type='IS')
+
 #%%
-ap_NW_tib = plot_translations(tib_info_NW, 'centroid', label='unloaded', plot_type='AP')
+MK_W_ap_fem = plot_translations(MK_W_fem_info, 'centroid', label='loaded', plot_type='AP')
+MK_NW_ap_fem = plot_translations(MK_NW_fem_info, 'centroid', label='unloaded', plot_type='AP')
+#%%
+MK_W_is_tib = plot_translations(MK_W_tib_info, 'centroid', label='loaded', plot_type='IS')
+MK_NW_is_tib = plot_translations(MK_NW_tib_info, 'centroid', label='unloaded', plot_type='IS')
 
+#%%
+MK_W_ap_tib = plot_translations(MK_W_tib_info, 'centroid', label='loaded', plot_type='AP')
+MK_NW_ap_tib = plot_translations(MK_NW_tib_info, 'centroid', label='unloaded', plot_type='AP')
+#%%
 
+def tib_relative_to_fem(tib_array, fem_array):
+    return tib_array - fem_array 
+
+MK_ap_W_tib_rel = tib_relative_to_fem(MK_W_ap_tib, MK_W_ap_fem)
+MK_is_W_tib_rel = tib_relative_to_fem(MK_W_is_tib, MK_W_is_fem)
+#%%
+MK_ap_NW_tib_rel = tib_relative_to_fem(MK_NW_ap_tib, MK_NW_ap_fem)
+MK_is_NW_tib_rel = tib_relative_to_fem(MK_NW_is_tib, MK_NW_is_fem)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
     """
@@ -559,11 +565,11 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', 
         plt.savefig(f'{name}_Angle_betwn_long_axes.svg')
     
 
-    return angles
+    return np.array(angles)
 #%%
 plt.figure(figsize=(10, 6))
-angles_W = calculate_and_plot_angles_between_bones(fem_info_W, tib_info_W, name='MK_W', new_figure=False)
-angles_NW = calculate_and_plot_angles_between_bones(fem_info_NW, tib_info_NW, name='MK_NW',new_figure=True )
+#angles_W = calculate_and_plot_angles_between_bones(fem_info_W, tib_info_W, name='MM_W', new_figure=False)
+MK_angles_W = calculate_and_plot_angles_between_bones(MK_W_fem_info, MK_W_tib_info, name='MK_W',new_figure=True )
 plt.show()
 #%%
 def calculate_and_plot_angles_with_theoretical_line(bone1, bone2, axis='long'):
@@ -682,11 +688,11 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('AN_W_tib_ap.pkl', 'wb') as f:
-    pickle.dump(ap_W_tib, f)
+with open('MK_W_tib_info.pkl', 'wb') as f:
+    pickle.dump(MK_W_tib_info, f)
 #%%    
-with open('AN_W_fem_info_using_NW_ref.pkl', 'wb') as f:
-    pickle.dump(fem_info_W, f)
+with open('AN_NW_fem_info.pkl', 'wb') as f:
+    pickle.dump(AN_fem_info_NW, f)
 #%%
 with open('MK_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(transformed_dicts_fem, f)

@@ -531,7 +531,7 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
 
     for point in long_axis_points:
         # Create line segment perpendicular to the long axis
-        perp_line = LineString([point - 150 * V, point + 150 * V]) # using 150 instead of 50 
+        perp_line = LineString([point - 250 * V, point + 250 * V]) # using 150 instead of 50 
 
         # Convert shape coordinates to LineString
         #shape_line = LineString(shape_coords[:, 1:])
@@ -539,7 +539,7 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
         
         # Find intersection
         intersection = perp_line.intersection(shape_line)
-
+        '''
         if isinstance(intersection, MultiPoint):
             points_list = intersection.geoms
             if len(points_list) >= 2:
@@ -547,8 +547,19 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
                 if dist > widest_distance:
                     widest_distance = dist
                     widest_points = [list(points_list[0].coords)[0], list(points_list[-1].coords)[0]]
-
-    return np.array(widest_points)
+                    '''
+        
+        if isinstance(intersection, MultiPoint) and len(intersection.geoms) >= 2:
+            # Check every pair of points to find the maximum distance
+            for i in range(len(intersection.geoms)):
+                for j in range(i+1, len(intersection.geoms)):
+                    dist = intersection.geoms[i].distance(intersection.geoms[j])
+                    if dist > widest_distance:
+                        widest_distance = dist
+                        widest_points = [list(intersection.geoms[i].coords)[0],
+                                         list(intersection.geoms[j].coords)[0]]
+        
+    return np.array(widest_points) if widest_points is not None else None
 
 def find_intersection(A, B, E, F):
     m1 = (B[1] - A[1]) / (B[0] - A[0])
