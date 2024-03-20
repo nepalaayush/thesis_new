@@ -13,30 +13,41 @@ import matplotlib.pylab as plt
 
 mytext_W = """
 
-2024-03-04 14:06:40,536 pymri        INFO     02: Reconstructing Frame using 681 spokes for angle -37 deg. Avg slope: -15.79°/s +/- 6.32°/s
-2024-03-04 14:06:49,619 pymri        INFO     03: Reconstructing Frame using 915 spokes for angle -35 deg. Avg slope: -14.29°/s +/- 4.22°/s
-2024-03-04 14:06:59,863 pymri        INFO     04: Reconstructing Frame using 989 spokes for angle -33 deg. Avg slope: -13.81°/s +/- 3.81°/s
-2024-03-04 14:07:10,957 pymri        INFO     05: Reconstructing Frame using 1008 spokes for angle -31 deg. Avg slope: -13.31°/s +/- 2.98°/s
-2024-03-04 14:07:21,915 pymri        INFO     06: Reconstructing Frame using 1405 spokes for angle -29 deg. Avg slope: -9.61°/s +/- 3.04°/s
-2024-03-04 14:07:35,470 pymri        INFO     07: Reconstructing Frame using 1424 spokes for angle -27 deg. Avg slope: -9.58°/s +/- 2.89°/s
-2024-03-04 14:07:49,173 pymri        INFO     08: Reconstructing Frame using 1586 spokes for angle -25 deg. Avg slope: -8.70°/s +/- 3.26°/s
-2024-03-04 14:08:03,713 pymri        INFO     09: Reconstructing Frame using 1327 spokes for angle -23 deg. Avg slope: -10.40°/s +/- 3.03°/s
-2024-03-04 14:08:16,981 pymri        INFO     10: Reconstructing Frame using 1268 spokes for angle -21 deg. Avg slope: -10.92°/s +/- 2.66°/s
-2024-03-04 14:08:29,528 pymri        INFO     11: Reconstructing Frame using 916 spokes for angle -19 deg. Avg slope: -14.76°/s +/- 4.75°/s
+024-03-01 18:11:57,488 pymri        INFO     00: Reconstructing Frame using 42 spokes for angle -47 deg. Avg slope: 9.58°/s +/- 5.09°/s
+2024-03-01 18:12:04,801 pymri        INFO     01: Reconstructing Frame using 255 spokes for angle -45 deg. Avg slope: 9.55°/s +/- 5.25°/s
+2024-03-01 18:12:10,969 pymri        INFO     02: Reconstructing Frame using 687 spokes for angle -43 deg. Avg slope: 13.58°/s +/- 6.74°/s
+2024-03-01 18:12:19,703 pymri        INFO     03: Reconstructing Frame using 751 spokes for angle -41 deg. Avg slope: 18.14°/s +/- 5.86°/s
+2024-03-01 18:12:29,013 pymri        INFO     04: Reconstructing Frame using 643 spokes for angle -39 deg. Avg slope: 21.46°/s +/- 3.66°/s
+2024-03-01 18:12:37,691 pymri        INFO     05: Reconstructing Frame using 633 spokes for angle -37 deg. Avg slope: 21.72°/s +/- 3.57°/s
+2024-03-01 18:12:46,144 pymri        INFO     06: Reconstructing Frame using 669 spokes for angle -35 deg. Avg slope: 20.71°/s +/- 3.34°/s
+2024-03-01 18:12:54,938 pymri        INFO     07: Reconstructing Frame using 665 spokes for angle -33 deg. Avg slope: 20.60°/s +/- 3.97°/s
+2024-03-01 18:13:03,586 pymri        INFO     08: Reconstructing Frame using 709 spokes for angle -31 deg. Avg slope: 19.55°/s +/- 3.39°/s
+2024-03-01 18:13:12,619 pymri        INFO     09: Reconstructing Frame using 735 spokes for angle -29 deg. Avg slope: 18.80°/s +/- 4.10°/s
+2024-03-01 18:13:21,833 pymri        INFO     10: Reconstructing Frame using 706 spokes for angle -27 deg. Avg slope: 19.48°/s +/- 3.43°/s
+2024-03-01 18:13:30,654 pymri        INFO     11: Reconstructing Frame using 855 spokes for angle -25 deg. Avg slope: 16.10°/s +/- 4.15°/s
+2024-03-01 18:13:40,495 pymri        INFO     12: Reconstructing Frame using 1125 spokes for angle -23 deg. Avg slope: 12.27°/s +/- 4.03°/s
+2024-03-01 18:13:52,201 pymri        INFO     13: Reconstructing Frame using 1477 spokes for angle -21 deg. Avg slope: 9.35°/s +/- 3.38°/s
+2024-03-01 18:14:06,013 pymri        INFO     14: Reconstructing Frame using 1598 spokes for angle -19 deg. Avg slope: 8.62°/s +/- 2.90°/s
+
 """ 
 
 
 mytext_NW = """ 
-2024-03-04 14:15:43,856 pymri        INFO     00: Reconstructing Frame using 77 spokes for angle -37 deg. Avg slope: -14.10°/s +/- 5.43°/s
-2024-03-04 14:15:50,208 pymri        INFO     01: Reconstructing Frame using 537 spokes for angle -35 deg. Avg slope: -9.31°/s +/- 4.49°/s
-2024-03-04 14:15:58,121 pymri        INFO     02: Reconstructing Frame using 1012 spokes for angle -33 deg. Avg slope: -9.66°/s +/- 4.03°/s
-2024-03-04 14:16:09,287 pymri        INFO     03: Reconstructing Frame using 1263 spokes for angle -31 deg. Avg slope: -10.68°/s +/- 3.36°/s
-2024-03-04 14:16:21,643 pymri        INFO     04: Reconstructing Frame using 1464 spokes for angle -29 deg. Avg slope: -9.45°/s +/- 2.92°/s
-2024-03-04 14:16:35,369 pymri        INFO     05: Reconstructing Frame using 1424 spokes for angle -27 deg. Avg slope: -9.66°/s +/- 2.27°/s
-2024-03-04 14:16:48,856 pymri        INFO     06: Reconstructing Frame using 1804 spokes for angle -25 deg. Avg slope: -7.65°/s +/- 2.21°/s
-2024-03-04 14:17:04,556 pymri        INFO     07: Reconstructing Frame using 1848 spokes for angle -23 deg. Avg slope: -7.44°/s +/- 2.48°/s
-2024-03-04 14:17:20,475 pymri        INFO     08: Reconstructing Frame using 1555 spokes for angle -21 deg. Avg slope: -8.83°/s +/- 3.03°/s
-2024-03-04 14:17:35,124 pymri        INFO     09: Reconstructing Frame using 1102 spokes for angle -19 deg. Avg slope: -12.17°/s +/- 2.97°/s
+2024-03-04 13:27:55,953 pymri        INFO     00: Reconstructing Frame using 43 spokes for angle -47 deg. Avg slope: -9.26°/s +/- 3.90°/s
+2024-03-04 13:28:01,944 pymri        INFO     01: Reconstructing Frame using 274 spokes for angle -45 deg. Avg slope: -8.84°/s +/- 4.87°/s
+2024-03-04 13:28:08,368 pymri        INFO     02: Reconstructing Frame using 815 spokes for angle -43 deg. Avg slope: -11.48°/s +/- 5.33°/s
+2024-03-04 13:28:18,336 pymri        INFO     03: Reconstructing Frame using 969 spokes for angle -41 deg. Avg slope: -14.00°/s +/- 4.05°/s
+2024-03-04 13:28:29,148 pymri        INFO     04: Reconstructing Frame using 1008 spokes for angle -39 deg. Avg slope: -13.68°/s +/- 3.61°/s
+2024-03-04 13:28:40,391 pymri        INFO     05: Reconstructing Frame using 968 spokes for angle -37 deg. Avg slope: -14.21°/s +/- 4.06°/s
+2024-03-04 13:28:51,331 pymri        INFO     06: Reconstructing Frame using 1005 spokes for angle -35 deg. Avg slope: -13.79°/s +/- 3.72°/s
+2024-03-04 13:29:02,191 pymri        INFO     07: Reconstructing Frame using 886 spokes for angle -33 deg. Avg slope: -15.52°/s +/- 3.56°/s
+2024-03-04 13:29:12,788 pymri        INFO     08: Reconstructing Frame using 781 spokes for angle -31 deg. Avg slope: -17.81°/s +/- 4.18°/s
+2024-03-04 13:29:22,466 pymri        INFO     09: Reconstructing Frame using 692 spokes for angle -29 deg. Avg slope: -19.88°/s +/- 4.21°/s
+2024-03-04 13:29:31,446 pymri        INFO     10: Reconstructing Frame using 670 spokes for angle -27 deg. Avg slope: -20.41°/s +/- 5.35°/s
+2024-03-04 13:29:40,140 pymri        INFO     11: Reconstructing Frame using 635 spokes for angle -25 deg. Avg slope: -21.85°/s +/- 5.22°/s
+2024-03-04 13:29:48,693 pymri        INFO     12: Reconstructing Frame using 550 spokes for angle -23 deg. Avg slope: -25.21°/s +/- 4.52°/s
+2024-03-04 13:29:56,937 pymri        INFO     13: Reconstructing Frame using 506 spokes for angle -21 deg. Avg slope: -27.11°/s +/- 3.79°/s
+2024-03-04 13:30:04,942 pymri        INFO     14: Reconstructing Frame using 627 spokes for angle -19 deg. Avg slope: -22.24°/s +/- 4.40°/s
 """ 
 #%%
 def extract_data(text):
@@ -93,10 +104,10 @@ def plot_the_slope (angle1,slope1,std1, angle2,slope2,std2):
                     slope2 - std2, 
                     slope2 + std2, 
                     color='orange', alpha=0.1)
-    ax.axhline(-omega_NW, color='k', linestyle='--', label='Theoretical Speed ')
+    #ax.axhline(-omega_NW, color='k', linestyle='--', label='Theoretical Speed ')
     ax.grid()
     ax.legend()
-    plt.savefig('AN_01.03_both_slope_vs_angle.svg')
+    plt.savefig('MK_01.03_pos_vs_neg_NW_slope_vs_angle_reps.svg')
 
 plot_the_slope(angles_W_pos, avg_slopes_W_pos, std_devs_W_pos, angles_NW_pos, avg_slopes_NW_pos, std_devs_NW_pos)
 
@@ -116,7 +127,7 @@ def plot_the_std(angle1, std1, angle2, std2):
     
     ax.grid()
     ax.legend()
-    plt.savefig('AN_01.03_both_std_vs_angle.svg')
+    plt.savefig('MK_01.03_pos_vs_neg_NW_sd.svg')
     
 
 plot_the_std(angles_W_pos, std_devs_W_pos, angles_NW_pos, std_devs_NW_pos)    
