@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.2.11)  10 MAR 2024 19:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.2.11)  18 MAR 2024 20:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -617,18 +617,18 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 ] [1
 
 ]
-Overfull \hbox (89.11998pt too wide) in paragraph at lines 128--130
+Overfull \hbox (89.11998pt too wide) in paragraph at lines 131--133
 []\OT1/cmr/m/n/12 Central to this de-vice's func-tion-al-ity is an op-ti-cal fi
 ber po-si-tion sen-sor $[]$(MR338-
  []
 
 
-Overfull \hbox (30.45216pt too wide) in paragraph at lines 128--130
+Overfull \hbox (30.45216pt too wide) in paragraph at lines 131--133
 \OT1/cmr/m/n/12 the MRI pro-to-col. $[]$ 
  []
 
 [2] [3] [4]
-Overfull \hbox (16.07416pt too wide) in paragraph at lines 184--184
+Overfull \hbox (16.07416pt too wide) in paragraph at lines 187--187
 \OT1/cmr/m/it/12 IEEE Trans-ac-tions on Pat-tern Anal-y-sis and Ma-chine In-tel
 -li-gence \OT1/cmr/m/n/12 PAMI-8.6, pp. 679{
  []
@@ -638,7 +638,7 @@ Overfull \hbox (16.07416pt too wide) in paragraph at lines 184--184
 ] [6
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 196--196
+Underfull \hbox (badness 10000) in paragraph at lines 199--199
 
  []
 
@@ -649,32 +649,43 @@ Underfull \hbox (badness 10000) in paragraph at lines 196--196
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
-Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: B070F0D0B3327BA817748F6CFF7F9B52;4614.
+
+
+Package rerunfilecheck Warning: File `thesis.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `thesis.out':
+(rerunfilecheck)             Before: 9287CF175B6CC735874CEF9F2EE974F3;4774
+(rerunfilecheck)             After:  257BEEB9EA1556D54C2E1AABCE7765FD;4754.
 Package logreq Info: Writing requests to 'thesis.run.xml'.
 \openout1 = `thesis.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 16652 strings out of 474222
- 291600 string characters out of 5750209
+ 16655 strings out of 474222
+ 291654 string characters out of 5750209
  1934978 words of memory out of 5000000
- 38685 multiletter control sequences out of 15000+600000
+ 38686 multiletter control sequences out of 15000+600000
  564098 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  90i,8n,93p,2224b,1436s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/tex
-live/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><c:/texlive/202
-3/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/texlive/2023/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmr17.pfb><c:/texlive/2023/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmsl12.pfb><c:/texlive/2023/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmsy8.pfb><c:/texlive/2023/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmti12.pfb><c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt
-12.pfb>
-Output written on thesis.pdf (15 pages, 126004 bytes).
+
+pdfTeX warning (dest): name{subsubsection.1.1.1} has been referenced but does n
+ot exist, replaced by a fixed one
+
+<c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/texli
+ve/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><c:/texlive/2023/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/texlive/2023/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmr17.pfb><c:/texlive/2023/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmsl12.pfb><c:/texlive/2023/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmsy8.pfb><c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmti12.pfb><c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12
+.pfb>
+Output written on thesis.pdf (15 pages, 126165 bytes).
 PDF statistics:
- 297 PDF objects out of 1000 (max. 8388607)
- 261 compressed objects within 3 object streams
- 56 named destinations out of 1000 (max. 500000)
- 233 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 303 PDF objects out of 1000 (max. 8388607)
+ 267 compressed objects within 3 object streams
+ 58 named destinations out of 1000 (max. 500000)
+ 241 words of extra memory for PDF output out of 10000 (max. 10000000)
 
