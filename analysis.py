@@ -164,7 +164,7 @@ plot_cost_values(cost_values_first)
 path1 ='C:/Users/Aayush/Documents/thesis_files/_first_march_data/01.03/MK_W_ai2_tgv_5e-2_neg_ngn.nii'
 image1 = path_to_image(path1)
 #%%
-viewer1 = napari.view_image(image1)
+viewer1 = napari.view_image(full_image)
 #%%
 '''
 attempt to do animation but isnt working  too well . or cant figure out how to use it properly 
@@ -199,13 +199,14 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-#ref_points = viewer1.layers['expanded_fem'].data[0]
-ref_points = viewer1.layers['MK_NW_tib_shape'].data[0][:,1:3]
+ref_points = viewer1.layers['expanded_fem'].data[0]
+#ref_points = viewer1.layers['MK_NW_tib_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
 
 #%%
+image1 = full_image # added this because i directly opened this in the viiewer without path 
 # tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
 tib_label = final_label
 
@@ -214,10 +215,10 @@ desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["MK_W_tib_shape"].to_labels(image1.shape)
+disp_layer = viewer1.layers["fem_NW"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-xrange=slice(150,480)
-#xrange = slice(80,350)
+#xrange=slice(150,480)
+xrange = slice(80,350)
 yrange=slice(140,350)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
@@ -228,10 +229,10 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('MK_W_segmented_tib.svg')
+plt.savefig('MK_NW_segmented_fem_stiched.svg')
 
 #%%
-shapes_data = viewer1.layers['MK_W_tib_shape']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+shapes_data = viewer1.layers['fem_NW']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
 #binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
 binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
 
@@ -256,13 +257,13 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
 
     return transformed_dicts
 
-MK_W_tib_info = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+MK_NW_fem_info_stiched = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
 
 
 #%%
-show_stuff(MK_W_tib_info, 'MK_tib_W', viewer1)
+show_stuff(MK_NW_tib_info_stiched, 'MK_tib_NW_s', viewer1)
 #%%
-show_stuff(MK_W_fem_info, 'MK_fem_W', viewer1)
+show_stuff(MK_NW_fem_info_stiched, 'MK_fem_NW_s', viewer1)
 
 #%%
 screenshots = []
@@ -306,7 +307,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MK_W_both_bones.svg'
+    output_path = 'mosaic_MK_NW_both_bones_stiched.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -688,8 +689,8 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('MK_W_tib_info.pkl', 'wb') as f:
-    pickle.dump(MK_W_tib_info, f)
+with open('MK_NW_fem_info_stiched.pkl', 'wb') as f:
+    pickle.dump(MK_NW_fem_info_stiched, f)
 #%%    
 with open('AN_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(AN_fem_info_NW, f)
