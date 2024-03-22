@@ -11,6 +11,7 @@ os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
 #os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
+import pandas as pd
 import matplotlib.pylab as plt 
 import napari
 from sklearn.metrics import mean_absolute_error
@@ -161,10 +162,10 @@ def plot_cost_values(values):
 plot_cost_values(cost_values_first)
 #%%
 # use a unblurred image 
-path1 ='C:/Users/Aayush/Documents/thesis_files/_first_march_data/01.03/MK_W_ai2_tgv_5e-2_neg_ngn.nii'
+path1 = '/data/projects/ma-nepal-segmentation/data/Schulz^Helena/2024-03-15/63_MK_Radial_W_CINE_30bpm_CGA/HS_W_a2_rt_5e-2_neg.nii'
 image1 = path_to_image(path1)
 #%%
-viewer1 = napari.view_image(full_image)
+viewer1 = napari.view_image(image1)
 #%%
 '''
 attempt to do animation but isnt working  too well . or cant figure out how to use it properly 
@@ -199,8 +200,8 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_fem'].data[0]
-#ref_points = viewer1.layers['MK_NW_tib_shape'].data[0][:,1:3]
+#ref_points = viewer1.layers['expanded_fem'].data[0]
+ref_points = viewer1.layers['MK_NW_fem_shape_stiched'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
@@ -215,7 +216,7 @@ desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["fem_NW"].to_labels(image1.shape)
+disp_layer = viewer1.layers["fem_W"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
 #xrange=slice(150,480)
 xrange = slice(80,350)
@@ -229,10 +230,10 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('MK_NW_segmented_fem_stiched.svg')
+plt.savefig('MK_W_segmented_fem_stiched.svg')
 
 #%%
-shapes_data = viewer1.layers['fem_NW']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+shapes_data = viewer1.layers['fem_W']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
 #binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
 binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
 
@@ -257,13 +258,13 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
 
     return transformed_dicts
 
-MK_NW_fem_info_stiched = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+MK_W_fem_info_stiched = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
 
 
 #%%
-show_stuff(MK_NW_tib_info_stiched, 'MK_tib_NW_s', viewer1)
+show_stuff(MK_W_tib_info_stiched, 'MK_tib_W_s', viewer1)
 #%%
-show_stuff(MK_NW_fem_info_stiched, 'MK_fem_NW_s', viewer1)
+show_stuff(MK_W_fem_info_stiched, 'MK_fem_W_s', viewer1)
 
 #%%
 screenshots = []
@@ -307,13 +308,40 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MK_NW_both_bones_stiched.svg'
+    output_path = 'mosaic_MK_W_both_bones_stiched.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
     return output_path
 
 mosaic_path = create_mosaic_matplotlib(screenshots, total_frames=len(image1))
+
+#%%
+''' the code below attempts to take the screenshot of each frame and then save each file individually to later on create a giif.  '''
+import os
+import imageio
+
+# Directory to save screenshots
+output_dir = "screenshots"
+os.makedirs(output_dir, exist_ok=True)
+
+axis_index = 0
+number_of_frames = len(image1)
+
+for frame_index in range(number_of_frames):
+    viewer1.dims.set_point(axis_index, frame_index)
+    screenshot = viewer1.screenshot()
+    screenshot_path = os.path.join(output_dir, f"frame_{frame_index:04d}.png")
+    imageio.imwrite(screenshot_path, screenshot)
+ 
+
+#%%
+''' this should now take the directory containing the frames and create a gif  '''
+with imageio.get_writer('Realtime_animation.gif', mode='I') as writer:
+    for i in range(number_of_frames):
+        frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
+        frame = imageio.imread(frame_path)
+        writer.append_data(frame)
 
 
 #%%
@@ -439,69 +467,7 @@ centroid_dist_NW = calculate_distance_betwn_origins(tib_info_NW, fem_info_NW, 'c
 origin_dist_W = calculate_distance_betwn_origins(tib_info_W, fem_info_W, 'origin', label='loaded')
 origin_dist_NW = calculate_distance_betwn_origins(tib_info_NW, fem_info_NW, 'origin', label='unloaded')
 
-#%%
-voxel_size = [0.7272727272727273 / 1.5, 0.7272727272727273 / 1.5]
-def plot_translations(all_frame_info, point_name, label, plot_type):
-    # Sort frames for consistent ordering
-    sorted_frames = sorted(all_frame_info)
-    
-    # Extract x and y coordinates of the point for each frame
-    y_coords = [all_frame_info[frame][point_name][0] for frame in sorted_frames]
-    x_coords = [all_frame_info[frame][point_name][1] for frame in sorted_frames]
-    
-    translations_mm = []
-      
-    # Plot A-P translations
-    if plot_type== 'AP':
-        ap_translations = [x - x_coords[0] for x in x_coords]
-        translations_mm = [ap * voxel_size[1] for ap in ap_translations]
-        plt.plot(sorted_frames, translations_mm, label=f'A-P Translation {label}')
-        plt.axhline(0, color='gray', linewidth=0.5)  # Zero line for reference
-        plt.xlabel('Frame Number')
-        plt.ylabel('Translation (mm)')
-        plt.title('Anterior-Posterior Translation over Time')
-        plt.legend()
-        plt.grid(True)
-    #plt.show()
-    
-    # Plot I-S translations
-    if plot_type== 'IS':
-        is_translations = [y_coords[0] - y  for y in y_coords] # so that positive means decrease in y value, positive is superior 
-        translations_mm = [is_ * voxel_size[0] for is_ in is_translations]
-        #plt.figure(figsize=(10, 5))
-        plt.plot(sorted_frames, translations_mm, label=f'I-S Translation {label}')
-        plt.axhline(0, color='gray', linewidth=0.5)  # Zero line for reference
-        plt.xlabel('Frame Number')
-        plt.ylabel('Translation (mm)')
-        plt.title('Inferior-Superior Translation over Time')
-        plt.legend()
-        plt.grid(True)
-    #plt.show()
-    return np.array ( translations_mm ) 
 
-MK_W_is_fem = plot_translations(MK_W_fem_info, 'centroid', label='loaded', plot_type='IS')
-MK_NW_is_fem = plot_translations(MK_NW_fem_info, 'centroid', label='unloaded', plot_type='IS')
-
-#%%
-MK_W_ap_fem = plot_translations(MK_W_fem_info, 'centroid', label='loaded', plot_type='AP')
-MK_NW_ap_fem = plot_translations(MK_NW_fem_info, 'centroid', label='unloaded', plot_type='AP')
-#%%
-MK_W_is_tib = plot_translations(MK_W_tib_info, 'centroid', label='loaded', plot_type='IS')
-MK_NW_is_tib = plot_translations(MK_NW_tib_info, 'centroid', label='unloaded', plot_type='IS')
-
-#%%
-MK_W_ap_tib = plot_translations(MK_W_tib_info, 'centroid', label='loaded', plot_type='AP')
-MK_NW_ap_tib = plot_translations(MK_NW_tib_info, 'centroid', label='unloaded', plot_type='AP')
-#%%
-
-def tib_relative_to_fem(tib_array, fem_array):
-    return tib_array - fem_array 
-
-MK_ap_W_tib_rel = tib_relative_to_fem(MK_W_ap_tib, MK_W_ap_fem)
-MK_is_W_tib_rel = tib_relative_to_fem(MK_W_is_tib, MK_W_is_fem)
-#%%
-MK_ap_NW_tib_rel = tib_relative_to_fem(MK_NW_ap_tib, MK_NW_ap_fem)
-MK_is_NW_tib_rel = tib_relative_to_fem(MK_NW_is_tib, MK_NW_is_fem)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
     """
@@ -567,6 +533,174 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', 
     
 
     return np.array(angles)
+#%%
+def tib_relative_to_fem(tib_array, fem_array):
+    return tib_array - fem_array 
+''' this code attempts to streamline the process that is shown below  ''' 
+voxel_size = [0.7272727272727273 / 1.5, 0.7272727272727273 / 1.5]
+def calc_translations(all_frame_info, point_name, label, plot_type, voxel_size):
+    ''' the name of the function is a misnomer.. we are not plotting anything. just extracting the translations  ''' 
+    sorted_frames = sorted(all_frame_info)
+    y_coords = [all_frame_info[frame][point_name][0] for frame in sorted_frames]
+    x_coords = [all_frame_info[frame][point_name][1] for frame in sorted_frames]
+    translations_mm = []
+    
+    if plot_type == 'AP':
+        ap_translations = [x - x_coords[0] for x in x_coords]
+        translations_mm = [ap * voxel_size[1] for ap in ap_translations]
+    elif plot_type == 'IS':
+        is_translations = [y_coords[0] - y for y in y_coords]
+        translations_mm = [is_ * voxel_size[0] for is_ in is_translations]
+    
+    # Creating a DataFrame from the translations
+    data = {
+        'Frame Number': sorted_frames,
+        'Translations': translations_mm,
+        'Type': [plot_type] * len(translations_mm),
+        'Label': [label] * len(translations_mm)
+    }
+    return pd.DataFrame(data)
+
+
+def compile_translations(fem_loaded, fem_unloaded, tib_loaded, tib_unloaded, voxel_size):
+    # Initialize an empty DataFrame to hold all compiled translations
+    master_df = pd.DataFrame()
+    
+    # Dictionary to hold the data and labels
+    datasets = {
+        'Femur Loaded': (fem_loaded, 'loaded'),
+        'Femur Unloaded': (fem_unloaded, 'unloaded'),
+        'Tibia Loaded': (tib_loaded, 'loaded'),
+        'Tibia Unloaded': (tib_unloaded, 'unloaded')
+    }
+    
+    # Iterate through the datasets and conditions to populate the DataFrame
+    for label, (data, load_condition) in datasets.items():
+        for plot_type in ['IS', 'AP']:
+            df = calc_translations(data, 'centroid', load_condition, plot_type, voxel_size)
+            df['Body Part'] = label.split()[0]  # Add body part (Femur/Tibia) as a column
+            df['Condition'] = label.split()[1]  # Add condition (Loaded/Unloaded) as a column
+            master_df = pd.concat([master_df, df], ignore_index=True)
+    
+    # Remove the 'Label' column as it's redundant with 'Condition'
+    master_df = master_df.drop(columns=['Label'])
+    
+    # Function to calculate angles for each frame and return as DataFrame
+    def calculate_angles_dataframe(femur_data, tibia_data, condition):
+        angles = []
+        frames = []
+        
+        for frame in sorted(femur_data.keys()):
+            if frame in tibia_data:
+                angle = calculate_angle_between_bones(femur_data[frame], tibia_data[frame], axis='long')
+                angles.append(angle)
+                frames.append(frame)
+        
+        return pd.DataFrame({
+            'Frame Number': frames,
+            'Translations': [np.nan] * len(angles),  # NA for Translations as it's for angles
+            'Type': [np.nan] * len(angles),  # NA for Type
+            'Body Part': [np.nan] * len(angles),  # NA for Body Part
+            'Condition': [condition] * len(angles),
+            'Angles': angles
+        })
+
+    # Calculate angles and append to the master DataFrame
+    angles_loaded_df = calculate_angles_dataframe(fem_loaded, tib_loaded, 'Loaded')
+    angles_unloaded_df = calculate_angles_dataframe(fem_unloaded, tib_unloaded, 'Unloaded')
+    angles_df = pd.concat([angles_loaded_df, angles_unloaded_df], ignore_index=True)
+
+    master_df = pd.concat([master_df, angles_df], ignore_index=True)
+    
+    return master_df
+
+
+
+MK_translations_new= compile_translations(MK_W_fem_info_stiched, MK_NW_fem_info_stiched, MK_W_tib_info_stiched, MK_NW_tib_info_stiched, voxel_size)
+
+#%%
+''' now that we obtain the dataframe of all translations.. to access anything.. wee can use boolean indexing:  ''' 
+# essentially, doing this doing nothing except filter the data frame. 
+nw_is_tibia = MK_translations_new.loc[ (MK_translations_new['Type'] == 'IS') & 
+                                  (MK_translations_new['Condition'] == 'Unloaded') 
+                                  & (MK_translations_new['Body Part'] == 'Tibia') ]
+
+# an interesting point: MK_translations_new.loc[ (MK_translations_new['Angles'] ==  'nan' ) ] this wont work, because nan is not equal to itself... we need to do this instead:
+    
+rows_with_nan_angles = MK_translations_new.loc[MK_translations_new['Angles'].isnull()]    # this gives dataframe back, but only when angles is na. 
+# to remove the na so that we obtain the original master_df with all rows and translation info only (nothing is na): 
+only_translations = rows_with_nan_angles.drop(columns='Angles')    
+
+# cehcking to see if this is actually equal to the one previously calculated 
+
+# only_translations.equals(MK_translations)     ---> and it got TRUE! 
+# some functions below to illustrate how to actually access particualr things : 
+translations_values = nw_is_tibia['Translations'].to_numpy()
+nw_is_tibia_reset = nw_is_tibia.reset_index(drop=True)
+#%%
+
+def plot_translations(all_frame_info, point_name, label, plot_type):
+    # Sort frames for consistent ordering
+    sorted_frames = sorted(all_frame_info)
+    
+    # Extract x and y coordinates of the point for each frame
+    y_coords = [all_frame_info[frame][point_name][0] for frame in sorted_frames]
+    x_coords = [all_frame_info[frame][point_name][1] for frame in sorted_frames]
+    
+    translations_mm = []
+      
+    # Plot A-P translations
+    if plot_type== 'AP':
+        ap_translations = [x - x_coords[0] for x in x_coords]
+        translations_mm = [ap * voxel_size[1] for ap in ap_translations]
+        plt.plot(sorted_frames, translations_mm, label=f'A-P Translation {label}')
+        plt.axhline(0, color='gray', linewidth=0.5)  # Zero line for reference
+        plt.xlabel('Frame Number')
+        plt.ylabel('Translation (mm)')
+        plt.title('Anterior-Posterior Translation over Time')
+        plt.legend()
+        plt.grid(True)
+    #plt.show()
+    
+    # Plot I-S translations
+    if plot_type== 'IS':
+        is_translations = [y_coords[0] - y  for y in y_coords] # so that positive means decrease in y value, positive is superior 
+        translations_mm = [is_ * voxel_size[0] for is_ in is_translations]
+        #plt.figure(figsize=(10, 5))
+        plt.plot(sorted_frames, translations_mm, label=f'I-S Translation {label}')
+        plt.axhline(0, color='gray', linewidth=0.5)  # Zero line for reference
+        plt.xlabel('Frame Number')
+        plt.ylabel('Translation (mm)')
+        plt.title('Inferior-Superior Translation over Time')
+        plt.legend()
+        plt.grid(True)
+    #plt.show()
+    return np.array ( translations_mm ) 
+
+MK_W_is_fem = plot_translations(MK_W_fem_info, 'centroid', label='loaded', plot_type='IS')
+MK_NW_is_fem = plot_translations(MK_NW_fem_info, 'centroid', label='unloaded', plot_type='IS')
+
+#%%
+MK_W_ap_fem = plot_translations(MK_W_fem_info, 'centroid', label='loaded', plot_type='AP')
+MK_NW_ap_fem = plot_translations(MK_NW_fem_info, 'centroid', label='unloaded', plot_type='AP')
+#%%
+MK_W_is_tib = plot_translations(MK_W_tib_info, 'centroid', label='loaded', plot_type='IS')
+MK_NW_is_tib = plot_translations(MK_NW_tib_info, 'centroid', label='unloaded', plot_type='IS')
+
+#%%
+MK_W_ap_tib = plot_translations(MK_W_tib_info, 'centroid', label='loaded', plot_type='AP')
+MK_NW_ap_tib = plot_translations(MK_NW_tib_info, 'centroid', label='unloaded', plot_type='AP')
+#%%
+
+
+
+MK_ap_W_tib_rel = tib_relative_to_fem(MK_W_ap_tib, MK_W_ap_fem)
+MK_is_W_tib_rel = tib_relative_to_fem(MK_W_is_tib, MK_W_is_fem)
+#%%
+MK_ap_NW_tib_rel = tib_relative_to_fem(MK_NW_ap_tib, MK_NW_ap_fem)
+MK_is_NW_tib_rel = tib_relative_to_fem(MK_NW_is_tib, MK_NW_is_fem)
+#%%
+
 #%%
 plt.figure(figsize=(10, 6))
 #angles_W = calculate_and_plot_angles_between_bones(fem_info_W, tib_info_W, name='MM_W', new_figure=False)
@@ -689,26 +823,24 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('MK_NW_fem_info_stiched.pkl', 'wb') as f:
-    pickle.dump(MK_NW_fem_info_stiched, f)
+with open('MK_W_fem_info_stiched.pkl', 'wb') as f:
+    pickle.dump(MK_W_fem_info_stiched, f)
 #%%    
 with open('AN_NW_fem_info.pkl', 'wb') as f:
     pickle.dump(AN_fem_info_NW, f)
 #%%
-with open('MK_NW_fem_info.pkl', 'wb') as f:
-    pickle.dump(transformed_dicts_fem, f)
+with open('MK_W_master_df.pkl', 'wb') as f:
+    pickle.dump(MK_translations_new, f)
 ''' to load do: 
     with open('my_dict.pkl', 'rb') as f:
     my_dict_loaded = pickle.load(f)'''    
     
 #%%
 # what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_t_matrices_tib.pkl', 'rb') as file:
-    NW_t_matrices_tib = pickle.load(file)    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03/stiched_analysis/MK_NW_fem_info_stiched.pkl', 'rb') as file:
+    MK_NW_fem_info_stiched = pickle.load(file)    
 
-#%%
-
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/AN_W_tib_info.pkl', 'rb') as file:
-    tib_info = pickle.load(file)  
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03/stiched_analysis/MK_NW_tib_info_stiched.pkl', 'rb') as file:
+   MK_NW_tib_info_stiched  = pickle.load(file)  
     
 #%%
