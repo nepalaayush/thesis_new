@@ -800,8 +800,8 @@ with open('AN_W_fem_info_stiched.pkl', 'wb') as f:
 with open('AN_NW_tib_info.pkl', 'wb') as f:
     pickle.dump(AN_NW_tib_info_stiched, f)
 #%%
-with open('MM_master_df.pkl', 'wb') as f:
-    pickle.dump(MM_master_df, f)   
+with open('angle_and_rel_df.pkl', 'wb') as f:
+    pickle.dump(angle_and_rel_df, f)   
     
 #%%
 # loading from pkl 
