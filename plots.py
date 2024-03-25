@@ -182,4 +182,6 @@ for index, condition in enumerate(conditions):
 plt.tight_layout()
 plt.show()
 
+#%%
+
 
