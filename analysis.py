@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import pandas as pd
@@ -20,18 +20,17 @@ from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_tr
 
 
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_NW_fem_info.pkl', 'rb') as file:
-    fem_info_NW =  pickle.load(file)
-#%%    
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MM/03.08/MM_NW_t_matrices_tib.pkl', 'rb') as file:
-    tib_info_NW =  pickle.load(file)    
-
-#%%    
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_W_tib_info_using_NW_ref.pkl', 'rb') as file:
-    tib_info_W =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_NW_fem_info_stiched.pkl', 'rb') as file:
+    MM_NW_fem_info_stiched =  pickle.load(file)
+   
+with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_NW_tib_info_stiched.pkl', 'rb') as file:
+    MM_NW_tib_info_stiched =  pickle.load(file)    
     
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/01.03.24/AN_W_fem_info_using_NW_ref.pkl', 'rb') as file:
-    fem_info_W =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_fem_info_stiched.pkl', 'rb') as file:
+    MM_W_fem_info_stiched =  pickle.load(file)
+    
+with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_tib_info_stiched.pkl', 'rb') as file:
+    MM_W_tib_info_stiched =  pickle.load(file)
 #%%
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_W_t_matrices_fem_using_NW_ref.pkl', 'rb') as file:
     AN_t_matrices_W_fem =  pickle.load(file)
@@ -165,34 +164,7 @@ plot_cost_values(cost_values_first)
 path1 = '/data/projects/ma-nepal-segmentation/data/Schulz^Helena/2024-03-15/63_MK_Radial_W_CINE_30bpm_CGA/HS_W_a2_rt_5e-2_neg.nii'
 image1 = path_to_image(path1)
 #%%
-viewer1 = napari.view_image(image1)
-#%%
-'''
-attempt to do animation but isnt working  too well . or cant figure out how to use it properly 
-from napari_animation import Animation
-from skimage import io
-
-# Create an animation object from the viewer
-animation = Animation(viewer1)
-
-# The number of frames in your animation
-number_of_frames = 14  # Adjust this to match your animation's frame count
-
-# Directory to save the frames
-save_directory = "C:/Users/Aayush/Documents/thesis_files"  # Change this to your desired directory
-
-# Iterate through each frame and save it
-for frame_number in range(number_of_frames):
-    # Set the viewer state to the state at the current frame
-    animation.set_viewer_state(animation.key_frames[frame_number].viewer_state)
-
-    # Capture the current viewer state as an image
-    image = viewer1.screenshot()
-
-    # Save the image
-    file_path = f"{save_directory}/frame_{frame_number}.png"
-    io.imsave(file_path, image)
-'''
+viewer1 = napari.view_image(full_image)
 #%%
 # add the reference points and manually segment the reference frame 
 viewer1.add_shapes(reference_frame_first, shape_type='polygon')
@@ -201,7 +173,7 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
 #ref_points = viewer1.layers['expanded_fem'].data[0]
-ref_points = viewer1.layers['MK_NW_fem_shape_stiched'].data[0][:,1:3]
+ref_points = viewer1.layers['AN_NW_fem_shape_stiched'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
@@ -216,7 +188,7 @@ desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["fem_W"].to_labels(image1.shape)
+disp_layer = viewer1.layers["tib_W"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
 #xrange=slice(150,480)
 xrange = slice(80,350)
@@ -230,7 +202,7 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
     
 plt.tight_layout()
-plt.savefig('MK_W_segmented_fem_stiched.svg')
+plt.savefig('AN_W_segmented_fem_stiched.svg')
 
 #%%
 shapes_data = viewer1.layers['fem_W']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
@@ -258,13 +230,13 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
 
     return transformed_dicts
 
-MK_W_fem_info_stiched = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+AN_W_fem_info_stiched = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
 
 
 #%%
-show_stuff(MK_W_tib_info_stiched, 'MK_tib_W_s', viewer1)
+show_stuff(AN_W_tib_info_stiched, 'AN_tib_W_s', viewer1)
 #%%
-show_stuff(MK_W_fem_info_stiched, 'MK_fem_W_s', viewer1)
+show_stuff(AN_W_fem_info_stiched, 'AN_fem_W_s', viewer1)
 
 #%%
 screenshots = []
@@ -337,7 +309,7 @@ for frame_index in range(number_of_frames):
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
-with imageio.get_writer('Realtime_animation.gif', mode='I') as writer:
+with imageio.get_writer('AN_W_animation.gif', mode='I') as writer:
     for i in range(number_of_frames):
         frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
         frame = imageio.imread(frame_path)
@@ -533,7 +505,6 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', 
     
 
     return np.array(angles)
-#%%
 def tib_relative_to_fem(tib_array, fem_array):
     return tib_array - fem_array 
 ''' this code attempts to streamline the process that is shown below  ''' 
@@ -616,7 +587,7 @@ def compile_translations(fem_loaded, fem_unloaded, tib_loaded, tib_unloaded, vox
 
 
 
-MK_translations_new= compile_translations(MK_W_fem_info_stiched, MK_NW_fem_info_stiched, MK_W_tib_info_stiched, MK_NW_tib_info_stiched, voxel_size)
+MM_master_df= compile_translations(MM_W_fem_info_stiched, MM_NW_fem_info_stiched, MM_W_tib_info_stiched, MM_NW_tib_info_stiched, voxel_size)
 
 #%%
 ''' now that we obtain the dataframe of all translations.. to access anything.. wee can use boolean indexing:  ''' 
@@ -823,24 +794,19 @@ modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data,
 
 #%%
 # Saving the dictionary to a file
-with open('MK_W_fem_info_stiched.pkl', 'wb') as f:
-    pickle.dump(MK_W_fem_info_stiched, f)
-#%%    
-with open('AN_NW_fem_info.pkl', 'wb') as f:
-    pickle.dump(AN_fem_info_NW, f)
+with open('AN_W_fem_info_stiched.pkl', 'wb') as f:
+    pickle.dump(AN_W_fem_info_stiched, f)
+#%% 
+with open('AN_NW_tib_info.pkl', 'wb') as f:
+    pickle.dump(AN_NW_tib_info_stiched, f)
 #%%
-with open('MK_W_master_df.pkl', 'wb') as f:
-    pickle.dump(MK_translations_new, f)
-''' to load do: 
-    with open('my_dict.pkl', 'rb') as f:
-    my_dict_loaded = pickle.load(f)'''    
+with open('MM_master_df.pkl', 'wb') as f:
+    pickle.dump(MM_master_df, f)   
     
 #%%
-# what follows below is an attempt to plot the tibia angle w.r.t the femur reference frame. first, load the info dicts 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03/stiched_analysis/MK_NW_fem_info_stiched.pkl', 'rb') as file:
-    MK_NW_fem_info_stiched = pickle.load(file)    
+# loading from pkl 
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03/stiched_analysis/MK_W_master_df.pkl', 'rb') as file:
+    MK_master_df = pickle.load(file)    
 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03/stiched_analysis/MK_NW_tib_info_stiched.pkl', 'rb') as file:
-   MK_NW_tib_info_stiched  = pickle.load(file)  
     
 #%%
