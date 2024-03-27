@@ -99,6 +99,82 @@
       \verb https://linkinghub.elsevier.com/retrieve/pii/S0730725X22001096
       \endverb
     \endentry
+    \entry{breivik_survey_2006}{article}{}
+      \name{author}{5}{}{%
+        {{un=0,uniquepart=base,hash=b9aa21d114f449e08ee1b3fd19d5b59b}{%
+           family={Breivik},
+           familyi={B\bibinitperiod},
+           given={Harald},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=196f35e6cc4a6eaf380207a40b54ae50}{%
+           family={Collett},
+           familyi={C\bibinitperiod},
+           given={Beverly},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=85a0c3c0e9a222b83cc9e93b45591c69}{%
+           family={Ventafridda},
+           familyi={V\bibinitperiod},
+           given={Vittorio},
+           giveni={V\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=93049f6d2ede417447d0e3e19b4ffde1}{%
+           family={Cohen},
+           familyi={C\bibinitperiod},
+           given={Rob},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a6fe9827ffde93feb396c2c8e8f8bc3a}{%
+           family={Gallacher},
+           familyi={G\bibinitperiod},
+           given={Derek},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{a146f1c9bcdc31d78e48a74d356fd168}
+      \strng{fullhash}{0a779283dc7215cb045c863054c3be34}
+      \strng{bibnamehash}{a146f1c9bcdc31d78e48a74d356fd168}
+      \strng{authorbibnamehash}{a146f1c9bcdc31d78e48a74d356fd168}
+      \strng{authornamehash}{a146f1c9bcdc31d78e48a74d356fd168}
+      \strng{authorfullhash}{0a779283dc7215cb045c863054c3be34}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{This large scale computer-assisted telephone survey was undertaken to explore the prevalence, severity, treatment and impact of chronic pain in 15 European countries and Israel. Screening interviews identiﬁed respondents aged P18 years with chronic pain for in-depth interviews. 19\% of 46,394 respondents willing to participate (refusal rate 46\%) had suﬀered pain for P6 months, had experienced pain in the last month and several times during the last week. Their pain intensity was P5 on a 10-point Numeric Rating Scale ({NRS}) (1 = no pain, 10 = worst pain imaginable) during last episode of pain. In-depth interviews with 4839 respondents with chronic pain (about 300 per country) showed: 66\% had moderate pain ({NRS} = 5–7), 34\% had severe pain ({NRS} = 8–10), 46\% had constant pain, 54\% had intermittent pain. 59\% had suﬀered with pain for two to 15 years, 21\% had been diagnosed with depression because of their pain, 61\% were less able or unable to work outside the home, 19\% had lost their job and 13\% had changed jobs because of their pain. 60\% visited their doctor about their pain 2–9 times in the last six months. Only 2\% were currently treated by a pain management specialist. One-third of the chronic pain suﬀerers were currently not being treated. Two-thirds used nonmedication treatments, e.g,. massage (30\%), physical therapy (21\%), acupuncture (13\%). Almost half were taking non-prescription analgesics; Ôover the {counterÕ} ({OTC}) {NSAIDs} (55\%), paracetamol (43\%), weak opioids (13\%). Two-thirds were taking prescription medicines: {NSAIDs} (44\%), weak opioids (23\%), paracetamol (18\%), {COX}-2 inhibitors (1–36\%), and strong opioids (5\%). Forty percent had inadequate management of their pain. Interesting diﬀerences between countries were observed, possibly reﬂecting diﬀerences in cultural background and local traditions in managing chronic pain. Conclusions: Chronic pain of moderate to severe intensity occurs in 19\% of adult Europeans, seriously aﬀecting the quality of their social and working lives. Very few were managed by pain specialists and nearly half received inadequate pain management. Although diﬀerences were observed between the 16 countries, we have documented that chronic pain is a major health care problem in Europe that needs to be taken more seriously.}
+      \field{issn}{1090-3801, 1532-2149}
+      \field{journaltitle}{European Journal of Pain}
+      \field{langid}{english}
+      \field{month}{5}
+      \field{number}{4}
+      \field{shortjournal}{European Journal of Pain}
+      \field{shorttitle}{Survey of chronic pain in Europe}
+      \field{title}{Survey of chronic pain in Europe: Prevalence, impact on daily life, and treatment}
+      \field{urlday}{27}
+      \field{urlmonth}{3}
+      \field{urlyear}{2024}
+      \field{volume}{10}
+      \field{year}{2006}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{287\bibrangedash 287}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.ejpain.2005.06.009
+      \endverb
+      \verb{file}
+      \verb Breivik et al. - 2006 - Survey of chronic pain in Europe Prevalence, impa.pdf:C\:\\Users\\Aayush\\Zotero\\storage\\7I3RRMNQ\\Breivik et al. - 2006 - Survey of chronic pain in Europe Prevalence, impa.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://onlinelibrary.wiley.com/doi/10.1016/j.ejpain.2005.06.009
+      \endverb
+      \verb{url}
+      \verb https://onlinelibrary.wiley.com/doi/10.1016/j.ejpain.2005.06.009
+      \endverb
+    \endentry
     \entry{brisson_novel_2022}{article}{}
       \name{author}{6}{}{%
         {{un=0,uniquepart=base,hash=0ae0e98b5d713a2cc1085a4d3e61ffd4}{%
@@ -224,6 +300,88 @@
       \endverb
       \verb{url}
       \verb https://ieeexplore.ieee.org/document/4767851
+      \endverb
+    \endentry
+    \entry{obermuller_epidemiology_2024}{article}{}
+      \name{author}{6}{}{%
+        {{un=0,uniquepart=base,hash=88a3ade2869588b8c1f96cea96af466a}{%
+           family={Obermüller},
+           familyi={O\bibinitperiod},
+           given={Dominik},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=76b4a74b532d813333f06e8eeeb97cd5}{%
+           family={Jerosch},
+           familyi={J\bibinitperiod},
+           given={Jörg},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6aa4cf902299dee80d988a2af87f63fe}{%
+           family={Bovy},
+           familyi={B\bibinitperiod},
+           given={Leonore},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a636c318dde01f5e05cc69827eac4233}{%
+           family={Häckl},
+           familyi={H\bibinitperiod},
+           given={Dennis},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=90703863d685f6929f40d3ebc47849a7}{%
+           family={Ivanavicius},
+           familyi={I\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bc5e555e0b9c53165d1d6cc5cdbc74e5}{%
+           family={Liedgens},
+           familyi={L\bibinitperiod},
+           given={Hiltrud},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{a725a761bde584796b9403e2b4eff6e3}
+      \strng{fullhash}{856b11b1f8486cef239c7ec873460191}
+      \strng{bibnamehash}{a725a761bde584796b9403e2b4eff6e3}
+      \strng{authorbibnamehash}{a725a761bde584796b9403e2b4eff6e3}
+      \strng{authornamehash}{a725a761bde584796b9403e2b4eff6e3}
+      \strng{authorfullhash}{856b11b1f8486cef239c7ec873460191}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Objective: Osteoarthritis of the knee (knee {OA}) is a serious joint disease leading to pain and reduced quality of life. Pharmacological treatments include anti-inﬂammatories, analgesics, intraarticular hyaluronic acid, and intraarticular corticosteroids while for severe knee {OA}, knee replacement is an option. This study examined the incidence, prevalence, patient characteristics, and uptake of medical and surgical treatments in knee {OA} patients in Germany. Design: A non-interventional, retrospective health claims data analysis with anonymized data from the {InGef} database was performed. Patients 18 years were analyzed cross-sectionally for each year 2015–2020. Newly diagnosed patients in 2015 were also longitudinally analyzed until end of 2020. Results: Annual knee {OA} prevalence increased from 7.07 \% in 2015 to 7.39 \% in 2020. Annual incidence proportions ranged from 1.71 \% in 2015 to 1.46 \% in 2020. Knee replacement was the most common surgery, with rising patient numbers (e.g., 7918 patients in 2015 and 8975 patients in 2019). Approximately 62 \% of patients newly diagnosed in 2015 received prescription pharmacological pain treatment during follow-up. Most (96.95 \%) received non-opioid analgesics, followed by weak opioids (8.14 \%) and strong opioids (3.00 \%) as ﬁrst-line treatment (combinations possible). Knee surgery was performed in 16.6 \% of patients during follow-up. Median time from ﬁrst diagnosis until surgery was 346 days for any knee surgery and 564 days for knee replacement. Conclusions: The number of patients with knee {OA} in Germany is steadily rising, along with an increasing number of surgical interventions, especially knee replacement. Time until ﬁrst surgery and knee replacement is relatively short, even for newly diagnosed patients.}
+      \field{issn}{26659131}
+      \field{journaltitle}{Osteoarthritis and Cartilage Open}
+      \field{langid}{english}
+      \field{month}{3}
+      \field{number}{1}
+      \field{shortjournal}{Osteoarthritis and Cartilage Open}
+      \field{shorttitle}{Epidemiology and treatment of pain associated with osteoarthritis of the knee in Germany}
+      \field{title}{Epidemiology and treatment of pain associated with osteoarthritis of the knee in Germany: A retrospective health claims data analysis}
+      \field{urlday}{27}
+      \field{urlmonth}{3}
+      \field{urlyear}{2024}
+      \field{volume}{6}
+      \field{year}{2024}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{100430}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.ocarto.2023.100430
+      \endverb
+      \verb{file}
+      \verb Obermüller et al. - 2024 - Epidemiology and treatment of pain associated with.pdf:C\:\\Users\\Aayush\\Zotero\\storage\\UXQTZJCF\\Obermüller et al. - 2024 - Epidemiology and treatment of pain associated with.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S2665913123000973
+      \endverb
+      \verb{url}
+      \verb https://linkinghub.elsevier.com/retrieve/pii/S2665913123000973
       \endverb
     \endentry
   \enddatalist
