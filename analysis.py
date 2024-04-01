@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import pandas as pd
@@ -173,7 +173,7 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
 #ref_points = viewer1.layers['expanded_fem'].data[0]
-ref_points = viewer1.layers['AN_NW_fem_shape_stiched'].data[0][:,1:3]
+ref_points = viewer1.layers['US_NW_fem_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
@@ -188,11 +188,11 @@ desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["tib_W"].to_labels(image1.shape)
+disp_layer = viewer1.layers["fem_NW"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
 #xrange=slice(150,480)
 xrange = slice(80,350)
-yrange=slice(140,350)
+yrange=slice(140,400)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
     ax.imshow(disp_layer[idi,xrange,yrange], alpha=(disp_layer[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
@@ -200,12 +200,12 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(f"Frame {idi}", color='white')
-    
+     
 plt.tight_layout()
-plt.savefig('AN_W_segmented_fem_stiched.svg')
+plt.savefig('US_NW_segmented_fem_s.svg')
 
 #%%
-shapes_data = viewer1.layers['fem_W']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+shapes_data = viewer1.layers['tib_W']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
 #binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
 binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
 
@@ -230,13 +230,18 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
 
     return transformed_dicts
 
-AN_W_fem_info_stiched = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+US_W_tib_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
 
 
 #%%
-show_stuff(AN_W_tib_info_stiched, 'AN_tib_W_s', viewer1)
+
+# Saving the dictionary to a file
+with open('US_W_tib_info_s.pkl', 'wb') as f:
+    pickle.dump(US_W_tib_info_s, f)
 #%%
-show_stuff(AN_W_fem_info_stiched, 'AN_fem_W_s', viewer1)
+show_stuff(US_NW_tib_info_s, 'US_NW_tib_info_s', viewer1)
+#%%
+show_stuff(US_NW_fem_info_s, 'US_NW_fem_info_s', viewer1)
 
 #%%
 screenshots = []
@@ -280,7 +285,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MK_W_both_bones_stiched.svg'
+    output_path = 'mosaic_US_NW_both_bones_stiched.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -309,7 +314,7 @@ for frame_index in range(number_of_frames):
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
-with imageio.get_writer('AN_W_animation.gif', mode='I') as writer:
+with imageio.get_writer('US_NW_animation.gif', mode='I') as writer:
     for i in range(number_of_frames):
         frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
         frame = imageio.imread(frame_path)
@@ -441,153 +446,7 @@ origin_dist_NW = calculate_distance_betwn_origins(tib_info_NW, fem_info_NW, 'ori
 
 
 #%%
-def calculate_angle_between_bones(bone1, bone2, axis='long'):
-    """
-    Calculate the angle between two bones based on their coordinate system.
 
-    :param bone1: Dictionary with bone data (femur or tibia).
-    :param bone2: Dictionary with bone data (femur or tibia).
-    :param axis: 'long' or 'short' to choose which axis to compare.
-    :return: Angle in degrees between the two bones.
-    """
-    def get_axis_vector(bone, axis_type):
-        """Extract the vector for the specified axis from the bone data."""
-        points = bone[f'points_{axis_type}_axis']
-        return points[1] - points[0]  # Vector from first point to second point
-
-    # Get vectors for the specified axis
-    vector1 = get_axis_vector(bone1, axis)
-    vector2 = get_axis_vector(bone2, axis)
-
-    # Calculate the dot product and magnitudes of the vectors
-    dot_product = np.dot(vector1, vector2)
-    magnitude1 = np.linalg.norm(vector1)
-    magnitude2 = np.linalg.norm(vector2)
-
-    # Calculate the angle in radians and then convert to degrees
-    angle_radians = np.arccos(dot_product / (magnitude1 * magnitude2))
-    angle_degrees = np.degrees(angle_radians)
-    if angle_degrees > 90:
-        angle_degrees =  180 - angle_degrees
-
-    return angle_degrees
-
-
-
-def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', new_figure=True):
-    """
-    Calculate the angles between two bones for each frame and plot the angles.
-
-    :param bone1: Dictionary with bone data (femur or tibia) for multiple frames.
-    :param bone2: Dictionary with bone data (femur or tibia) for multiple frames.
-    :param axis: 'long' or 'short' to choose which axis to compare.
-    """
-    angles = []
-    frames = []
-    
-    for frame in bone1.keys():
-        if frame in bone2:
-            angle = calculate_angle_between_bones(bone1[frame], bone2[frame], axis)
-            print(f"Frame {frame}: Angle = {angle} degrees")
-            angles.append(angle)
-            frames.append(frame)
-    #if new_figure:
-     #   plt.figure(figsize=(10, 6))
-    #plt.figure(figsize=(10, 6))
-    plt.plot(frames, angles, marker='o', label=name)
-    plt.xlabel('Frame')
-    plt.ylabel('Angle (degrees)')
-    plt.title(f'Angle between Bones over Frames ({axis.capitalize()} Axis)')
-    plt.grid(True)
-    plt.legend()
-    if new_figure:
-        plt.savefig(f'{name}_Angle_betwn_long_axes.svg')
-    
-
-    return np.array(angles)
-def tib_relative_to_fem(tib_array, fem_array):
-    return tib_array - fem_array 
-''' this code attempts to streamline the process that is shown below  ''' 
-voxel_size = [0.7272727272727273 / 1.5, 0.7272727272727273 / 1.5]
-def calc_translations(all_frame_info, point_name, label, plot_type, voxel_size):
-    ''' the name of the function is a misnomer.. we are not plotting anything. just extracting the translations  ''' 
-    sorted_frames = sorted(all_frame_info)
-    y_coords = [all_frame_info[frame][point_name][0] for frame in sorted_frames]
-    x_coords = [all_frame_info[frame][point_name][1] for frame in sorted_frames]
-    translations_mm = []
-    
-    if plot_type == 'AP':
-        ap_translations = [x - x_coords[0] for x in x_coords]
-        translations_mm = [ap * voxel_size[1] for ap in ap_translations]
-    elif plot_type == 'IS':
-        is_translations = [y_coords[0] - y for y in y_coords]
-        translations_mm = [is_ * voxel_size[0] for is_ in is_translations]
-    
-    # Creating a DataFrame from the translations
-    data = {
-        'Frame Number': sorted_frames,
-        'Translations': translations_mm,
-        'Type': [plot_type] * len(translations_mm),
-        'Label': [label] * len(translations_mm)
-    }
-    return pd.DataFrame(data)
-
-
-def compile_translations(fem_loaded, fem_unloaded, tib_loaded, tib_unloaded, voxel_size):
-    # Initialize an empty DataFrame to hold all compiled translations
-    master_df = pd.DataFrame()
-    
-    # Dictionary to hold the data and labels
-    datasets = {
-        'Femur Loaded': (fem_loaded, 'loaded'),
-        'Femur Unloaded': (fem_unloaded, 'unloaded'),
-        'Tibia Loaded': (tib_loaded, 'loaded'),
-        'Tibia Unloaded': (tib_unloaded, 'unloaded')
-    }
-    
-    # Iterate through the datasets and conditions to populate the DataFrame
-    for label, (data, load_condition) in datasets.items():
-        for plot_type in ['IS', 'AP']:
-            df = calc_translations(data, 'centroid', load_condition, plot_type, voxel_size)
-            df['Body Part'] = label.split()[0]  # Add body part (Femur/Tibia) as a column
-            df['Condition'] = label.split()[1]  # Add condition (Loaded/Unloaded) as a column
-            master_df = pd.concat([master_df, df], ignore_index=True)
-    
-    # Remove the 'Label' column as it's redundant with 'Condition'
-    master_df = master_df.drop(columns=['Label'])
-    
-    # Function to calculate angles for each frame and return as DataFrame
-    def calculate_angles_dataframe(femur_data, tibia_data, condition):
-        angles = []
-        frames = []
-        
-        for frame in sorted(femur_data.keys()):
-            if frame in tibia_data:
-                angle = calculate_angle_between_bones(femur_data[frame], tibia_data[frame], axis='long')
-                angles.append(angle)
-                frames.append(frame)
-        
-        return pd.DataFrame({
-            'Frame Number': frames,
-            'Translations': [np.nan] * len(angles),  # NA for Translations as it's for angles
-            'Type': [np.nan] * len(angles),  # NA for Type
-            'Body Part': [np.nan] * len(angles),  # NA for Body Part
-            'Condition': [condition] * len(angles),
-            'Angles': angles
-        })
-
-    # Calculate angles and append to the master DataFrame
-    angles_loaded_df = calculate_angles_dataframe(fem_loaded, tib_loaded, 'Loaded')
-    angles_unloaded_df = calculate_angles_dataframe(fem_unloaded, tib_unloaded, 'Unloaded')
-    angles_df = pd.concat([angles_loaded_df, angles_unloaded_df], ignore_index=True)
-
-    master_df = pd.concat([master_df, angles_df], ignore_index=True)
-    
-    return master_df
-
-
-
-MM_master_df= compile_translations(MM_W_fem_info_stiched, MM_NW_fem_info_stiched, MM_W_tib_info_stiched, MM_NW_tib_info_stiched, voxel_size)
 
 #%%
 ''' now that we obtain the dataframe of all translations.. to access anything.. wee can use boolean indexing:  ''' 
@@ -793,12 +652,10 @@ new_tibia_transforms = nullify_fem(fem_matrices, tib_matrices)
 modified_tib_info= process_and_transform_shapes(viewer1.layers['tibia_NW'].data, new_tibia_transforms)
 
 #%%
-# Saving the dictionary to a file
-with open('AN_W_fem_info_stiched.pkl', 'wb') as f:
-    pickle.dump(AN_W_fem_info_stiched, f)
+
 #%% 
-with open('AN_NW_tib_info.pkl', 'wb') as f:
-    pickle.dump(AN_NW_tib_info_stiched, f)
+with open('angle_rel_df.pkl', 'wb') as f:
+    pickle.dump(angle_rel_df, f)
 #%%
 with open('angle_and_rel_df.pkl', 'wb') as f:
     pickle.dump(angle_and_rel_df, f)   

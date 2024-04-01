@@ -49,20 +49,21 @@ fg.refline(y=0)
 
 # %%
 fg = sns.relplot(
-    equal_frame_df, 
-    x="Frame Number", 
+    angle_and_rel_df[ (angle_and_rel_df['Type'] =='IS')], 
+    x="Percent Flexed", 
     y="Relative Translation", 
     col="Condition", 
     #hue="Dataset", 
     kind="line",
-    marker="o"
+    marker="o",
+    ci=None,
 #    facet_kws={"sharey":False}
 )
 fg.refline(y=0)
 # %% 
 
 sns.relplot(
-    data=equal_frame_df, 
+    data=angle_and_rel_df, 
     x='Angles', 
     y='Relative Translation', 
     col='Condition', 
