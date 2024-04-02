@@ -5,7 +5,9 @@ Created on Sat Mar 16 16:32:54 2024
 @author: Aayush
 """
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+
 
 import pickle
 import numpy as np 
@@ -14,9 +16,20 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 #%%
 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df.pkl', 'rb') as file:
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/master_df.pkl', 'rb') as file:
     master_df = pickle.load(file)    
 
+#%%
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/US/stiched_analysis/US_W_fem_info_s.pkl', 'rb') as file:
+    US_W_fem_info_s = pickle.load(file)
+    
+    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/US/stiched_analysis/US_W_tib_info_s.pkl', 'rb') as file:
+    US_W_tib_info_s = pickle.load(file)
+    
+
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/US/stiched_analysis/US_NW_fem_info_s.pkl', 'rb') as file:
+    US_NW_fem_info_s = pickle.load(file)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
     """
@@ -164,7 +177,7 @@ def compile_translations(fem_loaded, fem_unloaded, tib_loaded, tib_unloaded, vox
 
 
 
-#MM_master_df= compile_translations(MM_W_fem_info_stiched, MM_NW_fem_info_stiched, MM_W_tib_info_stiched, MM_NW_tib_info_stiched, voxel_size)
+US_master_df= compile_translations(US_W_fem_info_s, US_NW_fem_info_s, US_W_tib_info_s, US_NW_tib_info_s, voxel_size)
 #%%
 
 # when adding new dataframes: do this: 
@@ -176,8 +189,13 @@ MM_df['Dataset'] = '2'
 
 # For Dataset 3 
 AN_df['Dataset'] = '3'
+
+MK_master_df['Dataset'] = '4'
 #%%
-master_df = pd.concat([MK_df, MM_df, AN_df], ignore_index=True)
+AN_master_df['Dataset'] = '5'
+
+#%%
+master_df_1_5 = pd.concat([master_df, MK_master_df, AN_master_df], ignore_index=True)
 #%%
 # Filter the master DataFrame to get Tibia IS translations for both loaded and unloaded conditions
 tibia_is_translations = master_df.loc[(master_df['Type'] == 'IS') & 
@@ -212,56 +230,17 @@ angle_df = master_df[['Frame Number', 'Condition', 'Dataset', 'Angles']].copy()
 angle_df = angle_df.dropna(subset=['Angles'])
 # that works 
 #%%
-# now trying to extract the relative translation and store it as its own df 
-# Initialize a list to store the relative translation data
-rel_trans_data = []
-
-# Iterate over each dataset, condition, and type
-for dataset in combined_df['Dataset'].unique():
-    for condition in combined_df['Condition'].unique():
-        for translation_type in combined_df['Type'].unique():
-            # Get the frame numbers available for this dataset, condition, and type
-            frames = combined_df[(combined_df['Dataset'] == dataset) & 
-                                 (combined_df['Condition'] == condition) & 
-                                 (combined_df['Type'] == translation_type)]['Frame Number'].unique()
-            
-            for frame in frames:
-                # Get translations for Tibia and Femur for the current frame, dataset, condition, and type
-                tibia_trans = combined_df[(combined_df['Dataset'] == dataset) & 
-                                          (combined_df['Condition'] == condition) & 
-                                          (combined_df['Frame Number'] == frame) & 
-                                          (combined_df['Type'] == translation_type) & 
-                                          (combined_df['Body Part'] == 'Tibia')]['Translations'].values
-                
-                femur_trans = combined_df[(combined_df['Dataset'] == dataset) & 
-                                          (combined_df['Condition'] == condition) & 
-                                          (combined_df['Frame Number'] == frame) & 
-                                          (combined_df['Type'] == translation_type) & 
-                                          (combined_df['Body Part'] == 'Femur')]['Translations'].values
-
-                # Check if translations are available for both Tibia and Femur
-                if tibia_trans.size > 0 and femur_trans.size > 0:
-                    # Calculate relative translation and store the result
-                    rel_trans = tibia_trans[0] - femur_trans[0]
-                    rel_trans_data.append({'Frame Number': frame, 'Dataset': dataset, 'Condition': condition, 'Type': translation_type, 'Relative Translation': rel_trans})
-
-# Create a new dataframe from the relative translation data
-rel_trans_df = pd.DataFrame(rel_trans_data)
-# got rel trans for is as well as ap translations 
-#%%
-
-rel_trans_is = rel_trans_df[(rel_trans_df['Type'] == 'IS')]
- 
 #%%
 ''' the same as above, that is, to obtain the relative translations from the master df, but without using for loops ''' 
 # Convert relevant columns to category types for efficiency
-master_df['Dataset'] = master_df['Dataset'].astype('category')
-master_df['Condition'] = master_df['Condition'].astype('category')
-master_df['Type'] = master_df['Type'].astype('category')
+master_df_1_5['Dataset'] = master_df_1_5['Dataset'].astype('category')
+master_df_1_5['Condition'] = master_df_1_5['Condition'].astype('category')
+master_df_1_5['Type'] = master_df_1_5['Type'].astype('category')
 
 # Separate Tibia and Femur translations
-tibia_df = master_df[master_df['Body Part'] == 'Tibia'].copy()
-femur_df = master_df[master_df['Body Part'] == 'Femur'].copy()
+tibia_df = master_df_1_5[master_df_1_5['Body Part'] == 'Tibia'].copy()
+femur_df = master_df_1_5[master_df_1_5['Body Part'] == 'Femur'].copy()
+print(tibia_df.duplicated(subset=['Frame Number', 'Dataset', 'Condition', 'Type']).sum())
 
 # Rename 'Translations' column to avoid conflict during merge
 tibia_df.rename(columns={'Translations': 'Tibia_Trans'}, inplace=True)
@@ -301,7 +280,7 @@ def add_percent_flexed(df):
                 else:
                     # Calculate mirror frame
                     mirror_frame = halfway_calculation_point - (frame - halfway_calculation_point - 1)
-                    percent_flexed = percent_flexed_values[dataset_id, mirror_frame]
+                    percent_flexed = -percent_flexed_values[dataset_id, mirror_frame]
             df.at[index, 'Percent Flexed'] = percent_flexed
 
     return df
@@ -320,6 +299,9 @@ def calculate_relative_translation_and_angle(master_df):
     # Rename 'Translations' column to avoid conflict during merge
     tibia_df.rename(columns={'Translations': 'Tibia_Trans'}, inplace=True)
     femur_df.rename(columns={'Translations': 'Femur_Trans'}, inplace=True)
+    
+    print(tibia_df.duplicated(subset=['Frame Number', 'Dataset', 'Condition', 'Type']).sum())
+    print(femur_df.duplicated(subset=['Frame Number', 'Dataset', 'Condition', 'Type']).sum())
 
     # Merge Tibia and Femur dataframes
     merged_df = pd.merge(tibia_df, femur_df, on=['Frame Number', 'Dataset', 'Condition', 'Type'], suffixes=('_tibia', '_femur'))
@@ -329,30 +311,28 @@ def calculate_relative_translation_and_angle(master_df):
 
     # Select relevant columns for relative translation
     rel_trans_df = merged_df[['Frame Number', 'Dataset', 'Condition', 'Type', 'Relative Translation']]
-
-    # Create angle_df and filter out rows with NA in 'Angles'
-    angle_df = master_df[['Frame Number', 'Condition', 'Dataset', 'Angles']].copy()
-    angle_df = angle_df.dropna(subset=['Angles'])
-
-    # Merge angle_df with rel_trans_df
-    angle_and_rel_df = pd.merge(angle_df, rel_trans_df, 
-                                on=['Frame Number', 'Condition', 'Dataset'], 
-                                how='left')
-    angle_and_rel_df = add_percent_flexed(angle_and_rel_df)
     
-    return angle_and_rel_df
+    is_df = rel_trans_df[rel_trans_df['Type'] == 'IS']
+    ap_df = rel_trans_df[rel_trans_df['Type'] == 'AP']
+    
+    is_df = add_percent_flexed(is_df)
+    ap_df = add_percent_flexed(ap_df)
 
-angle_rel_df = calculate_relative_translation_and_angle(master_df)
+    angle_df = master_df[['Frame Number', 'Dataset', 'Condition', 'Angles']].dropna(subset=['Angles']).copy()
+    
+    is_df = pd.merge(is_df, angle_df, on=['Frame Number', 'Dataset', 'Condition'], how='left')
+    ap_df = pd.merge(ap_df, angle_df, on=['Frame Number', 'Dataset', 'Condition'], how='left')
+
+    
+    return is_df, ap_df 
+
+is_df , ap_df  = calculate_relative_translation_and_angle(master_df_1_5)
+
+
+
 #%%
 
-
-
-#angle_and_rel_df = pd.concat([angle_df, rel_trans_df]) # this does not work because concat does things vertically , and we want horizontal stacking 
-
-angle_and_rel_df = pd.merge(angle_df, rel_trans_is, 
-                            on=['Frame Number', 'Condition', 'Dataset'], 
-                            how='left')
-
+is_pf = add_percent_flexed(is_df)
 
 #%%
 import pickle
@@ -421,67 +401,8 @@ plt.show()
 
 #%%
 
-with open('angle_and_rel_df.pkl', 'wb') as f:
-    pickle.dump(angle_and_rel_df, f)   
-#%%
-''' what follows below is an attempt to normalize the motion as a percentage of the extension. -- no, the flexion made more sense.  '''
-
-
-df = angle_and_rel_df[(angle_and_rel_df['Type'] == 'IS')]
-percent_extended_values = {}  # To store first half values for mirroring
-
-for dataset_id, group_data in df.groupby('Dataset'):
-    total_frames = group_data['Frame Number'].max() + 1  # Total number of frames
-    halfway_point = total_frames // 2  # Midpoint of the frames
-    
-    # Calculate 'Percent Extended' for each frame
-    for index, row in group_data.iterrows():
-        frame = row['Frame Number']
-        if frame <= halfway_point:
-            # Before or at the halfway point, scale from -100% to 0%
-            percent_extended = ((frame / halfway_point) * 100) - 100
-            percent_extended_values[dataset_id, frame] = percent_extended  # Store for mirroring
-        else:
-            # After the halfway point, mirror the value from the first half but scale from 0% to 100%
-            mirror_frame = halfway_point - (frame - halfway_point)
-            percent_extended = -percent_extended_values[dataset_id, mirror_frame]  # Negative to flip the sign
-        df.at[index, 'Percent Flexed'] = percent_extended
-
-
-# this code block works.. now we just need to create this into a function.. and then use it in our angle_and_rel creating function ... 
-
-#%%
-def add_percent_flexed(df):
-    df = df.copy()  # To avoid modifying the original dataframe
-    percent_flexed_values = {}  # To store first half values for mirroring
-
-    for dataset_id, group_data in df.groupby('Dataset'):
-        total_frames = group_data['Frame Number'].max() + 1  # Total number of frames
-        # Define halfway_point for the calculation, not for mirroring
-        halfway_calculation_point = (total_frames // 2) - 1
-
-        # Calculate 'Percent Flexed' for each frame
-        for index, row in group_data.iterrows():
-            frame = row['Frame Number']
-            if frame <= halfway_calculation_point:
-                # Before or at the halfway calculation point, scale from -100% to 0%
-                percent_flexed = ((frame / halfway_calculation_point) * 100) - 100
-                percent_flexed_values[dataset_id, frame] = percent_flexed
-            else:
-                # After the halfway point, mirror the value from the first half
-                # Check if it's the peak frame
-                if frame == halfway_calculation_point + 1:
-                    percent_flexed = 0
-                else:
-                    # Calculate mirror frame
-                    mirror_frame = halfway_calculation_point - (frame - halfway_calculation_point - 1)
-                    percent_flexed = -percent_flexed_values[dataset_id, mirror_frame]
-            df.at[index, 'Percent Flexed'] = percent_flexed
-
-    return df
-
-
-test_df = add_percent_flexed(angle_df)
+with open('ap_df_1_5.pkl', 'wb') as f:
+    pickle.dump(ap_df, f)   
 
 #%%
 # this code plots the average relative translation for IS for UNloaded .. along with a weird sd shading.. (because not all datasets have the same angle)
