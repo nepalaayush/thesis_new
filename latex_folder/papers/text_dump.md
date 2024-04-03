@@ -1,73 +1,12 @@
-Rough outline: 
-\section{Introduction}
-\label{sec:intro}
+Anatomical terms: 
 
-\subsection{Background and Rationale}
-Outline the importance of dynamic knee MRI and its applications in biomechanics. 
-\subsection{Research Objectives}
-State the goal of developing new analysis techniques for dynamic MRI data.
-\subsection{Thesis Structure}
-Explain why this research is a logical next step following the development of the MRI knee loading device. 
-\section{Literature Review}
-\label{sec:first}
-Review existing methods for analyzing dynamic knee MRI data.
+Shaft: the long cylindrical portion of the  bone. 
 
-\subsection{Theoretical Framework}
-Foundational Theories: Start with the theoretical underpinnings that relate to MRI imaging and biomechanics of the knee.
-Biomechanical Models: Discuss any relevant biomechanical models or theories that apply to knee movement and loading. 
-\label{subsec:first}
+external condyle of femur: more prominent anteriorly, and is broader both in the antero-posterior and transverse diameters 
+internal condyle of the femur: narrower, longer and more prominent inferiorly. 
 
-\subsection{Review of Related Work}
-Current Techniques: Within this subsection, critically analyze existing literature on analysis techniques for dynamic knee MRI. This is where you provide a detailed account of what has been done in the field. \parencite{Lund1992}
-Comparative Analysis: Compare and contrast different approaches to illustrate the diversity in the field and to position your work in the context of existing research.
-\label{subsec:second}
-
-\subsection{Research Gap}
-Limitations: Highlight the limitations in current methodologies as a way to show where the gaps in the literature exist. Explain how these limitations could affect the understanding or the application of the biomechanical data from knee MRI.
-Relevance to Biomechanics: Connect the limitations and gaps directly to their relevance in biomechanics, outlining why addressing these gaps is crucial for the field. This sets the stage for your research to be viewed as a necessary step forward.
-
-\section{Methodology}
-\label{sec:second}
-some text 
-\subsection{Data Collection Methods}
-Data Collection Methods: Detail the specific techniques used to collect the MRI data, such as the types of knee movements, loading conditions, and the parameters set on the MRI machine.
-Sample Description: Describe the characteristics of your sample, such as the number of knees imaged, the population demographics, and any inclusion or exclusion criteria for your study.
-\subsection{Tools and Software}
-Software Utilization: Explain the use of software tools such as Python, including any libraries or frameworks that were particularly important for your analysis.
-Handling of Multi-dimensional Data: Describe the techniques employed to manage and analyze the multi-dimensional MRI data sets.
-\subsection{Data Analysis}
-Analytical Approach: Outline the methods used to process and analyze the MRI data. Include any specific software or custom algorithms developed for this purpose.
-Segmentation Techniques: Describe the semi-automatic segmentation process in detail, explaining how the different knee structures were identified and analyzed frame by frame.
-
-\subsection{Validity and Reliability}
-Validation Methods: Detail the steps taken to validate the segmentation techniques and the biomechanical parameters you derived.
-Reliability Measures: Describe any repeat analyses or cross-verifications done to ensure the consistency and reliability of your results.
-
-\section{Results}
-\label{sec:yetanother}
-
-\subsection{Segmentation}
-\label{subsec:last}
-some text 
-
-\subsection{Parameter Extraction}
-some text 
-
-\section{Discussion}
-\subsection{Technique Evaluation}
-Assess the effectiveness and accuracy of your segmentation techniques. 
-\subsection{Biomechanical Insights}
-Discuss the biomechanical parameters obtained and their implications for understanding knee movement. 
-\subsection{Comparison with Existing Methods}
-Compare your results with current analysis techniques. 
-
-\section{Conclusion}
-\subsection{Summary of Contributions}
-Recap the novel analysis techniques developed and their significance. 
-\subsection{Limitations and Challenges}
-Discuss any limitations encountered and the challenges in the analysis process 
-\subsection{Future Work}
-Suggest potential improvements and future directions for research
+joints: read this from the susan stranding grey's anatomy, and can start with describing the knee joint as this type of particualr joint. ... moore says it is a type of synovial joint 
+Synovial joint: These are freely moving joints in which the articulating bony surfaces are covered in smooth (hyaline) articular cartilage and separated by a film of viscous synovial fluid that serves as a lubricant. (susan, page 97, 41st ed) 
 
 _________
 
