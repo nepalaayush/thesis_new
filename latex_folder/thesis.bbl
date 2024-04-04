@@ -226,7 +226,7 @@
       \field{sortinit}{B}
       \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
       \field{extradatescope}{labelyear}
-      \field{labeldatesource}{year}
+      \field{labeldatesource}{}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Introduction: This work aimed to develop a novel multipurpose device for guided knee ﬂexion-extension, both passively using a motorized pneumatic system and actively (muscle-driven) with the joint unloaded or loaded during dynamic MRI. Secondary objectives were to characterize the participant experience during device use, and present preliminary dynamic MRI data to demonstrate the different device capabilities. Material and methods: Self-reported outcomes were used to characterize the pain, physical exertion and discomfort levels experienced by 10 healthy male participants during four different active knee motion and loading protocols using the novel device. Knee angular data were recorded during the protocols to determine the maximum knee range of motion achievable. Dynamic MRI was acquired for three healthy volunteers during passive, unloaded knee motion using 2D Cartesian TSE, 2D radial GRE and 3D UTE sequences; and during active, unloaded and loaded knee motion using 2D radial GRE imaging. Because of the different MRI sequences used, spatial resolution was inherently lower for active knee motion than for passive motion acquisitions. Results: Depending on the protocol, some participants reported slight pain, mild discomfort and varying levels of physical exertion. On average, participants achieved ∼40◦ of knee ﬂexion; loaded conditions can create knee moments up to 27 Nm. High quality imaging data were obtained during different motion and loading conditions. Dynamic 3D data allowed to retrospectively extract arbitrarily oriented slices. Conclusion: A novel multipurpose device for guided, physiologically relevant knee motion and loading during dynamic MRI was developed. Device use was well tolerated and suitable for acquiring high quality images during different motion and loading conditions. Different bone positions between loaded and unloaded conditions were likely due to out-of-plane motion, particularly because image registration was not performed. Ultimately, this device could be used to advance our understanding of physiological and pathological joint mechanics.}
@@ -301,6 +301,43 @@
       \verb{url}
       \verb https://ieeexplore.ieee.org/document/4767851
       \endverb
+    \endentry
+    \entry{netter_519_2023}{book}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=84384834abaaafaf09d1bf130c7ab0fd}{%
+           family={Netter},
+           familyi={N\bibinitperiod},
+           given={Frank\bibnamedelima H.},
+           giveni={F\bibinitperiod\bibinitdelim H\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Philadelphia, {PA}}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{84384834abaaafaf09d1bf130c7ab0fd}
+      \strng{fullhash}{84384834abaaafaf09d1bf130c7ab0fd}
+      \strng{bibnamehash}{84384834abaaafaf09d1bf130c7ab0fd}
+      \strng{authorbibnamehash}{84384834abaaafaf09d1bf130c7ab0fd}
+      \strng{authornamehash}{84384834abaaafaf09d1bf130c7ab0fd}
+      \strng{authorfullhash}{84384834abaaafaf09d1bf130c7ab0fd}
+      \field{sortinit}{N}
+      \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{edition}{Eighth edition}
+      \field{isbn}{978-0-323-68042-4}
+      \field{shorttitle}{Netter atlas of human anatomy}
+      \field{title}{Netter atlas of human anatomy: classic regional approach}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{pages}{519}
+      \range{pages}{1}
+      \keyw{Atlases,Human anatomy}
     \endentry
     \entry{obermuller_epidemiology_2024}{article}{}
       \name{author}{6}{}{%
