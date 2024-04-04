@@ -5,8 +5,8 @@ Created on Sat Mar 16 16:32:54 2024
 @author: Aayush
 """
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 
 
 import pickle
@@ -16,14 +16,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 #%%
 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/master_df.pkl', 'rb') as file:
-    master_df = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/ap_df.pkl', 'rb') as file:
+    ap_df = pickle.load(file)    
 
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/US/stiched_analysis/US_W_fem_info_s.pkl', 'rb') as file:
-    US_W_fem_info_s = pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/is_df.pkl', 'rb') as file:
+    is_df = pickle.load(file)
     
-    
+#%%    
 with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/US/stiched_analysis/US_W_tib_info_s.pkl', 'rb') as file:
     US_W_tib_info_s = pickle.load(file)
     

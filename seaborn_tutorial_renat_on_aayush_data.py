@@ -35,18 +35,56 @@ equal_frame_df = angle_and_rel_df[
 ].reset_index(drop=True)
 equal_frame_df['Frame Number'] = equal_frame_df.groupby(['Dataset', 'Condition']).cumcount()
 
-# %% 
+#%%
+# this is a working code to plot the IS translation for all datasets w.r.t frame or percent flexed. the mean can be adjusted by commenting out hue 
+ 
 fg = sns.relplot(
-    equal_frame_df, 
-    x="Frame Number", 
+    is_df, 
+    x="Percent Flexed", 
     y="Relative Translation", 
     col="Condition", 
     hue="Dataset", 
     kind="line", 
+    #ci='sd', # one sd shows a bit more variation than the default 95% confidence interval 
 #    facet_kws={"sharey":False}
 )
 fg.refline(y=0)
 
+
+fg.fig.suptitle('Inferior(+ve)/Superior(-ve) translation of the tibia relative to femur', fontsize=16, ha='center')
+fg.fig.subplots_adjust(top=0.86)
+
+
+#%%
+
+# Define narrow bin edges
+narrow_bin_edges = range(-100, 101, 7)  # Bins from -100 to 100 with a step of 1
+
+# Assign each 'Percent Flexed' value to a narrow bin
+is_df['Narrow_Bin'] = pd.cut(is_df['Percent Flexed'], bins=narrow_bin_edges, include_lowest=True)
+
+# Make sure to include 'Condition' in the groupby
+narrow_binned_means = is_df.groupby(['Condition', 'Narrow_Bin', 'Dataset'])['Relative Translation'].mean().reset_index()
+
+# Calculate the bin centers
+narrow_binned_means['Bin_Center'] = narrow_binned_means['Narrow_Bin'].apply(lambda x: x.mid)
+
+# Plotting
+fg = sns.relplot(
+    data=narrow_binned_means, 
+    x="Bin_Center", 
+    y="Relative Translation", 
+    col="Condition", 
+    #hue="Dataset", 
+    kind="line"
+)
+
+# Add a reference line at y=0
+fg.refline(y=0)
+
+# Adjust the layout and display the plot
+plt.subplots_adjust(top=0.9)
+plt.show()
 # %%
 fg = sns.relplot(
     angle_and_rel_df[ (angle_and_rel_df['Type'] =='IS')], 
