@@ -6,3 +6,8 @@
 *.run.xml
 *.blg
 *.bbl
+*.bbl
+*.dvi
+*.lof
+*.lot
+*.synctex.gz

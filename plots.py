@@ -401,8 +401,8 @@ plt.show()
 
 #%%
 
-with open('ap_df_1_5.pkl', 'wb') as f:
-    pickle.dump(ap_df, f)   
+with open('master_df_1_5.pkl', 'wb') as f:
+    pickle.dump(master_df_1_5, f)   
 
 #%%
 # this code plots the average relative translation for IS for UNloaded .. along with a weird sd shading.. (because not all datasets have the same angle)
