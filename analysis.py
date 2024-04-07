@@ -122,7 +122,7 @@ def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angl
 # Example usage:
 #%%
 # For a single plot
-plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='US_W', ax=None)
+plot_transformations_and_calculate_MAE(transformation_matrices_first, offset=5, angle_increment= 2, reference_index=0, residuals_color='red', condition='HS_NW', ax=None)
 #%%
 # For overlaying multiple plots
 fig, ax = plt.subplots(2, 1, figsize=(10, 12))
@@ -172,8 +172,8 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-#ref_points = viewer1.layers['expanded_fem'].data[0]
-ref_points = viewer1.layers['US_NW_fem_shape'].data[0][:,1:3]
+ref_points = viewer1.layers['expanded_fem'].data[0]
+#ref_points = viewer1.layers['US_NW_fem_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
@@ -202,10 +202,10 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
      
 plt.tight_layout()
-plt.savefig('US_NW_segmented_fem_s.svg')
+plt.savefig('HS_NW_segmented_fem_s.svg')
 
 #%%
-shapes_data = viewer1.layers['tib_W']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+shapes_data = viewer1.layers['fem_NW']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
 #binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
 binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
 
@@ -230,18 +230,18 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
 
     return transformed_dicts
 
-US_W_tib_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+HS_NW_fem_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
 
 
 #%%
 
 # Saving the dictionary to a file
-with open('US_W_tib_info_s.pkl', 'wb') as f:
-    pickle.dump(US_W_tib_info_s, f)
+with open('HS_NW_fem_info_s.pkl', 'wb') as f:
+    pickle.dump(HS_NW_fem_info_s, f)
 #%%
-show_stuff(US_NW_tib_info_s, 'US_NW_tib_info_s', viewer1)
+show_stuff(HS_NW_tib_info_s, 'HS_NW_tib_info_s', viewer1)
 #%%
-show_stuff(US_NW_fem_info_s, 'US_NW_fem_info_s', viewer1)
+show_stuff(HS_NW_fem_info_s, 'HS_NW_fem_info_s', viewer1)
 
 #%%
 screenshots = []
@@ -285,7 +285,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_US_NW_both_bones_stiched.svg'
+    output_path = 'mosaic_HS_NW_both_bones_stiched.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -314,7 +314,7 @@ for frame_index in range(number_of_frames):
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
-with imageio.get_writer('US_NW_animation.gif', mode='I') as writer:
+with imageio.get_writer('HS_NW_animation.gif', mode='I') as writer:
     for i in range(number_of_frames):
         frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
         frame = imageio.imread(frame_path)
