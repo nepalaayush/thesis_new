@@ -226,7 +226,7 @@
       \field{sortinit}{B}
       \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
       \field{extradatescope}{labelyear}
-      \field{labeldatesource}{year}
+      \field{labeldatesource}{}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Introduction: This work aimed to develop a novel multipurpose device for guided knee ﬂexion-extension, both passively using a motorized pneumatic system and actively (muscle-driven) with the joint unloaded or loaded during dynamic MRI. Secondary objectives were to characterize the participant experience during device use, and present preliminary dynamic MRI data to demonstrate the different device capabilities. Material and methods: Self-reported outcomes were used to characterize the pain, physical exertion and discomfort levels experienced by 10 healthy male participants during four different active knee motion and loading protocols using the novel device. Knee angular data were recorded during the protocols to determine the maximum knee range of motion achievable. Dynamic MRI was acquired for three healthy volunteers during passive, unloaded knee motion using 2D Cartesian TSE, 2D radial GRE and 3D UTE sequences; and during active, unloaded and loaded knee motion using 2D radial GRE imaging. Because of the different MRI sequences used, spatial resolution was inherently lower for active knee motion than for passive motion acquisitions. Results: Depending on the protocol, some participants reported slight pain, mild discomfort and varying levels of physical exertion. On average, participants achieved ∼40◦ of knee ﬂexion; loaded conditions can create knee moments up to 27 Nm. High quality imaging data were obtained during different motion and loading conditions. Dynamic 3D data allowed to retrospectively extract arbitrarily oriented slices. Conclusion: A novel multipurpose device for guided, physiologically relevant knee motion and loading during dynamic MRI was developed. Device use was well tolerated and suitable for acquiring high quality images during different motion and loading conditions. Different bone positions between loaded and unloaded conditions were likely due to out-of-plane motion, particularly because image registration was not performed. Ultimately, this device could be used to advance our understanding of physiological and pathological joint mechanics.}
@@ -302,6 +302,188 @@
       \verb https://ieeexplore.ieee.org/document/4767851
       \endverb
     \endentry
+    \entry{coburn_immediate_2023}{article}{}
+      \name{author}{8}{}{%
+        {{un=0,uniquepart=base,hash=ce39a422fe0570a65e4ff2e98ff83b6a}{%
+           family={Coburn},
+           familyi={C\bibinitperiod},
+           given={Sally\bibnamedelima L.},
+           giveni={S\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=0dd82e71fba5bc081b6bddd49acda2b2}{%
+           family={Crossley},
+           familyi={C\bibinitperiod},
+           given={Kay\bibnamedelima M.},
+           giveni={K\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c852d909bf2e475ffc338598141119cc}{%
+           family={Kemp},
+           familyi={K\bibinitperiod},
+           given={Joanne\bibnamedelima L.},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d2da7a67eea2052e1fa92b27448f6876}{%
+           family={Warden},
+           familyi={W\bibinitperiod},
+           given={Stuart\bibnamedelima J.},
+           giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=71e69819318b56f74657981cf1aef816}{%
+           family={West},
+           familyi={W\bibinitperiod},
+           given={Tom\bibnamedelima J.},
+           giveni={T\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=517b5ab56c63155383b3f6d0a5196109}{%
+           family={Bruder},
+           familyi={B\bibinitperiod},
+           given={Andrea\bibnamedelima M.},
+           giveni={A\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3d3e5d9b8cd204f6b7aa886e7ccb52b1}{%
+           family={Mentiplay},
+           familyi={M\bibinitperiod},
+           given={Benjamin\bibnamedelima F.},
+           giveni={B\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=be5b254761a4337f339f592059439a31}{%
+           family={Culvenor},
+           familyi={C\bibinitperiod},
+           given={Adam\bibnamedelima G.},
+           giveni={A\bibinitperiod\bibinitdelim G\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{387d07b754c1fb5844b2ae22fa883b14}
+      \strng{fullhash}{66470b1cceab1e87997840ebf686c822}
+      \strng{bibnamehash}{387d07b754c1fb5844b2ae22fa883b14}
+      \strng{authorbibnamehash}{387d07b754c1fb5844b2ae22fa883b14}
+      \strng{authornamehash}{387d07b754c1fb5844b2ae22fa883b14}
+      \strng{authorfullhash}{66470b1cceab1e87997840ebf686c822}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Background  The impact of activity-related joint loading on cartilage is not clear. Abnormal loading is considered to be a mechanical driver of osteoarthritis ({OA}), yet moderate amounts of physical activity and rehabilitation exercise can have positive effects on articular cartilage. Our aim was to investigate the immediate effects of joint loading activities on knee and hip cartilage in healthy adults, as assessed using magnetic resonance imaging. We also investigated delayed effects of activities on healthy cartilage and the effects of activities on cartilage in adults with, or at risk of, {OA}. We explored the association of sex, age and loading duration with cartilage changes. Methods  A systematic review of six databases identified studies assessing change in adult hip and knee cartilage using {MRI} within 48 h before and after application of a joint loading intervention/activity. Studies included adults with healthy cartilage or those with, or at risk of, {OA}. Joint loading activities included walking, hopping, cycling, weightbearing knee bends and simulated standing within the scanner. Risk of bias was assessed using the Newcastle–Ottawa Scale. Random-effects meta-analysis estimated the percentage change in compartment-specific cartilage thickness or volume and composition (T2 relaxation time) outcomes. The Grading of Recommendations Assessment, Development and Evaluation ({GRADE}) system evaluated certainty of evidence. Results  Forty studies of 653 participants were included after screening 5159 retrieved studies. Knee cartilage thickness or volume decreased immediately following all loading activities investigating healthy adults; however, {GRADE} assessment indicated very low certainty evidence. Patellar cartilage thickness and volume reduced 5.0\% (95\% {CI} 3.5, 6.4, I2 = 89.3\%) after body weight knee bends, and tibial cartilage composition (T2 relaxation time) decreased 5.1\% (95\% {CI} 3.7, 6.5, I2 = 0.0\%) after simulated standing within the scanner. Hip cartilage data were insufficient for pooling. Secondary outcomes synthesised narratively suggest knee cartilage recovers within 30 min of walking and 90 min of 100 knee bends. We found contrasting effects of simulated standing and walking in adults with, or at risk of, {OA}. An increase of 10 knee bend repetitions was associated with 2\% greater reduction in patellar thickness or volume. Conclusion  There is very low certainty evidence that minimal knee cartilage thickness and volume and composition (T2 relaxation time) reductions (0–5\%) occur after weightbearing knee bends, simulated standing, walking, hopping/ jumping and cycling, and the impact of knee bends may be dose dependent. Our findings provide a framework of cartilage responses to loading in healthy adults which may have utility for clinicians when designing and prescribing rehabilitation programs and providing exercise advice.}
+      \field{day}{14}
+      \field{issn}{2198-9761}
+      \field{journaltitle}{Sports Medicine - Open}
+      \field{langid}{english}
+      \field{month}{7}
+      \field{number}{1}
+      \field{shortjournal}{Sports Med - Open}
+      \field{shorttitle}{Immediate and Delayed Effects of Joint Loading Activities on Knee and Hip Cartilage}
+      \field{title}{Immediate and Delayed Effects of Joint Loading Activities on Knee and Hip Cartilage: A Systematic Review and Meta-analysis}
+      \field{urlday}{7}
+      \field{urlmonth}{4}
+      \field{urlyear}{2024}
+      \field{volume}{9}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{56}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1186/s40798-023-00602-7
+      \endverb
+      \verb{file}
+      \verb Coburn et al. - 2023 - Immediate and Delayed Effects of Joint Loading Act.pdf:C\:\\Users\\Aayush\\Zotero\\storage\\XMQQQEAZ\\Coburn et al. - 2023 - Immediate and Delayed Effects of Joint Loading Act.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://sportsmedicine-open.springeropen.com/articles/10.1186/s40798-023-00602-7
+      \endverb
+      \verb{url}
+      \verb https://sportsmedicine-open.springeropen.com/articles/10.1186/s40798-023-00602-7
+      \endverb
+    \endentry
+    \entry{dalley_moores_2023}{book}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=33c612fa7e48b18a79c0f956d34cd19c}{%
+           family={Dalley},
+           familyi={D\bibinitperiod},
+           given={Arthur\bibnamedelima F.},
+           giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=95f84d8bd12aedca77437f5d3276e9a4}{%
+           family={Agur},
+           familyi={A\bibinitperiod},
+           given={A.\bibnamedelimi M.\bibnamedelimi R.},
+           giveni={A\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=efe3151aba80ffc18b2e5376a82e903c}{%
+           family={Moore},
+           familyi={M\bibinitperiod},
+           given={Keith\bibnamedelima L.},
+           giveni={K\bibinitperiod\bibinitdelim L\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Philadelphia}%
+      }
+      \list{publisher}{1}{%
+        {Wolters Kluwer}%
+      }
+      \strng{namehash}{2d130634641ca0f4a57a4f7aa89caae4}
+      \strng{fullhash}{2d130634641ca0f4a57a4f7aa89caae4}
+      \strng{bibnamehash}{2d130634641ca0f4a57a4f7aa89caae4}
+      \strng{authorbibnamehash}{2d130634641ca0f4a57a4f7aa89caae4}
+      \strng{authornamehash}{2d130634641ca0f4a57a4f7aa89caae4}
+      \strng{authorfullhash}{2d130634641ca0f4a57a4f7aa89caae4}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{"Clinically Oriented Anatomy is widely acclaimed for its comprehensive and well-written, "story-telling" text, accurate and detailed illustrations, and the relevance of its clinical correlations ("blue boxes"). The textbook serves as a complete reference and places clinical emphasis on anatomy that is important in physical diagnosis for primary care, interpretation of diagnostic imaging, and understanding the anatomical basis of emergency medicine and general surgery. This textbook is popular in a variety of programs, including medical, physician assistant, physical therapy, occupational therapy, graduate biology/anatomy, and exercise science"--}
+      \field{annotation}{Preceded by Clinically oriented anatomy / Keith L. Moore, Arthur F. Dalley {II}, Anne M. R. Agur. Eighth edition. [2018]}
+      \field{edition}{Ninth edition}
+      \field{isbn}{978-1-975154-08-0}
+      \field{pagetotal}{1}
+      \field{title}{Moore's clinically oriented anatomy}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \keyw{Anatomy}
+    \endentry
+    \entry{heidari_knee_2011}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=3e51c0e48a4892af211f43a0942a04da}{%
+           family={Heidari},
+           familyi={H\bibinitperiod},
+           given={Behzad},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{3e51c0e48a4892af211f43a0942a04da}
+      \strng{fullhash}{3e51c0e48a4892af211f43a0942a04da}
+      \strng{bibnamehash}{3e51c0e48a4892af211f43a0942a04da}
+      \strng{authorbibnamehash}{3e51c0e48a4892af211f43a0942a04da}
+      \strng{authornamehash}{3e51c0e48a4892af211f43a0942a04da}
+      \strng{authorfullhash}{3e51c0e48a4892af211f43a0942a04da}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Osteoarthritis ({OA}) a common disease of aged population and one of the leading causes of disability. Incidence of knee {OA} is rising by increasing average age of general population. Age, weight, trauma to joint due to repetiting movements in particular squatting and kneeling are common risk factors of knee {OA}. Several factors including cytokines, leptin, and mechanical forces are pathogenic factors of knee {OA}. In patients with knee pain attribution of pain to knee {OA} should be considered with caution. Since a proportion of knee {OA} are asymptomatic and in a number of patients identification of knee {OA} is not possible due to low sensitivity of radiographic examination. In this review data presented in regard to prevalence, pathogenesis, risk factors.}
+      \field{issn}{2008-6164}
+      \field{journaltitle}{Caspian Journal of Internal Medicine}
+      \field{number}{2}
+      \field{shortjournal}{Caspian J Intern Med}
+      \field{shorttitle}{Knee osteoarthritis prevalence, risk factors, pathogenesis and features}
+      \field{title}{Knee osteoarthritis prevalence, risk factors, pathogenesis and features: Part I}
+      \field{volume}{2}
+      \field{year}{2011}
+      \field{dateera}{ce}
+      \field{pages}{205\bibrangedash 212}
+      \range{pages}{8}
+      \verb{file}
+      \verb Haidari_2011.pdf:C\:\\Users\\Aayush\\Zotero\\storage\\YKPKZUS5\\Haidari_2011.pdf:application/pdf
+      \endverb
+      \keyw{Knee,Osteoarthritis,Pathogenesis,Prevalence}
+    \endentry
     \entry{netter_519_2023}{book}{}
       \name{author}{1}{}{%
         {{un=0,uniquepart=base,hash=84384834abaaafaf09d1bf130c7ab0fd}{%
@@ -335,8 +517,6 @@
       \field{title}{Netter atlas of human anatomy: classic regional approach}
       \field{year}{2023}
       \field{dateera}{ce}
-      \field{pages}{519}
-      \range{pages}{1}
       \keyw{Atlases,Human anatomy}
     \endentry
     \entry{obermuller_epidemiology_2024}{article}{}
@@ -420,6 +600,51 @@
       \verb{url}
       \verb https://linkinghub.elsevier.com/retrieve/pii/S2665913123000973
       \endverb
+    \endentry
+    \entry{standring_grays_2021}{collection}{}
+      \name{editor}{2}{}{%
+        {{un=0,uniquepart=base,hash=9af7dfeff86e4406a6a823fe71fa3730}{%
+           family={Standring},
+           familyi={S\bibinitperiod},
+           given={Susan},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ff768eda4b442b2bb40836e9612fd6a2}{%
+           family={Gray},
+           familyi={G\bibinitperiod},
+           given={Henry},
+           giveni={H\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Amsterdam}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{84c5b2f963ae3728760db7442e852381}
+      \strng{fullhash}{84c5b2f963ae3728760db7442e852381}
+      \strng{bibnamehash}{84c5b2f963ae3728760db7442e852381}
+      \strng{editorbibnamehash}{84c5b2f963ae3728760db7442e852381}
+      \strng{editornamehash}{84c5b2f963ae3728760db7442e852381}
+      \strng{editorfullhash}{84c5b2f963ae3728760db7442e852381}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{editor}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{"In 1858 Drs Henry Gray and Henry Vandyke Carter created a book for their surgical colleagues that established an enduring standard among anatomical texts. After more than 160 years of continuous publication Gray's Anatomy remains the definitive comprehensive reference on the subject offering ready access to the information you need to ensure safe effective practice. This 42nd edition has been meticulously revised and updated throughout reflecting the very latest understanding of clinical anatomy from the world's leading clinicians and biomedical scientists. The book's acclaimed lavish art programme and clear text has been further enhanced while major advances in imaging techniques and the new insights they bring are fully captured in state of the art X-ray {CT} {MR} and ultrasonic images. The accompanying {eBook} version is richly enhanced with additional content and media covering all the body regions cell biology development and embryogenesis - and now includes two new systems-orientated chapters. This combines to unlock a whole new level of related information and interactivity in keeping with the spirit of innovation that has characterised Gray's Anatomy since its inception."--Publisher's website}
+      \field{annotation}{Previous edition: 2016}
+      \field{edition}{Forty-second edition}
+      \field{isbn}{978-0-7020-7705-0}
+      \field{note}{{OCLC}: on1202943188}
+      \field{pagetotal}{1588}
+      \field{shorttitle}{Gray's anatomy}
+      \field{title}{Gray's anatomy: the anatomical basis of clinical practice}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \keyw{Anatomical atlases,Anatomy,Human anatomy}
     \endentry
   \enddatalist
 \endrefsection
