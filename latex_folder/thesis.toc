@@ -3,28 +3,28 @@
 \contentsline {section}{List of Acronyms}{vii}{section*.8}%
 \contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
 \contentsline {subsection}{\numberline {1.1}The Knee }{1}{subsection.1.1}%
-\contentsline {subsection}{\numberline {1.2}Dynamic MRI}{3}{subsection.1.2}%
-\contentsline {subsection}{\numberline {1.3}Foundational Work}{3}{subsection.1.3}%
-\contentsline {subsection}{\numberline {1.4}Research Necessity}{3}{subsection.1.4}%
-\contentsline {subsection}{\numberline {1.5}Thesis Structure}{3}{subsection.1.5}%
-\contentsline {section}{\numberline {2}Methodology}{4}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Data Collection Methods}{4}{subsection.2.1}%
-\contentsline {subsubsection}{\numberline {2.1.1}The Device}{4}{subsubsection.2.1.1}%
-\contentsline {subsubsection}{\numberline {2.1.2}Procedure Details}{4}{subsubsection.2.1.2}%
-\contentsline {subsubsection}{\numberline {2.1.3}Sequence Parameters and Reconstruction}{5}{subsubsection.2.1.3}%
-\contentsline {subsection}{\numberline {2.2}Data Analysis}{5}{subsection.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.1}Segmentation}{5}{subsubsection.2.2.1}%
-\contentsline {subsection}{\numberline {2.3}Validity and Reliability}{5}{subsection.2.3}%
-\contentsline {section}{\numberline {3}Results}{6}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Segmentation}{6}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Parameter Extraction}{6}{subsection.3.2}%
-\contentsline {section}{\numberline {4}Discussion}{6}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Technique Evaluation}{6}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Biomechanical Insights}{6}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}Comparison with Existing Methods}{6}{subsection.4.3}%
-\contentsline {section}{\numberline {5}Conclusion}{6}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Summary of Contributions}{6}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Limitations and Challenges}{6}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Future Work}{7}{subsection.5.3}%
-\contentsline {section}{References}{8}{section*.10}%
-\contentsline {section}{\numberline {A}Appendix}{9}{appendix.A}%
+\contentsline {subsection}{\numberline {1.2}Dynamic MRI}{4}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Foundational Work}{5}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Research Necessity}{5}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Thesis Structure}{5}{subsection.1.5}%
+\contentsline {section}{\numberline {2}Methodology}{6}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Data Collection Methods}{6}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}The Device}{6}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Procedure Details}{6}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}Sequence Parameters and Reconstruction}{7}{subsubsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.2}Data Analysis}{7}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Segmentation}{7}{subsubsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.3}Validity and Reliability}{7}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Results}{8}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Segmentation}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Parameter Extraction}{8}{subsection.3.2}%
+\contentsline {section}{\numberline {4}Discussion}{8}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Technique Evaluation}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Biomechanical Insights}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Comparison with Existing Methods}{8}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Conclusion}{8}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Summary of Contributions}{8}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Limitations and Challenges}{8}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Future Work}{9}{subsection.5.3}%
+\contentsline {section}{References}{10}{section*.10}%
+\contentsline {section}{\numberline {A}Appendix}{12}{appendix.A}%

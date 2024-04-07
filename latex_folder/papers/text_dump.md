@@ -49,3 +49,21 @@ Said, O., Schock, J., Abrar, D., Schad, P., Kuhl, C., Nolte, T., … & Nebelung,
 Scarvell, J., Smith, P., Refshauge, K., Galloway, H., & Woods, K. (2004). Evaluation of a method to map tibiofemoral contact points in the normal knee using mri. Journal of Orthopaedic Research®, 22(4), 788-793. https://doi.org/10.1016/j.orthres.2003.10.011
 Schwer, J., Rahman, M., Stumpf, K., Rasche, V., Ignatius, A., Dürselen, L., … & Seitz, A. (2020). Degeneration affects three-dimensional strains in human menisci: in situ mri acquisition combined with image registration. Frontiers in Bioengineering and Biotechnology, 8. https://doi.org/10.3389/fbioe.2020.582055
 Westphal, C., Schmitz, A., Reeder, S., & Thelen, D. (2013). Load-dependent variations in knee kinematics measured with dynamic mri. Journal of Biomechanics, 46(12), 2045-2052. https://doi.org/10.1016/j.jbiomech.2013.05.027_
+
+
+
+
+
+
+
+_______________
+
+1. Knee joint biomechanics osteoarthritis" - This query will help you find papers that discuss the relationship between the biomechanics of the knee joint and the development of osteoarthritis.
+
+2. "Knee articular surfaces mechanical stress osteoarthritis" - This search will yield results that focus on how the mechanical stress on the knee's articular surfaces contributes to osteoarthritis.
+
+3. "Femorotibial femoropatellar interaction knee" - Use this query to find studies that explore the interaction between the femorotibial and femoropatellar articulations in the knee and their role in its biomechanical function.
+
+4. "Knee joint malalignment osteoarthritis risk" - This search will provide papers discussing how malalignment in the knee joint can increase the risk of developing osteoarthritis.
+
+5. "Dynamic MRI knee biomechanics" - Although this is more related to your method, this search can help find articles that discuss the use of dynamic MRI to study the knee's biomechanics._
