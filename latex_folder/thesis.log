@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.2.11)  7 APR 2024 14:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2024.2.11)  8 APR 2024 22:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -659,8 +659,8 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.145 A
-       pplication to the Knee: Connect the capabilities of dynamic MRI speci...
+l.143 T
+       echnical Overview: Briefly touch on the technical advancements that e...
  <./six_degrees.png (PNG copy)>] [5]
 Overfull \hbox (89.11998pt too wide) in paragraph at lines 175--177
 []\OT1/cmr/m/n/12 Central to this de-vice's func-tion-al-ity is an op-ti-cal fi
@@ -716,7 +716,7 @@ ype1/public/amsfonts/cm/cmsl12.pfb><c:/texlive/2023/texmf-dist/fonts/type1/publ
 ic/amsfonts/cm/cmsy8.pfb><c:/texlive/2023/texmf-dist/fonts/type1/public/amsfont
 s/cm/cmti12.pfb><c:/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt
 12.pfb>
-Output written on thesis.pdf (21 pages, 2200193 bytes).
+Output written on thesis.pdf (21 pages, 2200232 bytes).
 PDF statistics:
  381 PDF objects out of 1000 (max. 8388607)
  330 compressed objects within 4 object streams
