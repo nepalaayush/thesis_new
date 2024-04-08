@@ -23,11 +23,11 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_on_07_04/HS_NW_ai2_5e-2_neg_ngn.nii'
-path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_on_07_04/HS_NW_ai2_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_on_07_04/JL_NW_ai2_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_on_07_04/JL_NW_ai2_5e-2_pos_ngn.nii'
 #%%
-image_neg = path_to_image(path_neg)
-image_pos = path_to_image(path_pos) 
+image_neg = path_to_image(path_neg)[1:]
+image_pos = path_to_image(path_pos)[1:] 
 #%%
 # since our image goes from extened to flexed.. the direction means, pos is going down.. and neg is coming up 
 # which means. if we want to present our data as going up then coming down .. we have to reverse the neg, put it at the first half. 
@@ -37,7 +37,7 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(full_image,  name='HS_NW_full')
+viewer = napari.view_image(full_image,  name='JL_NW_full')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
@@ -70,10 +70,10 @@ canny_multi_edge = apply_canny_multiple_thresholds(full_image, low_range, high_r
 
 end_time = time.time() 
 print(f"Elapsed Time: {end_time - start_time} seconds")
-viewer3.add_image(canny_multi_edge, name='HS_NW_full')
+viewer3.add_image(canny_multi_edge, name='JL_NW_full')
 #%%
 #Step 5: pick the right index and add it to viewer
-tib_canny = canny_multi_edge[2]
+tib_canny = canny_multi_edge[4]
 viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
@@ -105,7 +105,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 viewer3.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
-bone_canny = removed_4d[18] 
+bone_canny = removed_4d[13] 
 viewer.add_image(bone_canny, name='after_remove_small')
 #%%
 # step 9 skeletonize the edge 
@@ -134,7 +134,7 @@ viewer.add_labels(ndlabel, name='ndlabel_with_3,3_structure')
 #%%
 final_label_3d = ndlabel.copy()
 #final_label_3d = (final_label_3d == 3) | (final_label_3d == 23) | (final_label_3d == 25)
-final_label_3d = (final_label_3d == 3) 
+final_label_3d = (final_label_3d == 4) 
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
@@ -151,12 +151,12 @@ new_tib_coords_last = tib_coords.copy()
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='femur')
+reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='tibia')
 new_tib_coords_first = tib_coords.copy() 
 new_tib_coords_first[0] = reference_frame_first
-#new_tib_coords_first[0] = US_NW_ref_frame_fem
+#new_tib_coords_first[0] = HS_NW_ref_frame_first_fem
 viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
-#viewer.add_points(US_NW_ref_frame_fem, face_color='green', size =1, name='reference_frame_first_using_NW_fem')
+#viewer.add_points(HS_NW_ref_frame_first_fem, face_color='green', size =1, name='reference_frame_first_using_NW_fem')
 
 #%%
 final_label_other = coords_to_boolean(new_tib_coords_first, shape = full_image.shape)
@@ -170,7 +170,5 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='transformed_frame_NW_stiched')
 #%%
 
-with open('HS_NW_t_matrices_fem_s.pkl', 'wb') as file:
+with open('JL_NW_t_matrices_tib_s.pkl', 'wb') as file:
     pickle.dump(transformation_matrices_first, file)
-#%%
-AN_NW_ref_frame_tib = viewer.layers['ref_points_try'].data

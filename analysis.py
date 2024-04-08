@@ -172,8 +172,8 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_fem'].data[0]
-#ref_points = viewer1.layers['US_NW_fem_shape'].data[0][:,1:3]
+ref_points = viewer1.layers['expanded_tib'].data[0]
+#ref_points = viewer1.layers['fem_NW_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
@@ -188,10 +188,10 @@ desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["fem_NW"].to_labels(image1.shape)
+disp_layer = viewer1.layers["tib_NW"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
-#xrange=slice(150,480)
-xrange = slice(80,350)
+xrange=slice(150,480)
+#xrange = slice(80,350)
 yrange=slice(140,400)
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
@@ -202,10 +202,20 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
      
 plt.tight_layout()
-plt.savefig('HS_NW_segmented_fem_s.svg')
+plt.savefig('JL_NW_segmented_tib_s.svg')
+
 
 #%%
-shapes_data = viewer1.layers['fem_NW']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+# creating a cut version of the shape, since the first frame doesnt align properly. have to remove the last frame for symmetry 
+
+tib_W = viewer1.layers['tib_W'].data
+cutlist = tib_W[1:-1]
+# Now, iterate over each array in cutlist and adjust the first column
+for arr in cutlist:
+    arr[:, 0] -= 1  # Subtract 1 from every element in the first column
+#%%
+
+shapes_data = viewer1.layers['tib_NW']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
 #binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
 binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
 
@@ -230,18 +240,18 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
 
     return transformed_dicts
 
-HS_NW_fem_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+JL_NW_tib_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
 
 
 #%%
 
 # Saving the dictionary to a file
-with open('HS_NW_fem_info_s.pkl', 'wb') as f:
-    pickle.dump(HS_NW_fem_info_s, f)
+with open('JL_NW_tib_info_s.pkl', 'wb') as f:
+    pickle.dump(JL_NW_tib_info_s, f)
 #%%
-show_stuff(HS_NW_tib_info_s, 'HS_NW_tib_info_s', viewer1)
+show_stuff(JL_NW_tib_info_s, 'JL_NW_tib_info_s', viewer1)
 #%%
-show_stuff(HS_NW_fem_info_s, 'HS_NW_fem_info_s', viewer1)
+show_stuff(HS_W_fem_info_s, 'HS_W_fem_info_s', viewer1)
 
 #%%
 screenshots = []
@@ -285,7 +295,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_HS_NW_both_bones_stiched.svg'
+    output_path = 'mosaic_HS_W_both_bones_stiched.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -314,7 +324,7 @@ for frame_index in range(number_of_frames):
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
-with imageio.get_writer('HS_NW_animation.gif', mode='I') as writer:
+with imageio.get_writer('HS_W_animation.gif', mode='I') as writer:
     for i in range(number_of_frames):
         frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
         frame = imageio.imread(frame_path)
