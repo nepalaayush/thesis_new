@@ -1,5 +1,6 @@
 do this in windows: git config --global core.autocrlf true
-
+Dynamic MRI portion: 
+(I would like to introduce how bulk movements in the scanner have been imaged in the past because introducing dynamic mri in general seems to be a daunting task)
 
 
 Anatomical terms: 
@@ -62,12 +63,21 @@ Westphal, C., Schmitz, A., Reeder, S., & Thelen, D. (2013). Load-dependent varia
 
 _______________
 
-1. Knee joint biomechanics osteoarthritis" - This query will help you find papers that discuss the relationship between the biomechanics of the knee joint and the development of osteoarthritis.
+1. Knee joint biomechanics osteoarthritis" - 
 
-2. "Knee articular surfaces mechanical stress osteoarthritis" - This search will yield results that focus on how the mechanical stress on the knee's articular surfaces contributes to osteoarthritis.
+2. "Knee articular surfaces mechanical stress osteoarthritis" -
+3. "Femorotibial femoropatellar interaction knee" - 
 
-3. "Femorotibial femoropatellar interaction knee" - Use this query to find studies that explore the interaction between the femorotibial and femoropatellar articulations in the knee and their role in its biomechanical function.
+4. "Knee joint malalignment osteoarthritis risk" - 
 
-4. "Knee joint malalignment osteoarthritis risk" - This search will provide papers discussing how malalignment in the knee joint can increase the risk of developing osteoarthritis.
+5. "Dynamic MRI knee biomechanics" - 
 
-5. "Dynamic MRI knee biomechanics" - Although this is more related to your method, this search can help find articles that discuss the use of dynamic MRI to study the knee's biomechanics._
+
+' we start with the device. this device goes inside the scanner. the subjct puts one of his leg in the device. the subject can then flex and extend his leg inside the scanner. the subject does this by following a metronome.. so, you might ask, if he is doing it actively, then whats the point of the device .. well, many poitns are served ... for one thing, it keeps the leg in place. and most importantly, there is an optical sensor attached to the device. this simply measures the angle. during reconstruction we use this angle information to create a bunch of frames as the leg moves. 
+when i finally load the image.. i have a 3d dataset. the 2d image of a single slice, across a bunch of frames, each frame is the knee at a given angle. 
+
+now, the question is how is the measurement performed ... here, the subject does a repetitive flexion and extension cycles throughout the image acquisition.. he does it around 100 times.  ' 
+
+flow so far: 
+
+OA is a problem -> knee OA in particular is a problem too -> this is because of inherent anatomy of knee -> dynamic mri is a good choice to assess the knee -> dynamic mri captures motion or physiological changes -> .. .. .. .. -> the foundational work on which this work is built upon is the development of this cine imaging sequence as well as the device for the scanner itself -> this project aims to develop tools to extract information from the images acquired by this process 
