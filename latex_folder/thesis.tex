@@ -138,20 +138,47 @@ Such mechanical forces, influenced by activities and body mass index (BMI), are 
 The relationship between biomechanical stresses and knee health highlights the need for diagnostic tools that fulfill two key criteria: they must capture the knee's dynamic behavior during motion and assess the joint under varying loads. Dynamic magnetic resonance imaging (MRI) excels in meeting these requirements as one of the most advanced imaging modalities.
 
 \subsection{Dynamic MRI}
-In a broad sense, dynamic MRI can be considered to be an imaging technique that is designed to capture and visualize motion or physiological processes as they occur in the scanner. These might include blood flow, heart movements or in our case, joint movement.  
+In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techniques designed to capture and visualize physiological processes and motion over time. This dynamic aspect of MRI is crucial when studying systems or structures where motion is inherent, such as blood flow, tissue perfusion, or cardiac movement. For the purposes of this project, the focus of "dynamic MRI" narrows down to capturing the bulk movement of the knee joint undergoing active flexion extension cycles inside the scanner. Compared to traditional static MRI scans, which are highly susceptible to motion artifacts compared to other imaging modalities \parencite{zaitsev_motion_2015}, dynamic MRI techniques not only accommodates motion, but can even leverage it to offer comprehensive insights into the functional and biomechanical properties of the concerned structures. One of the most popular methods, typical used for cardiac imaging is called CINE imaging. 
 
-Technical Overview: Briefly touch on the technical advancements that enable dynamic MRI to capture moving images. Discuss how it differs from traditional MRI in terms of acquisition speed, temporal resolution, and the types of sequences used.
+\textbf{CINE imaging}
 
-Application to the Knee: Connect the capabilities of dynamic MRI specifically to knee imaging. Explain how it allows for the assessment of knee joint mechanics under different conditions, such as varying loads or during motion, and how this can reveal insights into the interactions between different structures within the knee.
+" 
+Dynamic cardiac MRI is conventionally performed with a
+technique known as CINE,13 which takes its name from cine-
+matography. In brief, a “movie” of a single beating heart cycle
+is reconstructed by literally stitching together numerous par-
+tial datasets from many heartbeats—typically 15–18, more if
+multiple slices are acquired. Because data acquisition is too
+slow to collect all data in a single heartbeat, acquisition is seg-
+mented over several heartbeats. Speciﬁcally, the cardiac cycle
+is divided into many phases (or timepoints), and the fully
+sampled k-space for each phase is divided into multiple seg-
+ments (Fig. 1). Once all segments for all cardiac phases are
+acquired, the data are temporally reordered and converted to
+the image domain to produce the impression of a continu-
+ously acquired time series. One can readily appreciate that
+this technique does not provide real-time dynamics and works
+robustly only if cardiac cycles are sufﬁciently similar.
 
-Relevance to OA: Tie the use of dynamic MRI back to OA by discussing how the technique can help in understanding the mechanical forces at play in the knee joint, potentially aiding in the early diagnosis of OA or in monitoring the progression of the disease.
-
-Advantages Over Traditional MRI: Highlight the benefits of dynamic MRI over traditional static MRI, emphasizing its ability to provide a more comprehensive and functional understanding of the knee joint, which is crucial for addressing the mechanical aspects of OA.
-
-
+" 
+\parencite{curtis_primer_2022}
+ 
+To achieve this, we require not only an imaging sequence and reconstruction technique, but also a MR safe knee loading device. They are described in the section below. 
 
 \subsection{Foundational Work}
-Describe the two key papers that form the foundation of your thesis: the construction of the MRI knee loading device \parencite{brisson_novel_2022} and the development of the imaging sequence used for capturing data. \parencite{aleksiev_high-resolution_2022}
+This project builds upon two distinct works: the construction of the MRI knee loading device \parencite{brisson_novel_2022}  and the development of the imaging sequence used for capturing and reconstructing the data. \parencite{aleksiev_high-resolution_2022}
+
+\textbf{High resolution CINE imaging}
+
+This imaging technique presents a significant advancement in capturing active knee motion. 
+It combines continuously acquired radial golden-angle MRI data with angular sensor information to retrospectively reconstruct CINE images of the knee, allowing the acquisition of high-resolution 2D images during knee flexion and extension. 
+
+
+
+
+
+
+\textbf{Knee loading device }
 
 \subsection{Research Necessity}
 Discuss the necessity for further analysis of the acquired images, emphasizing the gap between data collection and data interpretation within the current literature.
