@@ -1,3 +1,7 @@
+do this in windows: git config --global core.autocrlf true
+
+
+
 Anatomical terms: 
 
 Shaft: the long cylindrical portion of the  bone. 
