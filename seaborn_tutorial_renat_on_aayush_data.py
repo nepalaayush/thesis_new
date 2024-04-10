@@ -35,11 +35,15 @@ equal_frame_df = angle_and_rel_df[
 ].reset_index(drop=True)
 equal_frame_df['Frame Number'] = equal_frame_df.groupby(['Dataset', 'Condition']).cumcount()
 
+
+#%%
+
+filtered_data = is_df_1_7[is_df_1_7['Dataset'] != 7]
 #%%
 ''' this is a working code to plot the IS translation for all datasets w.r.t frame or percent flexed. the mean can be adjusted by commenting out hue 
 '''  
 fg = sns.relplot(
-    is_df_1_7, 
+    is_df_1_7[is_df_1_7['Dataset'] != 7], 
     x="Percent Flexed",
     #x = 'Frame Number',
     y="Relative Translation", 
