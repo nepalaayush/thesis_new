@@ -16,20 +16,20 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 #%%
 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/ap_df.pkl', 'rb') as file:
-    ap_df = pickle.load(file)    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_NW_tib_info_s.pkl', 'rb') as file:
+    JL_NW_tib_info_s = pickle.load(file)    
 
-#%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/is_df.pkl', 'rb') as file:
-    is_df = pickle.load(file)
+
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_W_tib_info_s.pkl', 'rb') as file:
+    JL_W_tib_info_s = pickle.load(file)
     
-#%%    
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/US/stiched_analysis/US_W_tib_info_s.pkl', 'rb') as file:
-    US_W_tib_info_s = pickle.load(file)
+    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/try_JL_NW_fem_info_s.pkl', 'rb') as file:
+    JL_NW_fem_info_s = pickle.load(file)
     
 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/US/stiched_analysis/US_NW_fem_info_s.pkl', 'rb') as file:
-    US_NW_fem_info_s = pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_W_fem_info_s.pkl', 'rb') as file:
+    JL_W_fem_info_s = pickle.load(file)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
     """
@@ -177,25 +177,17 @@ def compile_translations(fem_loaded, fem_unloaded, tib_loaded, tib_unloaded, vox
 
 
 
-US_master_df= compile_translations(US_W_fem_info_s, US_NW_fem_info_s, US_W_tib_info_s, US_NW_tib_info_s, voxel_size)
+JL_master_df= compile_translations(JL_W_fem_info_s, JL_NW_fem_info_s, JL_W_tib_info_s, JL_NW_tib_info_s, voxel_size)
 #%%
 
 # when adding new dataframes: do this: 
-# For Dataset 1
-MK_df['Dataset'] = '1'
 
-#For Dataset 2
-MM_df['Dataset'] = '2'
+HS_master_df['Dataset'] = '6'
+JL_master_df['Dataset'] = '7'
 
-# For Dataset 3 
-AN_df['Dataset'] = '3'
-
-MK_master_df['Dataset'] = '4'
-#%%
-AN_master_df['Dataset'] = '5'
 
 #%%
-master_df_1_5 = pd.concat([master_df, MK_master_df, AN_master_df], ignore_index=True)
+master_df_1_7 = pd.concat([master_df_1_5, HS_master_df, JL_master_df], ignore_index=True)
 #%%
 # Filter the master DataFrame to get Tibia IS translations for both loaded and unloaded conditions
 tibia_is_translations = master_df.loc[(master_df['Type'] == 'IS') & 
@@ -229,7 +221,7 @@ plt.show()
 angle_df = master_df[['Frame Number', 'Condition', 'Dataset', 'Angles']].copy()    
 angle_df = angle_df.dropna(subset=['Angles'])
 # that works 
-#%%
+
 #%%
 ''' the same as above, that is, to obtain the relative translations from the master df, but without using for loops ''' 
 # Convert relevant columns to category types for efficiency
@@ -326,7 +318,7 @@ def calculate_relative_translation_and_angle(master_df):
     
     return is_df, ap_df 
 
-is_df , ap_df  = calculate_relative_translation_and_angle(master_df_1_5)
+is_df_1_7 , ap_df_1_7  = calculate_relative_translation_and_angle(master_df_1_7)
 
 
 
@@ -401,8 +393,8 @@ plt.show()
 
 #%%
 
-with open('master_df_1_5.pkl', 'wb') as f:
-    pickle.dump(master_df_1_5, f)   
+with open('ap_df_1_7.pkl', 'wb') as f:
+    pickle.dump(ap_df_1_7, f)   
 
 #%%
 # this code plots the average relative translation for IS for UNloaded .. along with a weird sd shading.. (because not all datasets have the same angle)

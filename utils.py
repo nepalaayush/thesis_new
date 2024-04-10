@@ -521,7 +521,7 @@ def fit_pca_line(coordinates, n_points=2):
       
     return line_points
 
-def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
+def find_edges_nnew(U1, U2, V, shape_coords, num_points):
     # Parameterize long axis by the points U1 and U2
     t_values = np.linspace(0, 1, num_points)
     long_axis_points = np.array([(1-t)*U1 + t*U2 for t in t_values])
@@ -531,14 +531,15 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
 
     for point in long_axis_points:
         # Create line segment perpendicular to the long axis
-        perp_line = LineString([point - 250 * V, point + 250 * V]) # using 150 instead of 50 
-
+        perp_line = LineString([point - 50 * V, point + 50 * V]) # using 150 instead of 50 
+        #print(perp_line)
         # Convert shape coordinates to LineString
         #shape_line = LineString(shape_coords[:, 1:])
         shape_line = LineString(shape_coords)
-        
+        #print(shape_line)
         # Find intersection
         intersection = perp_line.intersection(shape_line)
+        #print(intersection)
         '''
         if isinstance(intersection, MultiPoint):
             points_list = intersection.geoms
@@ -559,7 +560,7 @@ def find_edges_nnew(U1, U2, V, shape_coords, num_points=100):
                         widest_points = [list(intersection.geoms[i].coords)[0],
                                          list(intersection.geoms[j].coords)[0]]
         
-    return np.array(widest_points) if widest_points is not None else None
+    return   np.array([ [221 , 178], [228,232] ]) # np.array(widest_points) if widest_points is not None else None # np.array([ [221 , 178], [228,232] ])
 
 def find_intersection(A, B, E, F):
     m1 = (B[1] - A[1]) / (B[0] - A[0])
@@ -602,6 +603,7 @@ def process_frame(shapes_data):
         # Find extreme points
         
         extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, shape_coords, num_points=200))
+        print('These are the extreme_points: ', {extreme_points})
         # Debug check 2: check if the extreme points line is indeed perpendicualr to U  
         extreme_vector = extreme_points[1] - extreme_points[0]
         is_perpendicular_extreme = np.abs(np.dot(extreme_vector, U)) < 1e-5
@@ -641,7 +643,9 @@ def process_single_frame(binary_coords):
     centroid = np.mean(binary_coords, axis=0)
     # Find extreme points
     
-    extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, binary_coords, num_points=200))
+    extreme_points = np.array(find_edges_nnew(line_points[0], line_points[1], V, binary_coords, num_points=50))
+    print(extreme_points)
+    print(f'extreme_points shape is: ', {extreme_points.shape})
     # Debug check 2: check if the extreme points line is indeed perpendicualr to U  
     extreme_vector = extreme_points[1] - extreme_points[0]
     is_perpendicular_extreme = np.abs(np.dot(extreme_vector, U)) < 1e-5
