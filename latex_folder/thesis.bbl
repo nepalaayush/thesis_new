@@ -226,7 +226,7 @@
       \field{sortinit}{B}
       \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
       \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
+      \field{labeldatesource}{year}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{abstract}{Introduction: This work aimed to develop a novel multipurpose device for guided knee ﬂexion-extension, both passively using a motorized pneumatic system and actively (muscle-driven) with the joint unloaded or loaded during dynamic MRI. Secondary objectives were to characterize the participant experience during device use, and present preliminary dynamic MRI data to demonstrate the different device capabilities. Material and methods: Self-reported outcomes were used to characterize the pain, physical exertion and discomfort levels experienced by 10 healthy male participants during four different active knee motion and loading protocols using the novel device. Knee angular data were recorded during the protocols to determine the maximum knee range of motion achievable. Dynamic MRI was acquired for three healthy volunteers during passive, unloaded knee motion using 2D Cartesian TSE, 2D radial GRE and 3D UTE sequences; and during active, unloaded and loaded knee motion using 2D radial GRE imaging. Because of the different MRI sequences used, spatial resolution was inherently lower for active knee motion than for passive motion acquisitions. Results: Depending on the protocol, some participants reported slight pain, mild discomfort and varying levels of physical exertion. On average, participants achieved ∼40◦ of knee ﬂexion; loaded conditions can create knee moments up to 27 Nm. High quality imaging data were obtained during different motion and loading conditions. Dynamic 3D data allowed to retrospectively extract arbitrarily oriented slices. Conclusion: A novel multipurpose device for guided, physiologically relevant knee motion and loading during dynamic MRI was developed. Device use was well tolerated and suitable for acquiring high quality images during different motion and loading conditions. Different bone positions between loaded and unloaded conditions were likely due to out-of-plane motion, particularly because image registration was not performed. Ultimately, this device could be used to advance our understanding of physiological and pathological joint mechanics.}
@@ -395,6 +395,64 @@
       \endverb
       \verb{url}
       \verb https://sportsmedicine-open.springeropen.com/articles/10.1186/s40798-023-00602-7
+      \endverb
+    \endentry
+    \entry{curtis_primer_2022}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=a84361050bb1d24615ab19d2313d4e34}{%
+           family={Curtis},
+           familyi={C\bibinitperiod},
+           given={Aaron\bibnamedelima D.},
+           giveni={A\bibinitperiod\bibinitdelim D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=70359b7b6355ee7678ad0ff4ccd1d3bc}{%
+           family={Cheng},
+           familyi={C\bibinitperiod},
+           given={Hai‐Ling\bibnamedelima M.},
+           giveni={H\bibinithyphendelim L\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{language}{1}{%
+        {en}%
+      }
+      \strng{namehash}{e638df983019f54ca5796ffccade0bc4}
+      \strng{fullhash}{e638df983019f54ca5796ffccade0bc4}
+      \strng{bibnamehash}{e638df983019f54ca5796ffccade0bc4}
+      \strng{authorbibnamehash}{e638df983019f54ca5796ffccade0bc4}
+      \strng{authornamehash}{e638df983019f54ca5796ffccade0bc4}
+      \strng{authorfullhash}{e638df983019f54ca5796ffccade0bc4}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Acceleration is an important consideration when imaging moving organs such as the heart. Not only does acceleration enable motion‐free scans but, more importantly, it lies at the heart of capturing the dynamics of cardiac motion. For over three decades, various ingenious approaches have been devised and implemented for rapid CINE MRI suitable for dynamic cardiac imaging. Virtually all techniques relied on acquiring less data to reduce acquisition times. Parallel imaging was among the first of these innovations, using multiple receiver coils and mathematical algorithms for reconstruction; acceleration factors of 2 to 3 were readily achieved in clinical practice. However, in the context of imaging dynamic events, further decreases in scan time beyond those provided by parallel imaging were possible by exploiting temporal coherencies. This recognition ushered in the era of k‐t accelerated MRI, which utilized predominantly statistical methods for image reconstruction from highly undersampled k ‐space. Despite the successes of k‐t acceleration methods, however, the accuracy of reconstruction was not always guaranteed. To address this gap, MR physicists and mathematicians applied compressed sensing theory to ensure reconstruction accuracy. Reconstruction was, indeed, more robust, but it required optimizing regularization parameters and long reconstruction times. To solve the limitations of all previous methods, researchers have turned to artificial intelligence and deep neural networks for the better part of the past decade, with recent results showing rapid, robust reconstruction. This review provides a comprehensive overview of key developments in the history of CINE MRI acceleration, and offers a unique and intuitive explanation behind the techniques and underlying mathematics.Level of Evidence: 5Technical Efficacy Stage: 1}
+      \field{issn}{1053-1807, 1522-2586}
+      \field{journaltitle}{Journal of Magnetic Resonance Imaging}
+      \field{month}{2}
+      \field{number}{2}
+      \field{shorttitle}{Primer and {Historical} {Review} on {Rapid} {Cardiac} {<}span style="font-variant}
+      \field{title}{Primer and {Historical} {Review} on {Rapid} {Cardiac} {<}span style="font-variant:small-caps;"{>}{CINE} {MRI}{<}/span{>}}
+      \field{urlday}{9}
+      \field{urlmonth}{4}
+      \field{urlyear}{2024}
+      \field{volume}{55}
+      \field{year}{2022}
+      \field{urldateera}{ce}
+      \field{pages}{373\bibrangedash 388}
+      \range{pages}{16}
+      \verb{doi}
+      \verb 10.1002/jmri.27436
+      \endverb
+      \verb{file}
+      \verb Curtis and Cheng - 2022 - Primer and Historical Review on Rapid Cardiac spa.pdf:/home/aayush/Zotero/storage/VG8IHDGL/Curtis and Cheng - 2022 - Primer and Historical Review on Rapid Cardiac spa.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://onlinelibrary.wiley.com/doi/10.1002/jmri.27436
+      \endverb
+      \verb{url}
+      \verb https://onlinelibrary.wiley.com/doi/10.1002/jmri.27436
       \endverb
     \endentry
     \entry{dalley_moores_2023}{book}{}
@@ -645,6 +703,61 @@
       \field{year}{2021}
       \field{dateera}{ce}
       \keyw{Anatomical atlases,Anatomy,Human anatomy}
+    \endentry
+    \entry{zaitsev_motion_2015}{article}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=2e8542356f0defeac59a4859efb6a637}{%
+           family={Zaitsev},
+           familyi={Z\bibinitperiod},
+           given={Maxim},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c85f782b87b90ce2f1628687a45580dd}{%
+           family={Maclaren},
+           familyi={M\bibinitperiod},
+           given={Julian},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=09491c0c0f2398683325f83cdc4a6286}{%
+           family={Herbst},
+           familyi={H\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{language}{1}{%
+        {eng}%
+      }
+      \strng{namehash}{f5d98b22a232041a3ede63dc1ab085c5}
+      \strng{fullhash}{f5d98b22a232041a3ede63dc1ab085c5}
+      \strng{bibnamehash}{f5d98b22a232041a3ede63dc1ab085c5}
+      \strng{authorbibnamehash}{f5d98b22a232041a3ede63dc1ab085c5}
+      \strng{authornamehash}{f5d98b22a232041a3ede63dc1ab085c5}
+      \strng{authorfullhash}{f5d98b22a232041a3ede63dc1ab085c5}
+      \field{sortinit}{Z}
+      \field{sortinithash}{96892c0b0a36bb8557c40c49813d48b3}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Subject motion during magnetic resonance imaging (MRI) has been problematic since its introduction as a clinical imaging modality. While sensitivity to particle motion or blood flow can be used to provide useful image contrast, bulk motion presents a considerable problem in the majority of clinical applications. It is one of the most frequent sources of artifacts. Over 30 years of research have produced numerous methods to mitigate or correct for motion artifacts, but no single method can be applied in all imaging situations. Instead, a "toolbox" of methods exists, where each tool is suitable for some tasks, but not for others. This article reviews the origins of motion artifacts and presents current mitigation and correction methods. In some imaging situations, the currently available motion correction tools are highly effective; in other cases, appropriate tools still need to be developed. It seems likely that this multifaceted approach will be what eventually solves the motion sensitivity problem in MRI, rather than a single solution that is effective in all situations. This review places a strong emphasis on explaining the physics behind the occurrence of such artifacts, with the aim of aiding artifact detection and mitigation in particular clinical situations.}
+      \field{issn}{1522-2586}
+      \field{journaltitle}{Journal of magnetic resonance imaging: JMRI}
+      \field{month}{10}
+      \field{number}{4}
+      \field{shorttitle}{Motion artifacts in {MRI}}
+      \field{title}{Motion artifacts in {MRI}: {A} complex problem with many partial solutions}
+      \field{volume}{42}
+      \field{year}{2015}
+      \field{pages}{887\bibrangedash 901}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1002/jmri.24850
+      \endverb
+      \verb{file}
+      \verb Accepted Version:/home/aayush/Zotero/storage/FJZ65C5P/Zaitsev et al. - 2015 - Motion artifacts in MRI A complex problem with ma.pdf:application/pdf
+      \endverb
+      \keyw{Anesthesia,Artifacts,Brain,Breath Holding,Cardiac-Gated Imaging Techniques,Humans,Image Enhancement,Immobilization,Magnetic Resonance Imaging,Models,Biological,Motion,motion artifact,motion correction,motion prevention,Movement,MRI,Reproducibility of Results,Respiratory-Gated Imaging Techniques,review,Sensitivity and Specificity}
     \endentry
   \enddatalist
 \endrefsection
