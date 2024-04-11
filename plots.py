@@ -55,10 +55,12 @@ def calculate_angle_between_bones(bone1, bone2, axis='long'):
     magnitude2 = np.linalg.norm(vector2)
 
     # Calculate the angle in radians and then convert to degrees
-    angle_radians = np.arccos(dot_product / (magnitude1 * magnitude2))
+    #using arctan to see if we get negative values and a continuous curve or not 
+    angle_radians = np.arctan2(np.linalg.norm(np.cross(vector1, vector2)), np.dot(vector1, vector2))
+    #angle_radians = np.arccos(dot_product / (magnitude1 * magnitude2))
     angle_degrees = np.degrees(angle_radians)
-    if angle_degrees > 90:
-        angle_degrees =  180 - angle_degrees
+    #if angle_degrees > 90:
+     #   angle_degrees =  180 - angle_degrees
 
     return angle_degrees
 
@@ -177,7 +179,7 @@ def compile_translations(fem_loaded, fem_unloaded, tib_loaded, tib_unloaded, vox
 
 
 
-JL_master_df= compile_translations(JL_W_fem_info_s, JL_NW_fem_info_s, JL_W_tib_info_s, JL_NW_tib_info_s, voxel_size)
+JL_master_df_no_if= compile_translations(JL_W_fem_info_s, JL_NW_fem_info_s, JL_W_tib_info_s, JL_NW_tib_info_s, voxel_size)
 #%%
 
 # when adding new dataframes: do this: 
@@ -324,7 +326,8 @@ is_df_1_7 , ap_df_1_7  = calculate_relative_translation_and_angle(master_df_1_7)
 
 #%%
 
-is_pf = add_percent_flexed(is_df)
+ap_df_1_7 = add_percent_flexed(ap_df_1_7)
+
 
 #%%
 import pickle
