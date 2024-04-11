@@ -32,11 +32,8 @@ with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_fem_info_st
 with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_tib_info_stiched.pkl', 'rb') as file:
     MM_W_tib_info_stiched =  pickle.load(file)
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_W_t_matrices_fem_using_NW_ref.pkl', 'rb') as file:
-    AN_t_matrices_W_fem =  pickle.load(file)
-
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/01.03.24/AN_W_t_matrices_tib_using_NW_ref.pkl', 'rb') as file:
-    AN_t_matrices_W_tib =  pickle.load(file)    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_NW_tib_info_s.pkl', 'rb') as file:
+    tib_info_NW =  pickle.load(file)
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, residuals_color, ax=None):
@@ -168,12 +165,12 @@ viewer1 = napari.view_image(full_image)
 #%%
 # add the reference points and manually segment the reference frame 
 viewer1.add_shapes(reference_frame_first, shape_type='polygon')
-#viewer1.add_shapes(MM_NW_ref_frame, shape_type='polygon')
+#viewer1.add_shapes(JL_NW_tib_shape, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-ref_points = viewer1.layers['expanded_fem'].data[0]
-#ref_points = viewer1.layers['fem_NW_shape'].data[0][:,1:3]
+#ref_points = viewer1.layers['expanded_fem'].data[0]
+ref_points = viewer1.layers['JL_NW_fem_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
@@ -188,7 +185,7 @@ desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["fem_NW"].to_labels(image1.shape)
+disp_layer = viewer1.layers["fem_W"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
 #xrange=slice(150,480)
 xrange = slice(80,350)
@@ -202,18 +199,18 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
      
 plt.tight_layout()
-plt.savefig('JL_NW_segmented_fem_s.svg')
+plt.savefig('JL_W_segmented_fem_s.svg')
 
 #%%
 
-shapes_data = viewer1.layers['tib_NW']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+shapes_data = viewer1.layers['fem_W']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
 #binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
 binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
 
 binary_coords = np.column_stack(np.where(binary_frame))
 
 
-def process_and_transform_shapes(shapes_data , transformation_matrices, ref_index):
+def process_and_transform_shapes(binary_coords , transformation_matrices, ref_index):
     # Process the reference frame (assuming the last one in the shapes data)
     #single_shape_info = process_frame([shapes_data[0]])
     single_shape_info = process_single_frame(binary_coords)
@@ -231,18 +228,18 @@ def process_and_transform_shapes(shapes_data , transformation_matrices, ref_inde
 
     return transformed_dicts
 
-JL_NW_tib_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+JL_W_fem_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
 
 
 #%%
 
 # Saving the dictionary to a file
-with open('JL_NW_tib_info_s.pkl', 'wb') as f:
-    pickle.dump(JL_NW_tib_info_s, f)
+with open('JL_W_fem_info_s.pkl', 'wb') as f:
+    pickle.dump(JL_W_fem_info_s, f)
 #%%
-show_stuff(JL_NW_tib_info_s, 'JL_NW_tib_info_s', viewer1)
+show_stuff(JL_W_tib_info_s, 'JL_W_tib_info_s', viewer1)
 #%%
-show_stuff(HS_W_fem_info_s, 'HS_W_fem_info_s', viewer1)
+show_stuff(JL_W_fem_info_s, 'JL_W_fem_info_s', viewer1)
 
 #%%
 screenshots = []
@@ -286,7 +283,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_HS_W_both_bones_stiched.svg'
+    output_path = 'mosaic_JL_W_both_bones_stiched.svg'
     
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
 
@@ -315,7 +312,7 @@ for frame_index in range(number_of_frames):
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
-with imageio.get_writer('HS_W_animation.gif', mode='I') as writer:
+with imageio.get_writer('JL_W_animation.gif', mode='I') as writer:
     for i in range(number_of_frames):
         frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
         frame = imageio.imread(frame_path)
