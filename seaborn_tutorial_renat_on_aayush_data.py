@@ -37,13 +37,19 @@ equal_frame_df['Frame Number'] = equal_frame_df.groupby(['Dataset', 'Condition']
 
 
 #%%
+'''
+the whole idea here is to remove dataset 7 as a categorical because simply filtering wont remove the legend  
+'''
+plot_df = is_df_1_7.copy()
+filtered_data = plot_df[plot_df['Dataset'] != "7"]
 
-filtered_data = is_df_1_7[is_df_1_7['Dataset'] != 7]
+
+filtered_data['Dataset'] = filtered_data['Dataset'].cat.remove_unused_categories()
 #%%
 ''' this is a working code to plot the IS translation for all datasets w.r.t frame or percent flexed. the mean can be adjusted by commenting out hue 
 '''  
 fg = sns.relplot(
-    is_df_1_7[is_df_1_7['Dataset'] != 7], 
+    filtered_data, 
     x="Percent Flexed",
     #x = 'Frame Number',
     y="Relative Translation", 
@@ -61,58 +67,149 @@ fg.fig.subplots_adjust(top=0.86)
 
 
 #%%
+def print_percent_flexed_width(df):
+    # Ensure the dataframe is sorted by 'Dataset' and then by 'Frame Number' or an equivalent
+    df = df.sort_values(by=['Dataset', 'Frame Number'])
 
-# Define narrow bin edges
-narrow_bin_edges = range(-100, 101, 7)  # Bins from -100 to 100 with a step of 1
+    # Initialize an empty dictionary to hold the width for each dataset
+    width_per_dataset = {}
 
-# Assign each 'Percent Flexed' value to a narrow bin
-is_df['Narrow_Bin'] = pd.cut(is_df['Percent Flexed'], bins=narrow_bin_edges, include_lowest=True)
+    # Iterate over each dataset
+    for dataset in df['Dataset'].unique():
+        # Filter the dataframe for the current dataset
+        dataset_df = df[df['Dataset'] == dataset]
+
+        # Calculate the differences between consecutive 'Percent Flexed' values
+        # Assuming the data is sorted by some sort of frame or time order
+        differences = dataset_df['Percent Flexed'].diff().dropna()
+
+        # The width should be consistent, so we can take the first non-zero difference
+        width = differences.abs().loc[differences != 0].iloc[0]
+
+        # Store the width for the current dataset
+        width_per_dataset[dataset] = width
+
+    # Print the width for each dataset
+    for dataset, width in width_per_dataset.items():
+        print(f"Dataset {dataset}: Width of 'Percent Flexed' = {width}")
+
+print_percent_flexed_width(is_df_1_7)
+#%%
+# Step 1: Filter out dataset '7'
+is_df_1_6 = is_df_1_7[is_df_1_7['Dataset'] != '7']
+
+# Step 2: Remove the unused category
+is_df_1_6['Dataset'] = is_df_1_6['Dataset'].cat.remove_unused_categories()
+
+#%%
+ap_df_1_6 = ap_df_1_7[ap_df_1_7['Dataset'] != '7']
+
+# Step 2: Remove the unused category
+ap_df_1_6['Dataset'] = ap_df_1_6['Dataset'].cat.remove_unused_categories()
+#%%
+
+#%%
+
+def add_bins(df, bin_width):
+
+    # Define bin edges
+    bin_edges = [-101, -100]  # Bin for -100
+    bin_edges += list(range(-100 + bin_width, 0, bin_width))  # Bins from -100 to 0
+    bin_edges += [0]  # Bin for 0
+    bin_edges += list(range(bin_width, 100, bin_width))  # Bins from 0 to 100
+    bin_edges += [100, 101]  # Bin for 100
+    
+    # Assign 'Percent Flexed' values to bins
+    df['Custom_Bin'] = pd.cut(df['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    
+    return df 
+
+# Check the binning results
+add_bins(ap_df_1_6, bin_width=5) 
+
+#%%
+
 
 # Make sure to include 'Condition' in the groupby
-narrow_binned_means = is_df.groupby(['Condition', 'Narrow_Bin', 'Dataset'])['Relative Translation'].mean().reset_index()
+narrow_binned_means = is_df_1_6.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Translation'].mean().reset_index()
 
 # Calculate the bin centers
-narrow_binned_means['Bin_Center'] = narrow_binned_means['Narrow_Bin'].apply(lambda x: x.mid)
-
+narrow_binned_means['Bin_Center'] = narrow_binned_means['Custom_Bin'].apply(lambda x: x.mid)
+zero_bin_data = narrow_binned_means[narrow_binned_means['Custom_Bin'].apply(lambda x: 0 in x)]
+#print(zero_bin_data)
 # Plotting
 fg = sns.relplot(
     data=narrow_binned_means, 
     x="Bin_Center", 
     y="Relative Translation", 
     col="Condition", 
-    #hue="Dataset", 
+    #hue="Condition", 
     kind="line"
 )
 
 # Add a reference line at y=0
 fg.refline(y=0)
-
+fg.set_axis_labels("Bin Centre (% flexed)", "Relative Translation (mm)")
 # Adjust the layout and display the plot
 plt.subplots_adjust(top=0.9)
 plt.show()
 # %%
+# Assuming is_df_1_6 has a column named 'Angles' which you want to plot against 'Relative Translation'
+# Plotting
 fg = sns.relplot(
-    angle_and_rel_df[ (angle_and_rel_df['Type'] =='IS')], 
-    x="Percent Flexed", 
+    data=is_df_1_6, 
+    x="Angles", 
     y="Relative Translation", 
     col="Condition", 
-    #hue="Dataset", 
-    kind="line",
-    marker="o",
-    ci=None,
-#    facet_kws={"sharey":False}
+    #hue="Dataset",  # Uncomment if you have multiple datasets and want to differentiate them
+    kind="line"
 )
-fg.refline(y=0)
-# %% 
 
-sns.relplot(
-    data=angle_and_rel_df, 
-    x='Angles', 
-    y='Relative Translation', 
-    col='Condition', 
-    kind='line', 
-    hue="Dataset"
+# Add a reference line at y=0
+#fg.refline(y=0)
+
+# Adjust the layout and display the plot
+plt.subplots_adjust(top=0.9)
+plt.show()
+# %% 
+from scipy.interpolate import interp1d
+
+
+# Assuming is_df_1_6 is your DataFrame
+# Group by dataset to handle each one separately
+grouped = is_df_1_6.groupby('Dataset')
+
+# Define common angle range
+common_angles = np.arange(0, 180, 2)  # Define your range and step
+
+# Store interpolated translations
+interpolated_translations = []
+
+for name, group in grouped:
+    # Create interpolation function for the current dataset
+    interp_func = interp1d(group['Angles'], group['Relative Translation'], kind='linear', fill_value='extrapolate')
+    
+    # Interpolate the translation data for the common angle range
+    interp_translations = interp_func(common_angles)
+    
+    # Store the results with the common angles in a DataFrame
+    interpolated_df = pd.DataFrame({'Angles': common_angles, 'Relative Translation': interp_translations, 'Dataset': name, 'Condition': condition })
+    interpolated_translations.append(interpolated_df)
+
+# Concatenate all interpolated results
+interpolated_data = pd.concat(interpolated_translations)
+
+# Now you can plot using Seaborn as you intended
+fg = sns.relplot(
+    data=interpolated_data, 
+    x="Angles", 
+    y="Relative Translation", 
+    col="Condition", 
+    kind="line"
 )
+
+plt.subplots_adjust(top=0.9)
+plt.show()
 
 #%%
  
