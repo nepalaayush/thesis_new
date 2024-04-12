@@ -337,6 +337,13 @@ def transform(coords, x, y, phi):
     for p in coords:
         new_coords.append(np.matmul(p, rot_mat) + shift_vec)
     return np.array(new_coords)
+
+
+def transform_single(coords, x, y, phi):
+    rot_mat = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi), np.cos(phi)]])
+    shift_vec = np.array([x, y])
+    transformed_point = np.matmul(coords, rot_mat) + shift_vec
+    return transformed_point
       
 def match_coords(coords1, coords2, x0=[0, 0, 0]): # was using -np.deg2rad(2) as guess before 
     cost_fcn = lambda x: coords_distance_sum(transform(coords1, x[0], x[1], x[2]), coords2)
@@ -353,6 +360,14 @@ def apply_transformations(reference_frame, transformation_matrices):
 
     return transformed_frames
 
+def apply_transformations_single(reference_frame, transformation_matrices):
+    transformed_frames = [reference_frame]
+    for matrix in transformation_matrices[1:]:  # Exclude the identity matrix
+        x, y, phi = matrix
+        reference_frame = transform_single(reference_frame, x, y, phi)
+        transformed_frames.append(reference_frame)
+
+    return transformed_frames
 
 def combined_consecutive_transform(data):
     # Select reference frame based on the shortest edge

@@ -16,7 +16,7 @@ import matplotlib.pylab as plt
 import napari
 from sklearn.metrics import mean_absolute_error
 
-from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_transformations_new, process_frame, process_single_frame, show_stuff, dict_to_array, reconstruct_dict)
+from utils import (path_to_image, shapes_for_napari, boolean_to_coords, apply_transformations_new, process_frame, process_single_frame, show_stuff, dict_to_array, reconstruct_dict, apply_transformations_single)
 
 
 #%%
@@ -32,8 +32,8 @@ with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_fem_info_st
 with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_tib_info_stiched.pkl', 'rb') as file:
     MM_W_tib_info_stiched =  pickle.load(file)
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_NW_tib_info_s.pkl', 'rb') as file:
-    tib_info_NW =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/HS/stiched_analysis/HS_NW_t_matrices_fem_s.pkl', 'rb') as file:
+    transformation_matrices_first =  pickle.load(file)
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, residuals_color, ax=None):
@@ -169,12 +169,34 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-#ref_points = viewer1.layers['expanded_fem'].data[0]
-ref_points = viewer1.layers['JL_NW_fem_shape'].data[0][:,1:3]
+#ref_points = viewer1.layers['Points'].data[0]
+#ref_points = viewer1.layers['JL_NW_fem_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
 
+
+#%%
+# point and click at the point you want to apply the transformation to: 
+ref_points =  viewer1.layers['fem_point'].data[0][1:3]
+
+fem_points = apply_transformations_single(ref_points, transformation_matrices_first)
+
+def convert_point_list_to_napari (single_point_list):
+
+    # Create an array of indices
+    indices = np.arange(len(single_point_list)).reshape(-1, 1)  # This creates a column vector of indices
+    
+    # Stack the arrays in the list horizontally
+    data = np.hstack(single_point_list).reshape(len(single_point_list), 2)
+    
+    # Concatenate the indices and data horizontally to form the final array
+    final_array = np.hstack((indices, data))
+    
+    return final_array
+
+#%%
+viewer1.add_points(convert_point_list_to_napari(tib_points))
 #%%
 image1 = full_image # added this because i directly opened this in the viiewer without path 
 # tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)

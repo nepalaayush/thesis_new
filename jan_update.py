@@ -23,11 +23,11 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = '/data/projects/ma-nepal-segmentation/data/LIM^JONG_CHAN/2024-04-05/287_MK_Radial_W_CINE_30bpm_CGA/JL_W_ai2_5e-2_neg_ngn.nii'
-path_pos = '/data/projects/ma-nepal-segmentation/data/LIM^JONG_CHAN/2024-04-05/287_MK_Radial_W_CINE_30bpm_CGA/JL_W_ai2_5e-2_pos_ngn.nii'
+path_neg = '/data/projects/ma-nepal-segmentation/data/Schulz^Helena/2024-04-05/316_MK_Radial_NW_CINE_30bpm_CGA/HS_NW_ai2_5e-2_neg_ngn.nii'
+path_pos = '/data/projects/ma-nepal-segmentation/data/Schulz^Helena/2024-04-05/316_MK_Radial_NW_CINE_30bpm_CGA/HS_NW_ai2_5e-2_pos_ngn.nii'
 #%%
-image_neg = path_to_image(path_neg)[1:]
-image_pos = path_to_image(path_pos)[1:] 
+image_neg = path_to_image(path_neg)
+image_pos = path_to_image(path_pos) 
 #%%
 # since our image goes from extened to flexed.. the direction means, pos is going down.. and neg is coming up 
 # which means. if we want to present our data as going up then coming down .. we have to reverse the neg, put it at the first half. 
@@ -37,7 +37,7 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(full_image,  name='JL_W_full')
+viewer = napari.view_image(full_image,  name='HS_NW_full')
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 

@@ -264,3 +264,8 @@ for cond, df_ in equal_frame_df_agg.groupby(["Condition"]):
         df_[("Relative Translation", "mean")] + df_[("Relative Translation", "std")], 
         alpha=0.5,
     )
+    
+#%%
+
+
+    
