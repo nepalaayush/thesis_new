@@ -319,7 +319,7 @@ def calculate_relative_translation_and_angle(master_df):
 
     
     return is_df, ap_df 
-
+#%%
 is_df_1_7 , ap_df_1_7  = calculate_relative_translation_and_angle(master_df_1_7)
 
 
