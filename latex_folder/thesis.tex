@@ -142,31 +142,13 @@ In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techn
 
 \textbf{CINE imaging}
 
-CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This is done by stiching together many partial datasets from multiple cylces. The full flexion-extension cycle is divided into distinct stages where each stage corresponds to a particular flexion angle. The fully sampled k-space for each stage is obtained by acquiring partial samples from multiple cycles.
-" 
-Dynamic cardiac MRI is conventionally performed with a
-technique known as CINE,13 which takes its name from cine-
-matography. In brief, a “movie” of a single beating heart cycle
-is reconstructed by literally stitching together numerous par-
-tial datasets from many heartbeats—typically 15–18, more if
-multiple slices are acquired. Because data acquisition is too
-slow to collect all data in a single heartbeat, acquisition is seg-
-mented over several heartbeats. Speciﬁcally, the cardiac cycle
-is divided into many phases (or timepoints), and the fully
-sampled k-space for each phase is divided into multiple seg-
-ments (Fig. 1). Once all segments for all cardiac phases are
-acquired, the data are temporally reordered and converted to
-the image domain to produce the impression of a continu-
-ously acquired time series. One can readily appreciate that
-this technique does not provide real-time dynamics and works
-robustly only if cardiac cycles are sufﬁciently similar.
+CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase. This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}. 
 
-" 
-\parencite{curtis_primer_2022}
+To counter the motion artifacts due to physiological motion inherent in this acquisition, we need to employ a technique known as gating.  
  
 \textbf{Gating} 
 
-To achieve this, we require not only an imaging sequence and reconstruction technique, but also a MR safe knee loading device. They are described in the section below. 
+Gating is a technique used to synchronize image acquisition with a repetitive physiological motion, such as heartbeats in cardiac MRI or joint movements in musculoskeletal MRI. In the context of dynamic knee MRI, gating ensures that the images captured at different times correspond to the same stage of the knee's motion cycle. 
 
 \subsection{Foundational Work}
 This project builds upon two distinct works: the construction of the MRI knee loading device \parencite{brisson_novel_2022}  and the development of the imaging sequence used for capturing and reconstructing the data. \parencite{aleksiev_high-resolution_2022}
