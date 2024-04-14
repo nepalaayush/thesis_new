@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import pandas as pd
@@ -682,8 +682,8 @@ with open('angle_and_rel_df.pkl', 'wb') as f:
     
 #%%
 # loading from pkl 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03/stiched_analysis/MK_W_master_df.pkl', 'rb') as file:
-    MK_master_df = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/02.02/AN_W/stiched_analysis/AN_W_t_matrices_fem_s.pkl', 'rb') as file:
+    t_matrices_fem = pickle.load(file)    
 
     
 #%%

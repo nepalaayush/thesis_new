@@ -10,9 +10,9 @@ import pickle
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import numpy as np 
 sns.set_context("talk")
-
+#%%
 with open('/data/projects/ma-nepal-segmentation/data/data_20_03/angle_and_rel_df.pkl', 'rb') as file:
     angle_and_rel_df =  pickle.load(file)
 angle_and_rel_df.head()
@@ -125,13 +125,13 @@ def add_bins(df, bin_width):
     return df 
 
 # Check the binning results
-add_bins(ap_df_1_6, bin_width=5) 
+add_bins(master_df_point, bin_width=6) 
 
 #%%
 
 
 # Make sure to include 'Condition' in the groupby
-narrow_binned_means = is_df_1_6.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Translation'].mean().reset_index()
+narrow_binned_means = master_df_point.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Norm'].mean().reset_index()
 
 # Calculate the bin centers
 narrow_binned_means['Bin_Center'] = narrow_binned_means['Custom_Bin'].apply(lambda x: x.mid)
@@ -141,15 +141,15 @@ zero_bin_data = narrow_binned_means[narrow_binned_means['Custom_Bin'].apply(lamb
 fg = sns.relplot(
     data=narrow_binned_means, 
     x="Bin_Center", 
-    y="Relative Translation", 
-    col="Condition", 
-    #hue="Condition", 
+    y="Relative Norm", 
+    #col="Condition", 
+    hue="Condition", 
     kind="line"
 )
 
 # Add a reference line at y=0
 fg.refline(y=0)
-fg.set_axis_labels("Bin Centre (% flexed)", "Relative Translation (mm)")
+fg.set_axis_labels("Bin Centre (% flexed)", "Relative Norm (mm)")
 # Adjust the layout and display the plot
 plt.subplots_adjust(top=0.9)
 plt.show()
@@ -264,8 +264,134 @@ for cond, df_ in equal_frame_df_agg.groupby(["Condition"]):
         df_[("Relative Translation", "mean")] + df_[("Relative Translation", "std")], 
         alpha=0.5,
     )
+
+
+#%%
+ref_points = viewer.layers['AN_NW_fem_shape'].data[0][:,1:3]
+#%%
+applied_transformation = apply_transformations_new(ref_points, t_matrices_fem, 0)    
+viewer.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
+
     
 #%%
+''' Here we have the point analysis things  '''
 
-
+def create_points_arrays(fem_NW_name, tib_NW_name, fem_W_name, tib_W_name, fem_index, tib_index): 
+    fem_shape = viewer.layers[fem_NW_name].data
     
+    tib_shape = viewer.layers[tib_NW_name].data
+    
+    fem_points_NW = np.array ( [item[fem_index] for item in fem_shape] ) 
+    
+    tib_points_NW = np.array ( [item[tib_index] for item in tib_shape] )
+    
+    
+    fem_shape_W = viewer.layers[fem_W_name].data
+    
+    tib_shape_W = viewer.layers[tib_W_name].data
+    
+    fem_points_W = np.array ( [item[fem_index] for item in fem_shape_W] ) 
+    
+    tib_points_W = np.array ( [item[tib_index] for item in tib_shape_W] )
+    
+    return fem_points_NW, tib_points_NW, fem_points_W, tib_points_W
+
+fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('JL_NW_fem_shape', 'JL_NW_tib_shape', 'JL_W_fem_shape', 'JL_W_tib_shape',39,2)
+
+
+#%%
+
+voxel_size_y = 0.7272727272727273 / 1.5  # Adjusted voxel size for y
+voxel_size_x = 0.7272727272727273 / 1.5  # Adjusted voxel size for x
+
+
+# Function to create DataFrame for a condition
+def create_condition_df(points_fem, points_tib, condition):
+    return pd.DataFrame({
+        'Frame': points_fem[:, 0].astype(int),
+        'Femur_Y': points_fem[:, 1] * voxel_size_y,
+        'Femur_X': points_fem[:, 2] * voxel_size_x,
+        'Tibia_Y': points_tib[:, 1] * voxel_size_y,
+        'Tibia_X': points_tib[:, 2] * voxel_size_x,
+        'Condition': condition,
+    })
+
+# Create DataFrames for each condition
+df_NW = create_condition_df(fem_points_NW, tib_points_NW, 'Unloaded')
+df_W = create_condition_df(fem_points_W, tib_points_W, 'Loaded')
+
+# Combine DataFrames
+JL_point_df_7 = pd.concat([df_NW, df_W], ignore_index=True)
+
+#%%
+JL_point_df_7['Dataset'] = 7
+#%%
+def add_norm(df):
+    df['Norm'] = np.sqrt(
+    (df['Femur_X'] - df['Tibia_X'])**2 +
+    (df['Femur_Y'] - df['Tibia_Y'])**2
+)
+    
+add_norm(JL_point_df_7)    
+#%%
+fg = sns.relplot(
+    JL_point_df_7, 
+    x="Frame",
+    #x = 'Frame Number',
+    y="Norm", 
+    #col="Condition", 
+    hue="Condition", 
+    kind="line", 
+    #ci='sd', # one sd shows a bit more variation than the default 95% confidence interval 
+#    facet_kws={"sharey":False}
+)
+#fg.refline(y=0)
+#%%
+master_df_point = pd.concat([AN_point_df_5, JL_point_df_7, MK_point_df, MK_point_df_4, HS_point_df ], ignore_index=True)
+#%%
+master_df_point = add_percent_flexed(master_df_point)
+#%%
+def add_relative_norm_column(df):
+    """
+    Adds a 'Relative Norm' column to the dataframe where the norm value is adjusted
+    to start from 0 for the first frame of each condition within each dataset.
+
+    Parameters:
+    df (pandas.DataFrame): The dataframe containing at least 'Norm', 'Dataset', and 'Condition' columns.
+
+    Returns:
+    pandas.DataFrame: The modified dataframe with a new 'Relative Norm' column.
+    """
+    # Calculating the relative norm
+    def calculate_relative_norm(group):
+        first_norm = group.iloc[0]['Norm']  # First 'Norm' value in the group
+        group['Relative Norm'] = group['Norm'] - first_norm
+        return group
+
+    # Applying the function to each group and returning the modified dataframe
+    return df.groupby(['Dataset', 'Condition']).apply(calculate_relative_norm)
+
+# Example usage
+# Assume 'master_df_point' is your existing DataFrame loaded elsewhere in your code.
+# master_df_point = pd.read_csv('path_to_your_data.csv')  # If you need to load it from a CSV file
+
+# Adding the 'Relative Norm' column
+master_df_point = add_relative_norm_column(master_df_point)
+
+
+#%%
+fg = sns.relplot(
+    master_df_point, 
+    x="Percent Flexed",
+    #x = 'Frame Number',
+    y="Relative Norm", 
+    col="Condition", 
+    #hue="Dataset", 
+    kind="line", 
+    #ci='sd', # one sd shows a bit more variation than the default 95% confidence interval 
+#    facet_kws={"sharey":False}
+)
+fg.refline(y=0)
+fg.set_axis_labels("% Flexed", "Relative Norm (mm)")
+#%%
+
