@@ -25,3 +25,8 @@ pmr.py reco radial_cine_2d -i data.twix -o MM_NW_aw2_pos_base.nii -g ../scan_dat
 
 for admm and slope 
 pmr.py reco radial_cine_2d -i data.twix -o MM_NW_aw2_tgv_5e-2_pos.nii -g ../scan_data_081223_2DRadial_MM_NW_30bpm.dat -aw 2 -ai 2 -d pos -zf 2 -ngn-  -v -e riesling-admm -ea "--sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --tgv=5e-2 --max-outer-its=4"
+
+
+____________________
+
+for obtaining the kspace : 
