@@ -5,3 +5,9 @@
 
 - regarding cine intro: 
 if we want to show how the k space is being filled across the repetitions ... just use the cine_radial_2d script , and leave the sum of squares in but remove the fft. then , for the sensor graph, you can actually use the -vv parameter .. we can then change the plotting however we like to put in the thesis ... also a worth to check out the aleksiev"s thesis and see what he has done . 
+
+
+-   got totally stuck at the writing part and also the kspace things ... needs a lot of work to get it in a working condition . the best bet would be to simply do the inkspace thing and explain stuff.. for now .. just get the intro done with. no point in dwelling in this for this much time ... 
+
+- the next major task is to include the graphs for all the datasets .. take the data home which you need and include it in the datastock 
+
