@@ -142,29 +142,37 @@ In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techn
 
 \textbf{CINE imaging}
 
-CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase. This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}. 
+CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}.  
 
-To counter the motion artifacts due to physiological motion inherent in this acquisition, we need to employ a technique known as gating.  
+Moreover, the coverage of k-space for dynamic mri is generally acquired in not a cartesian way but a radial way.  
+
+"
+Radial k-space coverage involves obtaining samples in k-space that fall on concentric
+circles. The separation between any two adjacent circles defines the separation
+$\Delta k_r$ in the radial sampling direction, whereas, the angular separation between any two successive angular lines in
+k-space (such as between the two example lines shown in the figure) defines $\Delta \theta$. The two quantities $\Delta k_r$ and $\Delta \theta$ are constrained by the Nyquist sampling criterion."  
+ \begin{figure}
+ 	\centering
+ 	\includegraphics[width=0.7\linewidth]{radial}
+ 	\caption{Generic radial k-space sampling \parencite[p.306]{brown_magnetic_2014}}
+ 	\label{fig:radial}
+ \end{figure}
  
-\textbf{Gating} 
-
-Gating is a technique used to synchronize image acquisition with a repetitive physiological motion, such as heartbeats in cardiac MRI or joint movements in musculoskeletal MRI. In the context of dynamic knee MRI, gating ensures that the images captured at different times correspond to the same stage of the knee's motion cycle. 
-
-\subsection{Foundational Work}
-This project builds upon two distinct works: the construction of the MRI knee loading device \parencite{brisson_novel_2022}  and the development of the imaging sequence used for capturing and reconstructing the data. \parencite{aleksiev_high-resolution_2022}
-
+ 
 \textbf{High resolution CINE imaging}
 
 This imaging technique presents a significant advancement in capturing active knee motion. 
-It combines continuously acquired radial golden-angle MRI data with angular sensor information to retrospectively reconstruct CINE images of the knee, allowing the acquisition of high-resolution 2D images during knee flexion and extension. 
+It combines \textbf{continuously acquired radial golden-angle MRI} data with angular sensor information to\textbf{ retrospectively reconstruct} CINE images of the knee, allowing the acquisition of high-resolution 2D images during knee flexion and extension. 
+
+ \parencite{aleksiev_high-resolution_2022}
 
 
+\textbf{Gating} 
 
-
-
+Gating is a technique used to synchronize image acquisition with a repetitive physiological motion, such as heartbeats in cardiac MRI or joint movements in musculoskeletal MRI. In the context of dynamic knee MRI, gating ensures that the images captured at different times correspond to the same stage of the knee's motion cycle
 
 \textbf{Knee loading device }
-
+\parencite{brisson_novel_2022}
 \subsection{Research Necessity}
 Discuss the necessity for further analysis of the acquired images, emphasizing the gap between data collection and data interpretation within the current literature.
 
