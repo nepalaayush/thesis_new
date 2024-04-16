@@ -21,6 +21,7 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
                    boolean_to_coords, apply_label, find_tibia_edges, find_array_with_min_n, downsample_points,
                    combined_consecutive_transform, coords_to_boolean)
 
+    
 #%%
 # Step 1: load the image from directory and normalize it
 path_neg = '/data/projects/ma-nepal-segmentation/data/Schulz^Helena/2024-04-05/316_MK_Radial_NW_CINE_30bpm_CGA/HS_NW_ai2_5e-2_neg_ngn.nii'
