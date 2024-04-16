@@ -403,3 +403,50 @@ with open('ap_df_1_7.pkl', 'wb') as f:
 # this code plots the average relative translation for IS for UNloaded .. along with a weird sd shading.. (because not all datasets have the same angle)
 
 sns.lineplot(data=angle_and_rel_df[(angle_and_rel_df['Condition'] == 'Unloaded') & (angle_and_rel_df['Type'] =='IS')], x='Percent Flexed', y='Relative Translation')
+#%%
+
+
+
+''' trying to get some k space info:  '''
+k_JL_actual = path_to_image ( '/data/projects/ma-nepal-segmentation/data/LIM^JONG_CHAN/2024-04-05/288_MK_Radial_NW_CINE_30bpm_CGA/JL_NW_aw2_ai2_zf_1.nii') 
+#%%
+real_frame = k_JL_actual[10]
+#%%
+# just checking how the kspace looks like, which is most probably just the magnitude info: 
+# apparantly we need to do fftshift first, because it looks like our kspace is centered .. 
+
+shifted_k = np.fft.ifftshift(k_JL)
+image_reconstructed = np.fft.ifft2(shifted_k, axes=(-2,-1))  # Take the real part
+image_real = image_reconstructed.real 
+
+# doing this directly to the kspace array did not yield anything .. so could not see the spatial domain .. so trying to combine it below : 
+    
+#%%
+
+k_space_complex = k_JL * (np.exp(1j * k_JL_phase))
+image_reconstructed = np.fft.ifft2(k_space_complex, axes=(-2, -1))
+
+
+image_absolute = np.abs(image_reconstructed)
+
+np.power(k_frame, 0.2) # adjusting the gamma for visualization purposes 
+#%%
+
+fig, ax = plt.subplots(figsize=(10, 10))
+
+# Apply gamma correction and display the image
+ax.imshow(real_frame, cmap='gray', interpolation='none')
+
+# Remove ticks
+ax.set_xticks([])
+ax.set_yticks([])
+
+# Remove the axes frame as well
+ax.axis('off')
+
+# Save the plot with a transparent background
+plt.savefig('real_frame.svg', format='svg', bbox_inches='tight', transparent=True)
+plt.close()  # Close the plotting window
+
+
+#%% 
