@@ -296,7 +296,7 @@ def create_points_arrays(fem_NW_name, tib_NW_name, fem_W_name, tib_W_name, fem_i
     
     return fem_points_NW, tib_points_NW, fem_points_W, tib_points_W
 
-fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('AN_NW_fem_shape', 'AN_NW_tib_shape', 'AN_W_fem_shape', 'AN_W_tib_shape',38,1)
+fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('MM_NW_fem_shape', 'MM_NW_tib_shape', 'MM_W_fem_shape', 'MM_W_tib_shape',38,2)
 
 
 #%%
@@ -321,10 +321,10 @@ df_NW = create_condition_df(fem_points_NW, tib_points_NW, 'Unloaded')
 df_W = create_condition_df(fem_points_W, tib_points_W, 'Loaded')
 
 # Combine DataFrames
-AN_point_df_3 = pd.concat([df_NW, df_W], ignore_index=True)
+MM_point_df_2 = pd.concat([df_NW, df_W], ignore_index=True)
 
 #%%
-AN_point_df_3['Dataset'] = 3
+MM_point_df_2['Dataset'] = 2
 #%%
 def add_norm(df):
     df['Norm'] = np.sqrt(
@@ -332,10 +332,10 @@ def add_norm(df):
     (df['Femur_Y'] - df['Tibia_Y'])**2
 )
     
-add_norm(AN_point_df_3)    
+add_norm(MM_point_df_2)    
 #%%
 fg = sns.relplot(
-    AN_point_df_3, 
+    MM_point_df_2, 
     x="Frame",
     #x = 'Frame Number',
     y="Norm", 
@@ -378,7 +378,7 @@ def add_percent_flexed(df):
             df.at[index, 'Percent Flexed'] = percent_flexed
 
     return df
-AN_point_df_3 = add_percent_flexed(AN_point_df_3)
+MM_point_df_2 = add_percent_flexed(MM_point_df_2)
 #%%
 def add_relative_norm_column(df):
     """
@@ -405,12 +405,12 @@ def add_relative_norm_column(df):
 # master_df_point = pd.read_csv('path_to_your_data.csv')  # If you need to load it from a CSV file
 
 # Adding the 'Relative Norm' column
-AN_point_df_3 = add_relative_norm_column(AN_point_df_3)
+MM_point_df_2 = add_relative_norm_column(MM_point_df_2)
 
 
 #%%
 fg = sns.relplot(
-    AN_point_df_3, 
+    MM_point_df_2, 
     x="Percent Flexed",
     #x = 'Frame Number',
     y="Relative Norm", 
@@ -423,5 +423,5 @@ fg = sns.relplot(
 fg.refline(y=0)
 fg.set_axis_labels("% Flexed", "Relative Norm (mm)")
 #%%
-with open('AN_point_df_3.pkl', 'wb') as f:
-    pickle.dump(AN_point_df_3, f)  
+with open('MM_point_df_2.pkl', 'wb') as f:
+    pickle.dump(MM_point_df_2, f)  

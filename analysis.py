@@ -171,7 +171,7 @@ viewer1.add_shapes(reference_frame_first, shape_type='polygon')
 # rename it to expanded_shape and then store it as ref_points variable 
 
 #ref_points = viewer1.layers['expanded_shape_fem'].data[0]
-ref_points = viewer1.layers['AN_NW_fem_shape'].data[0][:,1:3]
+ref_points = viewer1.layers['MM_NW_fem_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
