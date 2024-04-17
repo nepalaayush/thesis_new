@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np 
 sns.set_context("talk")
 #%%
-with open('/data/projects/ma-nepal-segmentation/data/data_20_03/angle_and_rel_df.pkl', 'rb') as file:
-    angle_and_rel_df =  pickle.load(file)
-angle_and_rel_df.head()
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
+    master_df_point =  pickle.load(file)
+
 #%%
 angle_and_rel_df["Dataset"] = pd.Categorical(angle_and_rel_df["Dataset"].apply(lambda x: x.split(" ")[1]))
 angle_and_rel_df["Condition"] = pd.Categorical(angle_and_rel_df["Condition"])
@@ -296,7 +296,7 @@ def create_points_arrays(fem_NW_name, tib_NW_name, fem_W_name, tib_W_name, fem_i
     
     return fem_points_NW, tib_points_NW, fem_points_W, tib_points_W
 
-fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('JL_NW_fem_shape', 'JL_NW_tib_shape', 'JL_W_fem_shape', 'JL_W_tib_shape',39,2)
+fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('AN_NW_fem_shape', 'AN_NW_tib_shape', 'AN_W_fem_shape', 'AN_W_tib_shape',38,1)
 
 
 #%%
@@ -321,10 +321,10 @@ df_NW = create_condition_df(fem_points_NW, tib_points_NW, 'Unloaded')
 df_W = create_condition_df(fem_points_W, tib_points_W, 'Loaded')
 
 # Combine DataFrames
-JL_point_df_7 = pd.concat([df_NW, df_W], ignore_index=True)
+AN_point_df_3 = pd.concat([df_NW, df_W], ignore_index=True)
 
 #%%
-JL_point_df_7['Dataset'] = 7
+AN_point_df_3['Dataset'] = 3
 #%%
 def add_norm(df):
     df['Norm'] = np.sqrt(
@@ -332,10 +332,10 @@ def add_norm(df):
     (df['Femur_Y'] - df['Tibia_Y'])**2
 )
     
-add_norm(JL_point_df_7)    
+add_norm(AN_point_df_3)    
 #%%
 fg = sns.relplot(
-    JL_point_df_7, 
+    AN_point_df_3, 
     x="Frame",
     #x = 'Frame Number',
     y="Norm", 
@@ -349,7 +349,36 @@ fg = sns.relplot(
 #%%
 master_df_point = pd.concat([AN_point_df_5, JL_point_df_7, MK_point_df, MK_point_df_4, HS_point_df ], ignore_index=True)
 #%%
-master_df_point = add_percent_flexed(master_df_point)
+
+def add_percent_flexed(df):
+    df = df.copy()  # To avoid modifying the original dataframe
+    percent_flexed_values = {}  # To store first half values for mirroring
+
+    for dataset_id, group_data in df.groupby('Dataset'):
+        total_frames = group_data['Frame'].max() + 1  # Total number of frames
+        # Define halfway_point for the calculation, not for mirroring
+        halfway_calculation_point = (total_frames // 2) - 1
+
+        # Calculate 'Percent Flexed' for each frame
+        for index, row in group_data.iterrows():
+            frame = row['Frame']
+            if frame <= halfway_calculation_point:
+                # Before or at the halfway calculation point, scale from -100% to 0%
+                percent_flexed = ((frame / halfway_calculation_point) * 100) - 100
+                percent_flexed_values[dataset_id, frame] = percent_flexed
+            else:
+                # After the halfway point, mirror the value from the first half
+                # Check if it's the peak frame
+                if frame == halfway_calculation_point + 1:
+                    percent_flexed = 0
+                else:
+                    # Calculate mirror frame
+                    mirror_frame = halfway_calculation_point - (frame - halfway_calculation_point - 1)
+                    percent_flexed = -percent_flexed_values[dataset_id, mirror_frame]
+            df.at[index, 'Percent Flexed'] = percent_flexed
+
+    return df
+AN_point_df_3 = add_percent_flexed(AN_point_df_3)
 #%%
 def add_relative_norm_column(df):
     """
@@ -376,12 +405,12 @@ def add_relative_norm_column(df):
 # master_df_point = pd.read_csv('path_to_your_data.csv')  # If you need to load it from a CSV file
 
 # Adding the 'Relative Norm' column
-master_df_point = add_relative_norm_column(master_df_point)
+AN_point_df_3 = add_relative_norm_column(AN_point_df_3)
 
 
 #%%
 fg = sns.relplot(
-    master_df_point, 
+    AN_point_df_3, 
     x="Percent Flexed",
     #x = 'Frame Number',
     y="Relative Norm", 
@@ -394,4 +423,5 @@ fg = sns.relplot(
 fg.refline(y=0)
 fg.set_axis_labels("% Flexed", "Relative Norm (mm)")
 #%%
-
+with open('AN_point_df_3.pkl', 'wb') as f:
+    pickle.dump(AN_point_df_3, f)  

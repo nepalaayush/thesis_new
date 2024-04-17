@@ -32,7 +32,7 @@ with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_fem_info_st
 with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_tib_info_stiched.pkl', 'rb') as file:
     MM_W_tib_info_stiched =  pickle.load(file)
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/HS/stiched_analysis/HS_NW_t_matrices_fem_s.pkl', 'rb') as file:
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/AN_NW_t_matrices_tib_s.pkl', 'rb') as file:
     transformation_matrices_first =  pickle.load(file)
 #%%
 
@@ -165,12 +165,13 @@ viewer1 = napari.view_image(full_image)
 #%%
 # add the reference points and manually segment the reference frame 
 viewer1.add_shapes(reference_frame_first, shape_type='polygon')
-#viewer1.add_shapes(JL_NW_tib_shape, shape_type='polygon')
+#viewer1.add_shapes(AN_NW_ref_frame_tib_s, shape_type='polygon')
 
 #%%
 # rename it to expanded_shape and then store it as ref_points variable 
-#ref_points = viewer1.layers['Points'].data[0]
-#ref_points = viewer1.layers['JL_NW_fem_shape'].data[0][:,1:3]
+
+#ref_points = viewer1.layers['expanded_shape_fem'].data[0]
+ref_points = viewer1.layers['AN_NW_fem_shape'].data[0][:,1:3]
 #%%
 applied_transformation = apply_transformations_new(ref_points, transformation_matrices_first, 0)    
 viewer1.add_shapes(shapes_for_napari(applied_transformation), shape_type='polygon', face_color='white')
