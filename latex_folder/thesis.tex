@@ -142,15 +142,15 @@ In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techn
 
 \textbf{CINE imaging}
 
-CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}.  
+CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}.
+  
+To further address the challenge of motion artifacts and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo FLASH sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
 
-Moreover, the coverage of k-space for dynamic mri is generally acquired in not a cartesian way but a radial way.  
+\textbf{Radial golden-angle acquisition}
 
-"
-Radial k-space coverage involves obtaining samples in k-space that fall on concentric
-circles. The separation between any two adjacent circles defines the separation
-$\Delta k_r$ in the radial sampling direction, whereas, the angular separation between any two successive angular lines in
-k-space (such as between the two example lines shown in the figure) defines $\Delta \theta$. The two quantities $\Delta k_r$ and $\Delta \theta$ are constrained by the Nyquist sampling criterion."  
+
+As the name suggests, radial golden-angle acquisition specifically modifies how k-space is sampled. Unlike traditional static MRI, which typically employs Cartesian sampling, this method utilizes radial sampling. Here, the data points are collected along radial lines spreading out from the center of k-space, resembling spokes on a wheel. Figure \ref{fig:radial} depicts a generic radial sampling scheme. The separation between any two adjacent circles defines the separation $\Delta k_r$ in the radial sampling direction, whereas, the angular separation between any two successive angular lines in k-space (such as between the two example lines shown in the figure) defines $\Delta \theta$. The two quantities $\Delta k_r$ and $\Delta \theta$ are constrained by the Nyquist sampling criterion. \parencite{brown_magnetic_2014} 
+  
  \begin{figure}
  	\centering
  	\includegraphics[width=0.7\linewidth]{radial}
@@ -158,14 +158,31 @@ k-space (such as between the two example lines shown in the figure) defines $\De
  	\label{fig:radial}
  \end{figure}
  
+ The 'golden-angle' strategy, which we employ, optimizes this approach by spacing the radial lines at an angle of approximately 111.25 degrees. This specific angle helps in evenly covering the k-space without overlapping, ensuring that each new image frame provides unique information, thus enhancing image quality and temporal resolution. 
  
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{golden_angle_figure}
+	\caption{Radial k-space sampling strategies. (a) Fixed angular increment, showing potential for uneven k-space coverage. (b) Golden-angle sampling, ensuring uniform distribution across k-space \parencite{winkelmann_optimal_2007}.}
+	\label{fig:goldenanglefigure}
+\end{figure}
+
+ 
+Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditional fixed increment and the golden-angle methods in k-space sampling. It highlights how each approach affects the distribution of sampling lines across k-space. In the figure, part (a) shows radial sampling using a fixed angular increment. This traditional method can lead to gaps or overlaps in data collection, depending on the number of radial profiles used. Part (b) demonstrates the golden-angle method, where each new radial line is placed at an increment of approximately 111.25 degrees. This approach allows for a more uniform distribution of sampling lines across the k-space, enhancing image quality by preventing gaps and reducing redundancy in data collection. Figure blank  shows the k-space of a specific frame during the knee flexion cycle and the corresponding reconstructed MRI image.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\linewidth, height=7.3cm]{kspace_arrow}
+	\caption{\textbf{Example of k-space and reconstructed image}. Left: K-space data from a specific angle during the knee flexion cycle. Right: Corresponding reconstructed MRI image, illustrating the detailed visualization achievable through golden-angle sampling.}
+	\label{fig:kspacearrow}
+\end{figure}
+  
+\textbf{Gradient Echo FLASH sequence}
+
+
 \textbf{High resolution CINE imaging}
 
 This imaging technique presents a significant advancement in capturing active knee motion. 
 It combines \textbf{continuously acquired radial golden-angle MRI} data with angular sensor information to\textbf{ retrospectively reconstruct} CINE images of the knee, allowing the acquisition of high-resolution 2D images during knee flexion and extension. 
-
- \parencite{aleksiev_high-resolution_2022}
-
 
 \textbf{Gating} 
 
