@@ -1,0 +1,10 @@
+
+@book{bernstein_handbook_2004,
+	address = {Amsterdam ; Boston},
+	title = {Handbook of {MRI} pulse sequences},
+	isbn = {978-0-12-092861-3},
+	publisher = {Academic Press},
+	author = {Bernstein, Matt A. and King, Kevin Franklin and Zhou, Ziaohong Joe},
+	year = {2004},
+	keywords = {Handbooks, manuals, etc, Magnetic resonance imaging, Magnetic Resonance Imaging, Mathematical models, Mathematics, methods},
+}
