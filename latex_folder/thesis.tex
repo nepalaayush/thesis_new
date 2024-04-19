@@ -142,9 +142,17 @@ In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techn
 
 \textbf{CINE imaging}
 
-CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}.
+CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}. Gating techniques are crucial in this context as they ensure that imaging is synchronized with precisely timed phases of the knee's motion, thus overcoming inconsistencies and enhancing the accuracy of the dynamic MRI.
+
+\textbf{Gating} 
+
+Gating allows for the synchronization of image acquisition with specific and repeatable points in the movement cycle, ensuring that each image corresponds accurately to a particular stage of knee motion. This synchronization is crucial for extracting reliable biomechanical data from the images, as it prevents discrepancies caused by variations in movement.   
+
+\textbf{Knee loading device }
+\parencite{brisson_novel_2022}
+
   
-To further address the challenge of motion artifacts and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo FLASH sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
+To further enhance the quality and precision of our imaging, and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo FLASH sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
 
 \textbf{Radial golden-angle acquisition}
 
@@ -178,19 +186,23 @@ Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditio
   
 \textbf{Gradient Echo FLASH sequence}
 
-Gradient echo (GRE) is a prime candidate for dynamic MRI because it is a fast scanning process. Unlike the spin echo, we do not need to wait for a long time for the longitudinal magnetization component $M_z$ to sufficiently recover for another repetition. This is because in a GRE sequence, a smaller flip angle is used. FLASH is a type of spoiled GRE. It is a naming scheme adopted by Siemens that spells Fast Low-Angle Shot. Other vendors have their own naming schemes for such a sequence. General Electric calls it Spoiled Gradient Echo (SPGR) and Philips calls it by the name $T_1$ fast field echo (T1-FFE). \parencite[p.583]{bernstein_handbook_2004}  
+Gradient echo (GRE) is a prime candidate for dynamic MRI because it is a fast scanning process. There are two major factors that contribute to its speed. First, unlike the spin echo, we do not need to wait for a long time for the longitudinal magnetization component $M_z$ to sufficiently recover for another repetition. This is because in a GRE sequence, a smaller flip angle is used. Secondly, we do not need to wait for the spins to refocus after the application of a $180^o$ rf pulse, because there is no such pulse applied. Instead, the refocusing is done here by using magnetic field gradients of opposite polarity. The scheme of GRE sequence is depicted in Figure \ref{fig:gresimplified}. The notation is as follows: $\alpha^o$: flip angle (less than $90^o$), RF: radio frequency pulse, SS: slice selecting gradient, PE: phase encoding, FE: frequency encoding, TE: echo time and TR: repetition time. Note that in the frequency encoding direction, a negative dephasing lobe is followed by a positive gradient that brings the spins back into phase to generate the signal.    
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{gre_simplified}
+	\caption{Simplified diagram of the GRE sequence that depicts the refocusing gradient applied in the frequency encoding direction \parencite[p.233]{berry_fundamentals_2009}.}
+	\label{fig:gresimplified}
+\end{figure}
+
+After a series of rf pulses are delivered, we reach a condition in gradient echo sequences called the \textbf{steady state.} In this state, the magnitude of the longitudinal magnetization component $M_z$ is the same at the end of every TR. Similarly, we can also have a residual transverse magnetization $M_{xy}$ at the start of every repetition cycle. If we deliberately dephase this residual transverse magnetization, the sequence is described as incoherent or spoiled gradient echo sequences.
+
+FLASH is a type of spoiled GRE. It is a naming scheme adopted by Siemens that spells Fast Low-Angle Shot. Other vendors have their own naming schemes for such a sequence. General Electric calls it Spoiled Gradient Echo (SPGR) and Philips calls it by the name $T_1$ fast field echo (T1-FFE). \parencite[p.583]{bernstein_handbook_2004}. The introduction of the FLASH technique in the 1980s, known for its rapid acquisition capabilities, marked a significant advancement in MRI technology. It allowed for clearer imaging of dynamic processes and reduced artifacts associated with movement. The original paper on FLASH highlights the technique's potential for 'recording NMR movies' to visualize physiological changes, a capability now fully integrated into contemporary MRI practices." \parencite{haase_flash_1986}
 
 \textbf{High resolution CINE imaging}
 
 This imaging technique presents a significant advancement in capturing active knee motion. 
 It combines \textbf{continuously acquired radial golden-angle MRI} data with angular sensor information to\textbf{ retrospectively reconstruct} CINE images of the knee, allowing the acquisition of high-resolution 2D images during knee flexion and extension. 
 
-\textbf{Gating} 
-
-Gating is a technique used to synchronize image acquisition with a repetitive physiological motion, such as heartbeats in cardiac MRI or joint movements in musculoskeletal MRI. In the context of dynamic knee MRI, gating ensures that the images captured at different times correspond to the same stage of the knee's motion cycle
-
-\textbf{Knee loading device }
-\parencite{brisson_novel_2022}
 \subsection{Research Necessity}
 Discuss the necessity for further analysis of the acquired images, emphasizing the gap between data collection and data interpretation within the current literature.
 
