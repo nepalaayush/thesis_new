@@ -140,26 +140,36 @@ The relationship between biomechanical stresses and knee health highlights the n
 \subsection{Dynamic MRI}
 In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techniques designed to capture and visualize physiological processes and motion over time. This dynamic aspect of MRI is crucial when studying systems or structures where motion is inherent, such as blood flow, tissue perfusion, or cardiac movement. For the purposes of this project, the focus of "dynamic MRI" narrows down to capturing the bulk movement of the knee joint undergoing active flexion extension cycles inside the scanner. Compared to traditional static MRI scans, which are highly susceptible to motion artifacts compared to other imaging modalities \parencite{zaitsev_motion_2015}, dynamic MRI techniques not only accommodates motion, but can even leverage it to offer comprehensive insights into the functional and biomechanical properties of the concerned structures.  Among these techniques, CINE imaging, particularly renowned in cardiac MRI, is considered the gold standard for evaluating cardiac function \parencite{menchon-lara_reconstruction_2019}. This high regard in cardiac MRI illustrates the method's precision and adaptability, traits we leverage for knee imaging.
 
-\textbf{CINE imaging}
+\subsubsection{CINE imaging}
 
-CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}. Gating techniques are crucial in this context as they ensure that imaging is synchronized with precisely timed phases of the knee's motion, thus overcoming inconsistencies and enhancing the accuracy of the dynamic MRI.
+CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}. Achieving this consistency in dynamic MRI of the knee, where natural variations in movement can be significant, requires precise synchronization of the imaging process.
 
-\textbf{Gating} 
+\subsubsection{Gating} 
 
-Gating allows for the synchronization of image acquisition with specific and repeatable points in the movement cycle, ensuring that each image corresponds accurately to a particular stage of knee motion. This synchronization is crucial for extracting reliable biomechanical data from the images, as it prevents discrepancies caused by variations in movement.   
+This synchronization, known as gating, aligns image acquisition with specific, repeatable points in the knee's movement cycle. By ensuring each captured image corresponds accurately to a consistent phase of motion, it minimizes the discrepancies that can arise from cycle-to-cycle variations, enhancing the reliability of bio-mechanical analyses. Although there are two types of gating, namely prospective and retrospective, it is the latter that is the standard for CINE imaging as it provides a more consistent image quality \parencite[p. 102]{edelman_clinical_1996}. In retrospective gating, the data is acquired continuously throughout the motion cycle. The data is then reordered post-acquisition into a coherent sequence that shows the knee at different positions along the motion cycle. This necessitates external information that captures the precise moment and position of the knee throughout its range of movement beyond just the raw data acquired during the MRI scan. A previously reported novel knee loading device is employed to address this, which comes with an optical sensor attachment that provides this vital information \parencite{brisson_novel_2022}. 
 
-\textbf{Knee loading device }
-\parencite{brisson_novel_2022}
+\subsubsection{Knee loading device }
+
+Figure \ref{fig:kneedevice} depicts this MR safe device that was used. This device allowed for a range of motion of approximately 25 to 45 degrees (subject-dependent), enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates and sandbags, providing a physiological load of 10 to 12 kilograms. Central to this device's functionality is an optical fiber position sensor (MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  which measures the ab­
+solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. To enhance signal acquisition and the clarity of imaging, two flexible coils \underline{(cite the coils here, perhaps also show a picture)} were positioned at key anatomical locations: one at the distal femur and another at the proximal tibia, as specified in the MRI protocol.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{knee_device}
+	\caption{A 3D rendering of the knee motion/loading device (left) and two photographs of the device in a Siemens Magnetom Prisma Fit MRI scanner (right). The top right image (rear view) demonstrates how the distal part of the device sits atop the rails within the scanner bore, which are normally used to guide and support the patient table. The bottom right image (front, oblique view) demonstrates an individual positioned in the device with a flexible coil around the index knee, the thigh secured between the proximal pillow blocks and the ankle fastened to the leg support, as well as the coil plug setup.}
+	\label{fig:kneedevice}
+\end{figure}
+ 
+
 
   
 To further enhance the quality and precision of our imaging, and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo FLASH sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
 
-\textbf{Radial golden-angle acquisition}
+\subsubsection{Radial golden-angle acquisition}
 
 
 As the name suggests, radial golden-angle acquisition specifically modifies how k-space is sampled. Unlike traditional static MRI, which typically employs Cartesian sampling, this method utilizes radial sampling. Here, the data points are collected along radial lines spreading out from the center of k-space, resembling spokes on a wheel. Figure \ref{fig:radial} depicts a generic radial sampling scheme. The separation between any two adjacent circles defines the separation $\Delta k_r$ in the radial sampling direction, whereas, the angular separation between any two successive angular lines in k-space (such as between the two example lines shown in the figure) defines $\Delta \theta$. The two quantities $\Delta k_r$ and $\Delta \theta$ are constrained by the Nyquist sampling criterion. \parencite{brown_magnetic_2014} 
   
- \begin{figure}
+ \begin{figure}[H]
  	\centering
  	\includegraphics[width=0.7\linewidth]{radial}
  	\caption{Generic radial k-space sampling \parencite[p.306]{brown_magnetic_2014}}
@@ -184,7 +194,7 @@ Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditio
 	\label{fig:kspacearrow}
 \end{figure}
   
-\textbf{Gradient Echo FLASH sequence}
+\subsubsection{Gradient Echo FLASH sequence}
 
 Gradient echo (GRE) is a prime candidate for dynamic MRI because it is a fast scanning process. There are two major factors that contribute to its speed. First, unlike the spin echo, we do not need to wait for a long time for the longitudinal magnetization component $M_z$ to sufficiently recover for another repetition. This is because in a GRE sequence, a smaller flip angle is used. Secondly, we do not need to wait for the spins to refocus after the application of a $180^o$ rf pulse, because there is no such pulse applied. Instead, the refocusing is done here by using magnetic field gradients of opposite polarity. The scheme of GRE sequence is depicted in Figure \ref{fig:gresimplified}. The notation is as follows: $\alpha^o$: flip angle (less than $90^o$), RF: radio frequency pulse, SS: slice selecting gradient, PE: phase encoding, FE: frequency encoding, TE: echo time and TR: repetition time. Note that in the frequency encoding direction, a negative dephasing lobe is followed by a positive gradient that brings the spins back into phase to generate the signal.    
 \begin{figure}[H]
@@ -197,11 +207,6 @@ Gradient echo (GRE) is a prime candidate for dynamic MRI because it is a fast sc
 After a series of rf pulses are delivered, we reach a condition in gradient echo sequences called the \textbf{steady state.} In this state, the magnitude of the longitudinal magnetization component $M_z$ is the same at the end of every TR. Similarly, we can also have a residual transverse magnetization $M_{xy}$ at the start of every repetition cycle. If we deliberately dephase this residual transverse magnetization, the sequence is described as incoherent or spoiled gradient echo sequences.
 
 FLASH is a type of spoiled GRE. It is a naming scheme adopted by Siemens that spells Fast Low-Angle Shot. Other vendors have their own naming schemes for such a sequence. General Electric calls it Spoiled Gradient Echo (SPGR) and Philips calls it by the name $T_1$ fast field echo (T1-FFE). \parencite[p.583]{bernstein_handbook_2004}. The introduction of the FLASH technique in the 1980s, known for its rapid acquisition capabilities, marked a significant advancement in MRI technology. It allowed for clearer imaging of dynamic processes and reduced artifacts associated with movement. The original paper on FLASH highlights the technique's potential for 'recording NMR movies' to visualize physiological changes, a capability now fully integrated into contemporary MRI practices." \parencite{haase_flash_1986}
-
-\textbf{High resolution CINE imaging}
-
-This imaging technique presents a significant advancement in capturing active knee motion. 
-It combines \textbf{continuously acquired radial golden-angle MRI} data with angular sensor information to\textbf{ retrospectively reconstruct} CINE images of the knee, allowing the acquisition of high-resolution 2D images during knee flexion and extension. 
 
 \subsection{Research Necessity}
 Discuss the necessity for further analysis of the acquired images, emphasizing the gap between data collection and data interpretation within the current literature.
@@ -218,12 +223,6 @@ Structure of the thesis is as follows:
 \label{sec:second}
 some text 
 \subsection{Data Collection Methods}
-\subsubsection{The Device}
-A novel MRI-compatible device was integrated into the MRI scanner setup to facilitate guided knee motion in patients \parencite{brisson_novel_2022}. This device allowed for a range of motion of approximately 30 degrees, enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates \underline{(maybe picture here?)} and sandbags, providing a physiological load of 10 to 12 kilograms. 
-
-
-Central to this device's functionality is an optical fiber position sensor \underline{actual citation needed?}(MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  which measures the ab­
-solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. To enhance signal acquisition and the clarity of imaging, two flexible coils \underline{(cite the coils here, perhaps also show a picture)} were positioned at key anatomical locations: one at the distal femur and another at the proximal tibia, as specified in the MRI protocol. \underline{perhaps show a picture outside the scanner of the patient wearing it? }
 
 \subsubsection{Procedure Details}
 ***MRI measurements were performed on four healthy volunteers (aged between 28 and 37 years, body mass between 55 and 90 kg) using a clinical 3 T Siemens Prisma fit scanner. Volunteers had no known musculoskeletal conditions and gave written informed consent in accordance with the guidelines set out by the institutional ethics committee.*** \underline{from device paper} For all of these subjects, the left leg was used. 
