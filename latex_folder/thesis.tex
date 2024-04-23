@@ -150,11 +150,19 @@ This synchronization, known as gating, aligns image acquisition with specific, r
 
 \subsubsection{Knee loading device }
 
-Figure \ref{fig:kneedevice} depicts this MR safe device that was used. This device allowed for a range of motion of approximately 25 to 45 degrees (subject-dependent), enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates and sandbags, providing a physiological load of 10 to 12 kilograms. Central to this device's functionality is an optical fiber position sensor (MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  which measures the ab­
-solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. To enhance signal acquisition and the clarity of imaging, two flexible coils \underline{(cite the coils here, perhaps also show a picture)} were positioned at key anatomical locations: one at the distal femur and another at the proximal tibia, as specified in the MRI protocol.
+Figure \ref{fig:kneedevice} depicts this MR safe device that was used. This device allowed for a range of motion of approximately 25 to 45 degrees (subject-dependent), enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates and sandbags, providing a physiological load of 10 to 12 kilograms. Central to this device's functionality is an optical fiber position sensor (MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  measures the ab­solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree \parencite{rickenbach_optical_2013}. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. 
+\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{sensor_img}
+	\caption{The MR330 controller (left) and MR338 optical fiber position sensor system (right), showcasing the connection from the controller to the sensor via duplex LC multimode fiber optic cabling.}
+	\label{fig:sensorimg}
+\end{figure}
+
+
+As shown in Figure \ref{fig:sensorimg} , the MR330 controller interfaces with the MRI-safe MR338 position sensor to facilitate precise measurement within the MRI environment, accommodating up to 300 meters of fiber optic cabling. The controller is connected to a laptop placed outside the scanner while the sensor is attached to the device within. To enhance signal acquisition and the clarity of imaging, two flexible coils \underline{(cite the coils here, perhaps also show a picture)} were positioned at key anatomical locations: one at the distal femur and another at the proximal tibia, as specified in the MRI protocol.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{knee_device}
+	\includegraphics[width=0.9\linewidth]{knee_device}
 	\caption{A 3D rendering of the knee motion/loading device (left) and two photographs of the device in a Siemens Magnetom Prisma Fit MRI scanner (right). The top right image (rear view) demonstrates how the distal part of the device sits atop the rails within the scanner bore, which are normally used to guide and support the patient table. The bottom right image (front, oblique view) demonstrates an individual positioned in the device with a flexible coil around the index knee, the thigh secured between the proximal pillow blocks and the ankle fastened to the leg support, as well as the coil plug setup.}
 	\label{fig:kneedevice}
 \end{figure}
@@ -209,11 +217,11 @@ After a series of rf pulses are delivered, we reach a condition in gradient echo
 FLASH is a type of spoiled GRE. It is a naming scheme adopted by Siemens that spells Fast Low-Angle Shot. Other vendors have their own naming schemes for such a sequence. General Electric calls it Spoiled Gradient Echo (SPGR) and Philips calls it by the name $T_1$ fast field echo (T1-FFE). \parencite[p.583]{bernstein_handbook_2004}. The introduction of the FLASH technique in the 1980s, known for its rapid acquisition capabilities, marked a significant advancement in MRI technology. It allowed for clearer imaging of dynamic processes and reduced artifacts associated with movement. The original paper on FLASH highlights the technique's potential for 'recording NMR movies' to visualize physiological changes, a capability now fully integrated into contemporary MRI practices." \parencite{haase_flash_1986}
 
 \subsection{Research Necessity}
-Discuss the necessity for further analysis of the acquired images, emphasizing the gap between data collection and data interpretation within the current literature.
+With the advanced capabilities to capture high-resolution CINE MRI images of the knee during flexion-extension cycles under both loaded and unloaded conditions, we are now faced with the challenge of extracting meaningful biomechanical insights from this data. The first critical step in any such analysis typically involves segmenting the key anatomical structures within the images—namely, the femur and tibia. This process is crucial because accurate segmentation directly influences the reliability of subsequent biomechanical measurements.
 
-Clearly state the objectives of your research, focusing on the development of new analytical techniques to interpret the existing dynamic MRI data.
+Manual segmentation, while simple, is exceedingly time-consuming and susceptible to human error, highlighting the need for more efficient methodologies. In response, this thesis proposes the development of a semi-automated segmentation pipeline. This approach aims to reduce the manual effort required while maintaining high accuracy, thereby accelerating the analysis process and reducing potential biases introduced by manual methods.
 
-Explain the expected contributions of your research to the field, including the potential implications for biomechanical understanding and clinical applications.
+Once segmentation is achieved, the next step involves measuring a biomechanical parameter-specifically, the distance between chosen anatomical landmarks on the femur and tibia. This measurement serves as an indirect indicator of joint space, which is crucial for assessing knee health. Derived from 2D images captured in the sagittal plane throughout the knee's flexion-extension cycle, this parameter allows for an analysis of how relative positions between the femur and tibia vary under different conditions of movement and load.
 
 \subsection{Thesis Structure}
 Structure of the thesis is as follows: 
@@ -221,7 +229,7 @@ Structure of the thesis is as follows:
 
 \section{Methodology}
 \label{sec:second}
-some text 
+
 \subsection{Data Collection Methods}
 
 \subsubsection{Procedure Details}
