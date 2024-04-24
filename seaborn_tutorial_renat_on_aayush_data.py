@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np 
 sns.set_context("talk")
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
-    master_df_point =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/08.03.24/stiched_analysis/AN_point_df_3.pkl', 'rb') as file:
+    AN_point_df_3 =  pickle.load(file)
 
 #%%
 angle_and_rel_df["Dataset"] = pd.Categorical(angle_and_rel_df["Dataset"].apply(lambda x: x.split(" ")[1]))
@@ -67,6 +67,7 @@ fg.fig.subplots_adjust(top=0.86)
 
 
 #%%
+''' we need to find a better way to define the bins. in a way that is the most repeatable '''
 def print_percent_flexed_width(df):
     # Ensure the dataframe is sorted by 'Dataset' and then by 'Frame Number' or an equivalent
     df = df.sort_values(by=['Dataset', 'Frame Number'])
@@ -93,21 +94,32 @@ def print_percent_flexed_width(df):
     for dataset, width in width_per_dataset.items():
         print(f"Dataset {dataset}: Width of 'Percent Flexed' = {width}")
 
-print_percent_flexed_width(is_df_1_7)
-#%%
-# Step 1: Filter out dataset '7'
-is_df_1_6 = is_df_1_7[is_df_1_7['Dataset'] != '7']
-
-# Step 2: Remove the unused category
-is_df_1_6['Dataset'] = is_df_1_6['Dataset'].cat.remove_unused_categories()
-
-#%%
-ap_df_1_6 = ap_df_1_7[ap_df_1_7['Dataset'] != '7']
-
-# Step 2: Remove the unused category
-ap_df_1_6['Dataset'] = ap_df_1_6['Dataset'].cat.remove_unused_categories()
+print_percent_flexed_width(master_df_point) # what this does is give us the width for each of the datasets .. to decide on the bin width, we will go with the smallest width
 #%%
 
+sns.histplot(master_df_point['Percent Flexed'], bins=20, kde=False, color="blue")
+
+def add_bins(df):
+    # Bin edges
+    bin_edges = [-101] 
+    # Smallest bin width
+    bin_width = 4.545
+    
+    # Generate edges from -100 to 0
+    bin_edges += list(np.arange(-100 + bin_width, 0, bin_width))
+    
+    bin_edges += [0]
+    
+    bin_edges += list(np.arange(0 + bin_width, 100, bin_width))
+    
+    bin_edges += [100, 101]
+    
+    bin_labels = [f"{round(bin_edges[i], 2)} to {round(bin_edges[i+1], 2)}" for i in range(len(bin_edges)-1)]
+     
+    # Binning the data
+    master_df_point['Binned Percent Flexed'] = pd.cut(master_df_point['Percent Flexed'], bins=bin_edges, labels=bin_labels, include_lowest=True)
+
+add_bins(master_df_point)
 #%%
 
 def add_bins(df, bin_width):
@@ -125,11 +137,9 @@ def add_bins(df, bin_width):
     return df 
 
 # Check the binning results
-add_bins(master_df_point, bin_width=6) 
+add_bins(master_df_point, bin_width=5) 
 
 #%%
-
-
 # Make sure to include 'Condition' in the groupby
 narrow_binned_means = master_df_point.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Norm'].mean().reset_index()
 
@@ -149,10 +159,42 @@ fg = sns.relplot(
 
 # Add a reference line at y=0
 fg.refline(y=0)
-fg.set_axis_labels("Bin Centre (% flexed)", "Relative Norm (mm)")
+fg.set_axis_labels("Bin Centre (% flexed)", "Euclidean Distance (mm)")
 # Adjust the layout and display the plot
 plt.subplots_adjust(top=0.9)
 plt.show()
+
+#%%
+
+narrow_binned_means = master_df_point.groupby(['Condition', 'Binned Percent Flexed', 'Dataset'])['Relative Norm'].mean().reset_index()
+
+# Calculate the bin centers from the custom labels
+narrow_binned_means['Bin_Center'] = narrow_binned_means['Binned Percent Flexed'].apply(
+    lambda x: (float(x.split(' to ')[0]) + float(x.split(' to ')[1])) / 2
+)
+
+# Filter data where bin center is zero, if necessary (it seems you might have used this to focus on specific ranges)
+zero_bin_data = narrow_binned_means[narrow_binned_means['Bin_Center'] == 0]
+
+# Plotting with Seaborn
+fg = sns.relplot(
+    data=narrow_binned_means, 
+    x="Bin_Center", 
+    y="Relative Norm", 
+    hue="Condition", 
+    kind="line",
+    facet_kws={'sharey': False, 'sharex': False}  # Adjust axis sharing as needed
+)
+
+# Add a reference line at y=0
+fg.refline(y=0)
+fg.set_axis_labels("Bin Centre (% flexed)", "Relative Norm (mm)")
+
+# Adjust the layout and display the plot
+plt.subplots_adjust(top=0.9)
+plt.show()
+
+
 # %%
 # Assuming is_df_1_6 has a column named 'Angles' which you want to plot against 'Relative Translation'
 # Plotting
@@ -296,7 +338,7 @@ def create_points_arrays(fem_NW_name, tib_NW_name, fem_W_name, tib_W_name, fem_i
     
     return fem_points_NW, tib_points_NW, fem_points_W, tib_points_W
 
-fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('MM_NW_fem_shape', 'MM_NW_tib_shape', 'MM_W_fem_shape', 'MM_W_tib_shape',38,2)
+fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('US_NW_fem_shape', 'US_NW_tib_shape', 'US_W_fem_shape', 'US_W_tib_shape',38,0)
 
 
 #%%
@@ -321,10 +363,10 @@ df_NW = create_condition_df(fem_points_NW, tib_points_NW, 'Unloaded')
 df_W = create_condition_df(fem_points_W, tib_points_W, 'Loaded')
 
 # Combine DataFrames
-MM_point_df_2 = pd.concat([df_NW, df_W], ignore_index=True)
+US_point_df_8 = pd.concat([df_NW, df_W], ignore_index=True)
 
 #%%
-MM_point_df_2['Dataset'] = 2
+US_point_df_8['Dataset'] = 8
 #%%
 def add_norm(df):
     df['Norm'] = np.sqrt(
@@ -332,10 +374,10 @@ def add_norm(df):
     (df['Femur_Y'] - df['Tibia_Y'])**2
 )
     
-add_norm(MM_point_df_2)    
+add_norm(US_point_df_8)    
 #%%
 fg = sns.relplot(
-    MM_point_df_2, 
+    US_point_df_8, 
     x="Frame",
     #x = 'Frame Number',
     y="Norm", 
@@ -423,5 +465,6 @@ fg = sns.relplot(
 fg.refline(y=0)
 fg.set_axis_labels("% Flexed", "Relative Norm (mm)")
 #%%
-with open('MM_point_df_2.pkl', 'wb') as f:
-    pickle.dump(MM_point_df_2, f)  
+with open('master_df_point.pkl', 'wb') as f:
+    pickle.dump(master_df_point, f) 
+
