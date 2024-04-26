@@ -238,14 +238,17 @@ Dynamic MRI scans were carried out on four healthy individuals, ranging in age f
 The thigh is secured on a wedge positioner, and the lower leg is attached to an ankle rest, just above the malleoli, using Velcro straps to minimize lateral movement. Once positioned at the scanner's isocenter, the volunteer then engages in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, where the leg is flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition with weights, the process is repeated without the added resistance to compare both states. The scan duration is around two and a half minutes, which amounts to 20 full flexion-extension-flexion cycles. 
 
 \subsubsection{Sequence Parameters and Reconstruction}
-
-
+... to be done 
+The selection of these MRI sequence parameters ensures high-resolution images that are crucial for the detailed analysis and segmentation tasks described below
 \subsection{Data Analysis}
-All the analysis and data visualization were done using the python programming language (v3.11.5). To begin, the data in nifti (Neuroimaging Informatics Technology Initiative) format is loaded using nibabel (v5.1.0) library. It is then visualized using napari(v0.4.18), a multi-dimensional interactive image viewer in Python. 
+All the analysis and data visualization were done using the python programming language (v3.11.5). To begin, the data in nifti (Neuroimaging Informatics Technology Initiative) format is loaded using nibabel (v5.1.0) library. It was then visualized using napari(v0.4.18), a multi-dimensional interactive image viewer in Python. The following sections will give a step by step account of the segmentation process.  
 \subsubsection{Segmentation}
 Step 1: Edge Detection Using the Canny Algorithm
 
-The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. Various parameters of the Canny algorithm were adjusted, including edge thresholds and Gaussian blur, to optimize edge detection. Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. The final selection of the desired edge was accomplished using scipy's label algorithm (v1.11.3).
+The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. Various parameters of the Canny algorithm were adjusted, including edge thresholds and Gaussian blur, to optimize edge detection.
+
+
+ Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. The final selection of the desired edge was accomplished using scipy's label algorithm (v1.11.3).
 
 \subsection{Validity and Reliability}
 Validation Methods: Detail the steps taken to validate the segmentation techniques and the biomechanical parameters you derived.
