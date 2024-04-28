@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np 
 sns.set_context("talk")
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/AN/08.03.24/stiched_analysis/AN_point_df_3.pkl', 'rb') as file:
-    AN_point_df_3 =  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
+    master_df_point =  pickle.load(file)
 
 #%%
 angle_and_rel_df["Dataset"] = pd.Categorical(angle_and_rel_df["Dataset"].apply(lambda x: x.split(" ")[1]))
@@ -467,4 +467,103 @@ fg.set_axis_labels("% Flexed", "Relative Norm (mm)")
 #%%
 with open('master_df_point.pkl', 'wb') as f:
     pickle.dump(master_df_point, f) 
+    
+    
+#%%
+# runnning some statistical tests here 
+# First, an independent t-test to just see if the loaded and unloaded are significantly different
+from scipy import stats
+loaded_values = master_df_point[master_df_point['Condition'] == 'Loaded']['Relative Norm']
+unloaded_values = master_df_point[master_df_point['Condition'] == 'Unloaded']['Relative Norm']
+#%%
+# Perform the independent t-test
+t_stat, p_value = stats.ttest_ind(loaded_values, unloaded_values)
 
+# Print the t-statistic and p-value
+print("T-statistic: ", t_stat)
+print("P-value: ", p_value)
+#%%
+# next up, a paired t test per dataset 
+    
+# to start off, we want to get a p value per dataset, so, we have to loop 7 times. this is how we initialize it: 
+for dataset_id in master_df_point['Dataset'].unique():
+    # the first task is, for each dataset, we have to filter the loaded and unloaded so that they are their own separate dataframes 
+    loaded_df = master_df_point[( master_df_point['Dataset']== dataset_id ) & (master_df_point['Condition'] == 'Loaded') ]
+    unloaded_df = master_df_point[( master_df_point['Dataset']== dataset_id ) & (master_df_point['Condition'] == 'Unloaded') ]
+    
+    # now we can perform the paired t test on these dataframes
+    t_stat, p_value = stats.ttest_rel(unloaded_df['Relative Norm'], loaded_df['Relative Norm'])
+    print(f"Dataset {dataset_id}: T-statistic = {t_stat}, P-value = {p_value}")
+
+''' Dataset 5: T-statistic = 3.4519449261178754, P-value = 0.0016295750222419518
+Dataset 7: T-statistic = -5.091645863362112, P-value = 6.775722723124217e-06
+Dataset 1: T-statistic = -0.1609477431684528, P-value = 0.8733327885155148
+Dataset 4: T-statistic = -0.9540618389405038, P-value = 0.34851656628719707
+Dataset 6: T-statistic = -4.922799137043911, P-value = 1.7902255002853064e-05
+Dataset 3: T-statistic = 3.306558581022953, P-value = 0.0025238134250468685
+Dataset 2: T-statistic = -1.7992376045913905, P-value = 0.08113185788721555 '''        
+
+#%%
+# now to do a paired t test but for bins .. using the aggregate 
+results = [] # an empty list to store the results, we expect as many results as there are unique bins. in the case of 5 width bin (including the custom three bins), we have 41 unique values. . 
+significant_results = []
+significance_level = 0.05
+
+for bin_label in master_df_point['Custom_Bin'].unique():
+    # two distinct things are happening in the line below. what we want, is to basically check if there is any significant difference between the relative norm values 
+    # for the unique bins. to do that we need to first loop through all the unique bins, then, for each bin, we need to calculate the mean. now the decision needs to be made 
+    # whether or not we again do this dataset-wise or do it across all. but our objective is to findout the overall effect of loading, so lets not do groupby dataset. # no .groupby('Dataset') 
+    loaded_data = master_df_point[(master_df_point['Condition']=='Loaded') & (master_df_point['Custom_Bin']== bin_label)]['Relative Norm']
+    
+    unloaded_data = master_df_point[(master_df_point['Condition']=='Unloaded') & (master_df_point['Custom_Bin']== bin_label)]['Relative Norm']
+   
+    t_stat, p_value = stats.ttest_ind(loaded_data, unloaded_data)
+    results.append((bin_label, t_stat, p_value))
+    
+    if p_value < significance_level:
+            significant_results.append((bin_label, t_stat, p_value))
+    
+for result in results:
+    print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+
+print("\nSignificant Results (p < 0.05):")
+for result in significant_results:
+    print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+    
+#%%
+
+# the above code did return some sort of result .. but the bins are dubios as i do not see anything from 0 to 5, this is mainly due to custom bin where i insisted on having the three things.. 
+# so now, just creating a normal pd.cut where we just take 5 width range. 
+
+master_binned = master_df_point.copy() 
+bin_edges = np.arange(-100, 111, 10)
+
+master_binned['Bin'] = pd.cut(master_binned['Percent Flexed'], bins=bin_edges, right=False, include_lowest=True)
+
+results = []
+significant_results = []
+significance_level = 0.05
+
+# Group by the newly created 'Bin' column and perform t-tests
+for bin_label, group in master_binned.groupby('Bin'):
+    loaded_data = group[group['Condition'] == 'Loaded']['Relative Norm']
+    unloaded_data = group[group['Condition'] == 'Unloaded']['Relative Norm']
+
+    # Only perform the t-test if both conditions have enough data
+    if len(loaded_data) > 1 and len(unloaded_data) > 1:
+        t_stat, p_value = stats.ttest_ind(loaded_data, unloaded_data)
+        results.append((bin_label, t_stat, p_value))
+        # Check significance
+        if p_value < significance_level:
+            significant_results.append((bin_label, t_stat, p_value))
+    else:
+        results.append((bin_label, 'Not enough data', 'N/A'))
+
+# Output results
+print("All Results:")
+for result in results:
+    print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+
+print("\nSignificant Results (p < 0.05):")
+for result in significant_results:
+    print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
