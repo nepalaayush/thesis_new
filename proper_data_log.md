@@ -121,3 +121,31 @@ ___ ___ ___ ___ ___ ___
 - Mention dr. Krämer that the extension for the subjects should be forced to go all the way. 
 
 ____ __ ___ __ __ __ 
+
+
+
+some pmr.py info stuff taken directly from the raw file: 
+
+      INFO     MRIArray(
+2024-04-29 11:44:57,784 pymri        INFO       shape = (352, 276, 16, 100)
+2024-04-29 11:44:57,784 pymri        INFO       dims = ('read', 'line', 'channel', 'repetition')
+2024-04-29 11:44:57,784 pymri        INFO       type = complex64
+2024-04-29 11:44:57,784 pymri        INFO       header = 13 items
+2024-04-29 11:44:57,784 pymri        INFO     )
+2024-04-29 11:44:57,784 pymri        INFO     MRIHeader(
+2024-04-29 11:44:57,784 pymri        INFO       acquisition_duration: 160
+2024-04-29 11:44:57,784 pymri        INFO       acquisition_type: 2D
+2024-04-29 11:44:57,784 pymri        INFO       dwell_time: [0.0024]
+2024-04-29 11:44:57,784 pymri        INFO       echo_time: [2.5100000000000002]
+2024-04-29 11:44:57,784 pymri        INFO       field_strength: 2.89362
+2024-04-29 11:44:57,784 pymri        INFO       flip_angle: 8.0
+2024-04-29 11:44:57,784 pymri        INFO       fov: [192.0, 192.0, 3.0]
+2024-04-29 11:44:57,784 pymri        INFO       frequency: 123248564
+2024-04-29 11:44:57,784 pymri        INFO       inversion_time: 150000
+2024-04-29 11:44:57,784 pymri        INFO       matrix_size: [176, 176, 1]
+2024-04-29 11:44:57,785 pymri        INFO       repetition_time: 5.8
+2024-04-29 11:44:57,785 pymri        INFO       scan_options: recoInfo_20240405_1033_770
+2024-04-29 11:44:57,785 pymri        INFO       scanner_name: MAGNETOM Prisma
+2024-04-29 11:44:57,785 pymri        INFO     )
+
+
