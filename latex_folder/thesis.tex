@@ -245,11 +245,55 @@ The volunteer engaged in a controlled exercise, following a metronome set at 60 
 
 
 \subsection{Data Analysis}
-All the analysis and data visualization were done using the python programming language (v3.11.5). To begin, the data in nifti (Neuroimaging Informatics Technology Initiative) format is loaded using nibabel (v5.1.0) library. It is then visualized using napari(v0.4.18), a multi-dimensional interactive image viewer in Python. 
+All the analysis and data visualization were done using the python programming language (v3.11.5). To begin, the data in nifti (Neuroimaging Informatics Technology Initiative) format is loaded using nibabel (v5.1.0) library. It is then visualized using napari(v0.4.18), a multi-dimensional interactive image viewer in Python. Figure \ref{fig:step1viewer} shows the initially loaded data along with the viewer user interface. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{step_1_viewer}
+	\caption{An example of the layout of the Napari viewer application showing one of the frames of CINE data.}
+	\label{fig:step1viewer}
+\end{figure}
+
+Once the data is loaded, several distinct steps were performed to semi-automate the segmentation of tibia and femur. This involves first finding one boundary edge each for the bones, and then tracking them across the full flexion-extension cycle by computing their respective transformation matrices. 
+ 
 \subsubsection{Segmentation}
 Step 1: Edge Detection Using the Canny Algorithm
 
-The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. Various parameters of the Canny algorithm were adjusted, including edge thresholds and Gaussian blur, to optimize edge detection. Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. The final selection of the desired edge was accomplished using scipy's label algorithm (v1.11.3).
+The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. The Canny edge detection algorithm operates in several key steps to identify edges with high accuracy in images. Initially, the image is smoothed using a Gaussian filter to reduce noise and potential false edge detections. Following this, the algorithm calculates the gradient intensity and direction at each pixel, which helps in identifying the edges' boundaries.
+
+Subsequently, the algorithm applies double thresholding, which involves two thresholds: a low and a high. Pixels with intensities above the high threshold are marked as strong edge pixels, while those below the low threshold are discarded. Pixels between these two thresholds are marked as weak edge pixels but can only be accepted as true edge pixels if they are connected to strong edge pixels. This step helps in discriminating between real edges and noise. Finally, edge tracking by hysteresis completes the process by converting weak edge pixels that are connected to strong edge pixels into strong edges, ensuring the continuity and completeness of detected edges in the image. Various parameters of the Canny algorithm were adjusted, including edge thresholds and Gaussian blur, to optimize edge detection. Figure \ref{fig:edgemitimg} shows the output of this step.  
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{edge_new}
+	\caption{Output of canny edge detection algorithm overlayed on top of the image.}
+	\label{fig:edgemitimg}
+\end{figure}
+
+
+Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. 
+
+Step 2: Labelling
+
+The final selection of the desired edge was accomplished using scipy's label algorithm (v1.11.3). The goal was to isolate an edge that accurately represents the overall shape of the bone slice. Labelling was useful in this regard as it allowed for easy separation of distinct edges. Figure \ref{fig:labelimg} shows the output from the labelling algorithm, where each color represents a separate label. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{label_selected}
+	\caption{Output from the labeling algorithm with the representative edges for femur (top) and tibia(bottom) pointed out.}
+	\label{fig:labelimg}
+\end{figure}
+ 
+After choosing the appropriate labels, a binary image for each frame is obtained, where the foreground has the boundary for the interior edge of tibia and femur, and the background is null.   
+
+Step 3: Obtaining the set of reference points
+
+Upon successfully isolating the binary edge images of the tibia and femur in Step 2, the subsequent step focused on establishing a set of reference points along each bone's edge. These points are the basis for calculating the transformation between subsequent frames. The first frame, when the knee is in a fully flexed position, was used as the reference frame. The rest of frames remain as binary edges while only the first frame is downsampled into a set of equidistant points along the boundary. To begin, the points along the boundary were organised and sorted. Then, the sequence of points were processed to select the points that were equidistant from each other. This was accomplished by calculating the cumulative distance along the boundary and dividing the total by the desired number of points minus one. Figure \ref{fig:downsampled} depicts this result. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{downsampled}
+	\caption{A zoomed in look at the equidistant sampled points (orange) along the boundary of the tibia edge (white).}
+	\label{fig:downsampled}
+\end{figure}
+
 
 \subsection{Validity and Reliability}
 Validation Methods: Detail the steps taken to validate the segmentation techniques and the biomechanical parameters you derived.
