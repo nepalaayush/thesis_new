@@ -14,6 +14,7 @@
 % For formatting of your bibliography, please use the following package with options 
 \usepackage[style=authoryear]{biblatex}
 \usepackage{gensymb}
+\usepackage{amsmath}
 
 \addbibresource{bibliography.bib} % add a bib-reference file
 
@@ -46,7 +47,7 @@
 \pagestyle{plain}
 %\thispagestyle{empty}
 \subsection*{Abstract}
-Short summary of your thesis (max. 250 words) \ldots
+
 
 \clearpage
 \subsection*{Acknowledgements}
@@ -256,7 +257,7 @@ All the analysis and data visualization were done using the python programming l
 Once the data is loaded, several distinct steps were performed to semi-automate the segmentation of tibia and femur. This involves first finding one boundary edge each for the bones, and then tracking them across the full flexion-extension cycle by computing their respective transformation matrices. 
  
 \subsubsection{Segmentation}
-Step 1: Edge Detection Using the Canny Algorithm
+\textbf{Step 1: Edge Detection}
 
 The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. The Canny edge detection algorithm operates in several key steps to identify edges with high accuracy in images. Initially, the image is smoothed using a Gaussian filter to reduce noise and potential false edge detections. Following this, the algorithm calculates the gradient intensity and direction at each pixel, which helps in identifying the edges' boundaries.
 
@@ -271,9 +272,9 @@ Subsequently, the algorithm applies double thresholding, which involves two thre
 
 Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. 
 
-Step 2: Labelling
+\textbf{Step 2: Labelling}
 
-The final selection of the desired edge was accomplished using scipy's label algorithm (v1.11.3). The goal was to isolate an edge that accurately represents the overall shape of the bone slice. Labelling was useful in this regard as it allowed for easy separation of distinct edges. Figure \ref{fig:labelimg} shows the output from the labelling algorithm, where each color represents a separate label. 
+For the final selection of the desired edge, a labeling algorithm from SciPy, an open-source Python library designed for scientific computing(v1.11.3) was used. The goal was to isolate an edge that accurately represents the overall shape of the bone slice. Labelling was useful in this regard as it allowed for easy separation of distinct edges. Figure \ref{fig:labelimg} shows the output from the labelling algorithm, where each color represents a separate label. 
 
 \begin{figure}[H]
 	\centering
@@ -284,24 +285,66 @@ The final selection of the desired edge was accomplished using scipy's label alg
  
 After choosing the appropriate labels, a binary image for each frame is obtained, where the foreground has the boundary for the interior edge of tibia and femur, and the background is null.   
 
-Step 3: Obtaining the set of reference points
+\textbf{Step 3: Obtaining the set of reference points}
 
-Upon successfully isolating the binary edge images of the tibia and femur in Step 2, the subsequent step focused on establishing a set of reference points along each bone's edge. These points are the basis for calculating the transformation between subsequent frames. The first frame, when the knee is in a fully flexed position, was used as the reference frame. The rest of frames remain as binary edges while only the first frame is downsampled into a set of equidistant points along the boundary. To begin, the points along the boundary were organised and sorted. This was done by first, defining a starting point, and then iteratively using a greedy nearest neighbor algorithm for sorting. The most distal point of the bone was taken as the initial seed. Various functions from the numeric python library 'Numpy' (v. 1.26.4) were employed for this task. 
+Upon successfully isolating the binary edge images of the tibia and femur in Step 2, the subsequent step deals with establishing a set of reference points along each bone's edge in the first frame. This frame, captured when the knee is in a fully flexed position, serves as the reference frame for the study. The purpose of establishing these reference points is twofold: to simplify the complex data set for efficient processing and to ensure a consistent basis for accurately calculating transformations between subsequent frames. This is essential, as direct use of the densely packed binary edge data would be computationally cumbersome and less precise for such transformations.
+
+To begin, the points along the boundary were organised and sorted. This was done by first, defining a starting point, and then iteratively using a greedy nearest neighbor algorithm for sorting. The most distal point of the bone was taken as the initial seed. Various functions from the numeric python library 'Numpy' (v. 1.26.4) were employed for this task. 
 
 
-Continuing from the initial sorting of points, the next crucial step involves transforming the sorted sequence of boundary points into a uniformly distributed set of reference points. This is achieved through the application of an equidistant sampling technique designed to accurately represent the geometrical contour of the bone edge with a reduced number of points. Specifically, the goal is to distribute a predefined number of points (e.g., 50 points) along the curve such that the distance between consecutive points is approximately equal.
+Once the points are sorted, the next step involves downsampling these points to a set of uniform equidistant reference points along the boundary of the binary edge. The necessity for this step arises from the inherent irregularity and density of the binary edge data. Directly sampling every nth point from the sorted list would not suffice, as it could result in uneven spacing due to the variable distances between consecutive points in the original data.
 
-This process begins by calculating the cumulative distances between each consecutive pair of points in the sorted list. Using these distances, a total path length is established. The desired interval between the new points is then determined by dividing this total path length by the number of intervals (number of points minus one). The algorithm proceeds by placing the first new point at the starting point of the sorted array. Subsequent points are positioned by moving along the path, adding the desired interval to the last placed point until the end of the path is reached. This method ensures that the new points are spaced as uniformly as possible along the entire length of the bone edge, thereby capturing the shape and curvature of the bone with high fidelity.
+This process begins by calculating the cumulative distances between each consecutive pair of points in the sorted list. Using these distances, a total path length is established. The desired interval between the new points is then determined by dividing this total path length by the number of intervals (number of desired points minus one). Between 50 to 80 points were found to be sufficient to accurately reflect the edge contours. 
 
-The selection and interpolation between the original points are conducted using linear interpolation methods, which are efficiently executed using capabilities provided by Numpy. This approach ensures that each new point lies exactly on the linear segment between two existing points, maintaining the anatomical accuracy of the bone representation in the reference frame. 
-
-hen, the sequence of points were processed to select the points that were equidistant from each other. This was accomplished by calculating the cumulative distance along the boundary and dividing the total by the desired number of points minus one. Figure \ref{fig:downsampled} depicts this result. 
+To achieve precise positioning of these points, cubic spline interpolation from SciPy's interpolate libary is used. This interpolation method is particularly effective for ensuring that the new points adhere closely to the original curve while maintaining equidistant. 
+Figure \ref{fig:downsampled} depicts this result. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{downsampled}
 	\caption{A zoomed in look at the equidistant sampled points (orange) along the boundary of the tibia edge (white).}
 	\label{fig:downsampled}
 \end{figure}
+
+\textbf{Step 4: Transformation matrices computation}
+
+In this step, a set of transformation matrices are obtained, each matrix containing the paramters that align the segment of the bone in one frame to the next. Given that the subject movement is restricted to only a single plane, it is reasonable to assume that the edges of the bone undergo motions that can be described by rigid transformations. These transformations includes solely the translation in the sagital plane, and rotation about transverse axis. In this approach, it is assumed that the bone does not undergo any deformation, and that through plane motion is negligible throughout the motion cycle. 
+
+Mathematically, the transformation of each point from one frame to the next can be expressed as 
+\begin{equation}
+	p^{'} = R(\phi)p + t 
+\end{equation}
+where: 
+\begin{itemize}
+	\item \textbf{$p$} is the coordinate of the point in its current frame
+	\item \textbf{$p^{'}$} is the coordinate of the point in the next frame
+	\item $\phi$ is the angle of rotation
+	\item \textbf{$R(\phi)$}  is the rotation matrix, given by 
+	 \[
+	 R(\phi) = 
+	 \begin{bmatrix}
+	 	\cos \phi & \sin \phi \\
+	 	-\sin \phi & \cos \phi
+	 \end{bmatrix}
+	 \]
+	 \begin{itemize}
+	 	\item $t$ is the translation vector,
+	 	\[
+	 	t = \begin{bmatrix}
+	 		x \\
+	 		y
+	 	\end{bmatrix}
+	 	\]
+	 \end{itemize}
+ 	\item x and y are the translations in the cartesian coodinate system. 
+\end{itemize}   
+As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its corresponding point in the transformed frame. The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guesThe optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:image137} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{image137}
+	\caption{Left: The reference points in the first frame (orange) overlayed with the binary edge image of the target frame (white).Right: The reference points have been transformed by using the results from the optimization showing almost perfect overlap, illustrating the effective alignment achieved through the minimization of the cost function.}
+	\label{fig:image137}
+\end{figure}
+
 
 
 \subsection{Validity and Reliability}
@@ -310,13 +353,6 @@ Reliability Measures: Describe any repeat analyses or cross-verifications done t
 
 \section{Results}
 \label{sec:yetanother}
-
-\subsection{Segmentation}
-\label{subsec:last}
-some text 
-
-\subsection{Parameter Extraction}
-some text 
 
 \section{Discussion}
 \subsection{Technique Evaluation}
