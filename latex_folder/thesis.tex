@@ -15,6 +15,10 @@
 \usepackage[style=authoryear]{biblatex}
 \usepackage{gensymb}
 \usepackage{amsmath}
+\usepackage{booktabs}
+
+\usepackage{chngcntr}
+\counterwithout{table}{section}
 
 \addbibresource{bibliography.bib} % add a bib-reference file
 
@@ -22,7 +26,7 @@
 % ----------------------------------------------------------------------------
 % Details for the titlepage
 % ----------------------------------------------------------------------------
-\thesisTitle{Develeopment of Analysis Techniques for dynamic magnetic resonance imaging}
+\thesisTitle{Development of Analysis Techniques for dynamic magnetic resonance imaging}
 \thesisType{Master Thesis} % 'Master Thesis' or 'Seminar Paper'
 \thesisAuthor{Aayush Nepal}
 \thesisMail{aayush.nepal@uni-jena.de}
@@ -51,7 +55,7 @@
 
 \clearpage
 \subsection*{Acknowledgements}
-If you want to thank anyone (optional) \ldots
+
 
 % ----------------------------------------------------------------------------
 % Table of contents
@@ -99,11 +103,11 @@ FSU Jena & Friedrich-Schiller-Universität Jena\\
 \label{sec:intro}
 
 
-\subsection{The Knee }
-The knee, a pivotal structure in the human body, plays an essential role in locomotion. Additionally, it functions to control the center of body mass and posture in the activities of daily living by facilitating a wide range of movements. As such, the knee's health and integrity are vital for overall quality of life, influencing everything from basic mobility to participation in complex sports. In a comprehensive survey across 15 European countries and Israel, it was found that knee pain was the third most commonly reported location of chronic pain, highlighting the significant concern it poses to public health \parencite{breivik_survey_2006}. Furthermore, arthritis/osteoarthritis (OA) was identified as the most common cause of this pain. 
+\subsection{The Knee Joint }
+The knee joint, a pivotal structure in the human body, plays an essential role in locomotion. Additionally, it functions to control the center of body mass and posture in the activities of daily living by facilitating a wide range of movements. As such, the knee's health and integrity are vital for overall quality of life, influencing everything from basic mobility to participation in complex sports. A comprehensive survey across 15 European countries and Israel found that knee pain was the third most commonly reported type of chronic pain. This underscores the significant public health concern it represents \parencite{breivik_survey_2006}. Furthermore, arthritis/osteoarthritis (OA) was identified as the most common cause of this pain. 
 
-And this situation has not improved with time. In Germany for instance, a recent retrospective study has found that the number of patients with OA is steadily rising \parencite{obermuller_epidemiology_2024}. 
-Part of the reason knee-related issues are so prevalent and impactful is the inherent complexity of the knee joint itself. As a hub of various anatomical structures working in unison, the knee supports a range of movements and bears significant loads, making it susceptible to a variety of injuries and conditions.
+This situation has not improved over time. In Germany for instance, a recent retrospective study has found that the number of patients with OA is steadily rising \parencite{obermuller_epidemiology_2024}. 
+Knee-related issues are prevalent and impactful due to the inherent complexity of the knee joint itself. As a hub of various anatomical structures working in unison, the knee supports a range of movements and bears significant loads, making it susceptible to a variety of injuries and conditions.
 Understanding the anatomy of the knee is the first step in tackling this problem. 
 
 \textbf{Anatomy and Function}
@@ -139,11 +143,11 @@ Such mechanical forces, influenced by activities and body mass index (BMI), are 
 The relationship between biomechanical stresses and knee health highlights the need for diagnostic tools that fulfill two key criteria: they must capture the knee's dynamic behavior during motion and assess the joint under varying loads. Dynamic magnetic resonance imaging (MRI) excels in meeting these requirements as one of the most advanced imaging modalities.
 
 \subsection{Dynamic MRI}
-In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techniques designed to capture and visualize physiological processes and motion over time. This dynamic aspect of MRI is crucial when studying systems or structures where motion is inherent, such as blood flow, tissue perfusion, or cardiac movement. For the purposes of this project, the focus of "dynamic MRI" narrows down to capturing the bulk movement of the knee joint undergoing active flexion extension cycles inside the scanner. Compared to traditional static MRI scans, which are highly susceptible to motion artifacts compared to other imaging modalities \parencite{zaitsev_motion_2015}, dynamic MRI techniques not only accommodates motion, but can even leverage it to offer comprehensive insights into the functional and biomechanical properties of the concerned structures.  Among these techniques, CINE imaging, particularly renowned in cardiac MRI, is considered the gold standard for evaluating cardiac function \parencite{menchon-lara_reconstruction_2019}. This high regard in cardiac MRI illustrates the method's precision and adaptability, traits we leverage for knee imaging.
+In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techniques designed to capture and visualize physiological processes and motion over time. The dynamic aspect of MRI is crucial for studying systems or structures involving inherent motion, such as blood flow, tissue perfusion, or cardiac activity. For the purposes of this project, the focus of "dynamic MRI" narrows down to capturing the bulk movement of the knee joint undergoing active flexion extension cycles inside the scanner. Compared to traditional static MRI scans, which are highly susceptible to motion artifacts compared to other imaging modalities \parencite{zaitsev_motion_2015}, dynamic MRI techniques not only accommodates motion, but can even leverage it to offer comprehensive insights into the functional and biomechanical properties of the concerned structures.  Among these techniques, CINE imaging, particularly renowned in cardiac MRI, is considered the gold standard for evaluating cardiac function \parencite{menchon-lara_reconstruction_2019}. Its high regard in cardiac MRI demonstrates the method's precision and adaptability—traits that are leveraged in knee imaging.
 
 \subsubsection{CINE imaging}
 
-CINE is derived from the word cinematography, to create a movie. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}. Achieving this consistency in dynamic MRI of the knee, where natural variations in movement can be significant, requires precise synchronization of the imaging process.
+CINE, derived from 'cinematography,' refers to creating a movie-like sequence of images. In the context of dynamic knee MRI, this technique can be used to reconstruct a "movie" of a single flexion-extension cylce. This visualization is achieved by aggregating multiple partial datasets acquired over various cycles. The knee's movement cycle is segmented into distinct stages, each corresponding to a specific angle of flexion or extension. For each stage, k-space — the Fourier transform space from which MR images are reconstructed — is incrementally sampled. This data is gathered across multiple repetitions of the movement cycle, ensuring comprehensive coverage of k-space and thus, high-resolution imaging of each movement phase.This technique works robustly only if the cycles are sufficiently similar \parencite{curtis_primer_2022}. Achieving this consistency in dynamic MRI of the knee, which naturally involves significant movement variations, requires precise synchronization of the imaging process.
 
 \subsubsection{Gating} 
 
@@ -242,7 +246,31 @@ Once the subject was placed supine in the scanner, the thigh was secured on a we
 
 The volunteer engaged in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, with the leg being flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition with weights added to the distal end of the device, the process is repeated without the added resistance to compare both states. The scan duration is around two and a half minutes, amounting to 20 full flexion-extension-flexion cycles. 
 
-\subsubsection{Sequence Parameters and Reconstruction}
+\subsubsection{Sequence Parameters and Reconstruction (incomplete)}
+As shown in Table \ref{tab:mri_seq_params}, the MRI sequence parameters are listed along with their respective units.
+
+\begin{table}[H]
+	\centering
+	\label{tab:mri_seq_params}
+	\caption{MRI Sequence Parameters}
+	\begin{tabular}{@{}ll@{}}
+		\toprule
+		Sequence Parameters & Values \\ \midrule
+		Acquisition Duration & 160 [s] \\
+		Acquisition Type & 2D \\
+		Dwell Time & 0.0024 [s] \\
+		Echo Time & 2.51 [ms] \\
+		Field Strength & 2.89362 [T] \\
+		Flip Angle & 8.0 [degrees] \\
+		Field of View (FOV) & 192.0 x 192.0 x 3.0 [mm] \\
+		Frequency & 123.25 [MHz] \\
+		Inversion Time & 150000 [ms] \\
+		Matrix Size & 176 x 176 x 1 \\
+		Repetition Time & 5.8 [ms] \\
+		Scanner Name & MAGNETOM Prisma \\
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 
 \subsection{Data Analysis}
@@ -346,30 +374,15 @@ As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To com
 \end{figure}
 
 
-
-\subsection{Validity and Reliability}
-Validation Methods: Detail the steps taken to validate the segmentation techniques and the biomechanical parameters you derived.
-Reliability Measures: Describe any repeat analyses or cross-verifications done to ensure the consistency and reliability of your results.
-
 \section{Results}
 \label{sec:yetanother}
 
 \section{Discussion}
-\subsection{Technique Evaluation}
-Assess the effectiveness and accuracy of your segmentation techniques. 
-\subsection{Biomechanical Insights}
-Discuss the biomechanical parameters obtained and their implications for understanding knee movement. 
-\subsection{Comparison with Existing Methods}
-Compare your results with current analysis techniques. 
+
  
 
 \section{Conclusion}
-\subsection{Summary of Contributions}
-Recap the novel analysis techniques developed and their significance. 
-\subsection{Limitations and Challenges}
-Discuss any limitations encountered and the challenges in the analysis process 
-\subsection{Future Work}
-Suggest potential improvements and future directions for research
+
 
 % ----------------------------------------------------------------------------
 % Bibliography
