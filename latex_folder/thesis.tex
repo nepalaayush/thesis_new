@@ -247,7 +247,7 @@ Once the subject was placed supine in the scanner, the thigh was secured on a we
 The volunteer engaged in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, with the leg being flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition with weights added to the distal end of the device, the process is repeated without the added resistance to compare both states. The scan duration is around two and a half minutes, amounting to 20 full flexion-extension-flexion cycles. 
 
 \subsubsection{Sequence Parameters and Reconstruction (incomplete)}
-As shown in Table \ref{tab:mri_seq_params}, the MRI sequence parameters are listed along with their respective units.
+Table \ref{tab:mri_seq_params}, lists the MRI sequence parameters along with their respective units.
 
 \begin{table}[H]
 	\centering
@@ -256,6 +256,7 @@ As shown in Table \ref{tab:mri_seq_params}, the MRI sequence parameters are list
 	\begin{tabular}{@{}ll@{}}
 		\toprule
 		Sequence Parameters & Values \\ \midrule
+		Shape & (352, 276, 16, 100) \\
 		Acquisition Duration & 160 [s] \\
 		Acquisition Type & 2D \\
 		Dwell Time & 0.0024 [s] \\
@@ -271,6 +272,17 @@ As shown in Table \ref{tab:mri_seq_params}, the MRI sequence parameters are list
 		\bottomrule
 	\end{tabular}
 \end{table}
+
+In this study, 276 spokes are utilized to sample one complete k-space dataset. Given the repetition time (TR) of 5.8 milliseconds, it takes approximately 1.6 seconds to acquire a full k-space dataset consisting of these spokes. Over the course of the experiment, 100 such k-space datasets are acquired, aligning with the 100 repetitions noted. The total scan duration extends just over two and a half minutes, a timeframe reported by the subjects as being manageable, regardless of whether the scan was conducted under loaded or unloaded conditions.
+
+To illustrate the principle of radial k-space sampling, Figure X presents a simplified model, which includes only 25 spokes and demonstrates 10 sampling points on one spoke. In practice, as given in table \ref{tab:mri_seq_params}, we have 352 points per spoke, and 276 spokes in total per k-space. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{kspace_depiction}
+	\caption{This illustration depicts a radial sampling pattern with 25 red spokes, using the golden angle for spacing. Only one spoke is detailed, showing 10 green points to represent sampling positions.}
+	\label{fig:kspacedepiction}
+\end{figure}
 
 
 \subsection{Data Analysis}
