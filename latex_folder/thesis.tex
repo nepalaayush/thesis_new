@@ -273,9 +273,12 @@ Table \ref{tab:mri_seq_params}, lists the MRI sequence parameters along with the
 	\end{tabular}
 \end{table}
 
-In this study, 276 spokes are utilized to sample one complete k-space dataset. Given the repetition time (TR) of 5.8 milliseconds, it takes approximately 1.6 seconds to acquire a full k-space dataset consisting of these spokes. Over the course of the experiment, 100 such k-space datasets are acquired, aligning with the 100 repetitions noted. The total scan duration extends just over two and a half minutes, a timeframe reported by the subjects as being manageable, regardless of whether the scan was conducted under loaded or unloaded conditions.
+In this study, the k-space data was acquired using 16 receive channels, each recording data simultaneously but with a unique spatial sensitivity profile. With 276 spokes used to sample a k-space dataset and a repetition time (TR) of 5.8 milliseconds per spoke, it takes approximately 1.6 seconds to acquire one k-space data. Over the course of the experiment, 100 such k-space datasets are acquired, equaling 100 repetitions as noted. The total scan duration extends just over two and a half minutes, a time frame reported by the subjects as being manageable, regardless of whether the scan was conducted under loaded or unloaded conditions.
 
-To illustrate the principle of radial k-space sampling, Figure X presents a simplified model, which includes only 25 spokes and demonstrates 10 sampling points on one spoke. In practice, as given in table \ref{tab:mri_seq_params}, we have 352 points per spoke, and 276 spokes in total per k-space. 
+Each k-space dataset contained data across a range of knee angles because of the continuous leg movement set to the metronome beat. This means, assuming the subjects perform perfectly in time of 60 beats per minute where we have 4 beats for flexion to extension, each k-space covers 0.4 times the range of motion. For example, a subject with a range of motion of $40^o$, each k-space dataset contains data across $16^o$. With multiple repetitions, data across the full range of motion was adequately acquired.     
+ 
+
+To illustrate the principle of radial k-space sampling, Figure X presents a simplified model, which includes only a few spokes and sampling points for visual purposes. In practice, as given in table \ref{tab:mri_seq_params}, we have 352 points per spoke, and 276 spokes in total per k-space. 
 
 \begin{figure}[H]
 	\centering
@@ -283,6 +286,11 @@ To illustrate the principle of radial k-space sampling, Figure X presents a simp
 	\caption{This illustration depicts a radial sampling pattern with 25 red spokes, using the golden angle for spacing. Only one spoke is detailed, showing 10 green points to represent sampling positions.}
 	\label{fig:kspacedepiction}
 \end{figure}
+
+The MRI raw data, with dimension of (352, 276, 16, 100) was processed using a reconstruction script to generate the final image dataset. The reconstruction process involved several key stages, which are outlined below: 
+
+Gating Signal Acquisition and Processing 
+
 
 
 \subsection{Data Analysis}
