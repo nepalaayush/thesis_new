@@ -473,6 +473,7 @@ with open('master_df_point.pkl', 'wb') as f:
 # runnning some statistical tests here 
 # First, an independent t-test to just see if the loaded and unloaded are significantly different
 from scipy import stats
+#%%
 loaded_values = master_df_point[master_df_point['Condition'] == 'Loaded']['Relative Norm']
 unloaded_values = master_df_point[master_df_point['Condition'] == 'Unloaded']['Relative Norm']
 #%%

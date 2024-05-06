@@ -450,3 +450,122 @@ plt.close()  # Close the plotting window
 
 
 #%% 
+
+# trying to plot some golden angle 
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+def plot_circle_with_spokes(n_spokes):
+    # Define the golden angle in radians
+    golden_angle = 2 * np.pi * (1 - (1 / ((1 + np.sqrt(5)) / 2)))
+
+    # Create a figure and a single subplot
+    fig, ax = plt.subplots()
+
+    # Draw a circle
+    circle = plt.Circle((0, 0), 1, edgecolor='b', facecolor='none')
+    ax.add_artist(circle)
+
+    # Calculate the positions of each spoke end using the golden angle
+    for i in range(n_spokes):
+        angle = golden_angle * i
+        x = np.cos(angle)
+        y = np.sin(angle)
+        ax.plot([0, x], [0, y], 'r')  # Red lines for the spokes
+
+    # Set limits and equal aspect ratio to ensure the circle is not distorted
+    ax.set_xlim(-1.1, 1.1)
+    ax.set_ylim(-1.1, 1.1)
+    ax.set_aspect('equal')
+
+    # Remove axes for aesthetic reasons
+    ax.axis('off')
+
+    # Show the plot
+    plt.show()
+
+# Example usage
+plot_circle_with_spokes(50)  # Change the number of spokes here
+#%%
+def plot_radial_kspace(n_spokes, points_per_spoke):
+    # Define the golden angle in radians
+    golden_angle = 2 * np.pi * (1 - (1 / ((1 + np.sqrt(5)) / 2)))
+
+    # Create a figure and a single subplot
+    fig, ax = plt.subplots()
+
+    # Draw a circle
+    circle = plt.Circle((0, 0), 1, edgecolor='b', facecolor='none')
+    ax.add_artist(circle)
+
+    # Calculate the positions of each spoke end using the golden angle
+    for i in range(n_spokes):
+        angle = golden_angle * i
+        x_end = np.cos(angle)
+        y_end = np.sin(angle)
+
+        # Plot the spoke
+        ax.plot([0, x_end], [0, y_end], 'r')  # Red lines for the spokes
+
+        # Plot points along the spoke
+        for j in range(1, points_per_spoke + 1):
+            x_point = np.cos(angle) * (j / points_per_spoke)
+            y_point = np.sin(angle) * (j / points_per_spoke)
+            ax.plot(x_point, y_point, 'go', markersize=2)  # Green points
+
+    # Set limits and equal aspect ratio to ensure the circle is not distorted
+    ax.set_xlim(-1.1, 1.1)
+    ax.set_ylim(-1.1, 1.1)
+    ax.set_aspect('equal')
+
+    # Remove axes for aesthetic reasons
+    ax.axis('off')
+
+    # Show the plot
+    plt.show()
+
+# Example usage: 276 spokes and 352 points per spoke
+plot_radial_kspace(50, 10)
+
+#%%
+def plot_radial_kspace_single_spoke(n_spokes, points_per_spoke):
+    # Define the golden angle in radians
+    golden_angle = 2 * np.pi * (1 - (1 / ((1 + np.sqrt(5)) / 2)))
+
+    # Create a figure and a single subplot
+    fig, ax = plt.subplots()
+
+    # Draw a circle
+    circle = plt.Circle((0, 0), 1, edgecolor='b', facecolor='none')
+    ax.add_artist(circle)
+
+    # Calculate the positions of each spoke end using the golden angle
+    for i in range(n_spokes):
+        angle = golden_angle * i
+        x_end = np.cos(angle)
+        y_end = np.sin(angle)
+
+        # Plot the spoke
+        ax.plot([0, x_end], [0, y_end], 'r')  # Red lines for the spokes
+
+        # Plot points along the spoke, only on the first spoke
+        if i == 0:  # Only plot points on the first spoke
+            for j in range(1, points_per_spoke + 1):
+                x_point = np.cos(angle) * (j / points_per_spoke)
+                y_point = np.sin(angle) * (j / points_per_spoke)
+                ax.plot(x_point, y_point, 'go', markersize=2)  # Green points
+
+    # Set limits and equal aspect ratio to ensure the circle is not distorted
+    ax.set_xlim(-1.1, 1.1)
+    ax.set_ylim(-1.1, 1.1)
+    ax.set_aspect('equal')
+
+    # Remove axes for aesthetic reasons
+    ax.axis('off')
+
+    # Show the plot
+    plt.show()
+
+# Example usage: 276 spokes and 352 points per spoke
+plot_radial_kspace_single_spoke(25, 10)
