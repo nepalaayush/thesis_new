@@ -246,7 +246,7 @@ Once the subject was placed supine in the scanner, the thigh was secured on a we
 
 The volunteer engaged in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, with the leg being flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition with weights added to the distal end of the device, the process is repeated without the added resistance to compare both states. The scan duration is around two and a half minutes, amounting to 20 full flexion-extension-flexion cycles. 
 
-\subsubsection{Sequence Parameters and Reconstruction (incomplete)}
+\subsubsection{Sequence Parameters and Reconstruction}
 Table \ref{tab:mri_seq_params}, lists the MRI sequence parameters along with their respective units.
 
 \begin{table}[H]
@@ -275,7 +275,7 @@ Table \ref{tab:mri_seq_params}, lists the MRI sequence parameters along with the
 
 In this study, the k-space data was acquired using 16 receive channels, each recording data simultaneously but with a unique spatial sensitivity profile. With 276 spokes used to sample a k-space dataset and a repetition time (TR) of 5.8 milliseconds per spoke, it takes approximately 1.6 seconds to acquire one k-space data. Over the course of the experiment, 100 such k-space datasets are acquired, equaling 100 repetitions as noted. The total scan duration extends just over two and a half minutes, a time frame reported by the subjects as being manageable, regardless of whether the scan was conducted under loaded or unloaded conditions.
 
-Each k-space dataset contained data across a range of knee angles because of the continuous leg movement set to the metronome beat. This means, assuming the subjects perform perfectly in time of 60 beats per minute where we have 4 beats for flexion to extension, each k-space covers 0.4 times the range of motion. For example, a subject with a range of motion of $40^o$, each k-space dataset contains data across $16^o$. With multiple repetitions, data across the full range of motion was adequately acquired.     
+Each k-space dataset contained data across a range of knee angles because of the continuous leg movement set to the metronome beat. This means, assuming the subjects perform perfectly in time of 60 beats per minute where we have 4 beats for flexion to extension, each k-space covers 0.4 times the range of motion. For example, a subject with a range of motion of $40^o$, each k-space dataset contains data across $16^o$. Therefore, with multiple repetitions, data across the full range of motion could be adequately acquired.     
  
 
 To illustrate the principle of radial k-space sampling, Figure X presents a simplified model, which includes only a few spokes and sampling points for visual purposes. In practice, as given in table \ref{tab:mri_seq_params}, we have 352 points per spoke, and 276 spokes in total per k-space. 
@@ -287,9 +287,10 @@ To illustrate the principle of radial k-space sampling, Figure X presents a simp
 	\label{fig:kspacedepiction}
 \end{figure}
 
-The MRI raw data, with dimension of (352, 276, 16, 100) was processed using a reconstruction script to generate the final image dataset. The reconstruction process involved several key stages, which are outlined below: 
+\textbf{Reconstruction}
 
-Gating Signal Acquisition and Processing 
+
+The MRI raw data, with dimension of (352, 276, 16, 100) was processed using a reconstruction script to generate the final image dataset.
 
 
 
@@ -385,7 +386,7 @@ where:
 	 \end{itemize}
  	\item x and y are the translations in the cartesian coodinate system. 
 \end{itemize}   
-As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its corresponding point in the transformed frame. The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guesThe optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:image137} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its corresponding point in the transformed frame. The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:image137} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
