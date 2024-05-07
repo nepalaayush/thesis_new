@@ -406,7 +406,7 @@ As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To com
 	\label{fig:edge_tracking}
 \end{figure}
 
-Step 5: Segmentation 
+\textbf{Step 5: Auto-Segmentation }
 
 With the transformation matrices obtained for the femur and the tibia, manual segmentation is performed on the first frame. An example is given in figure \ref{fig:manualsegment}. 
 \begin{figure} [H]
@@ -417,6 +417,10 @@ With the transformation matrices obtained for the femur and the tibia, manual se
 \end{figure}
 
 Using the points from this segement, the transformation matrices are now applied once more using equation \ref{eq:rot} to transform one frame to the next to complete the full segmentation across all the frames automatically.   
+
+\subsubsection{Extraction of Biomechanical Parameters}
+
+
 
 \section{Results}
 \label{sec:yetanother}
