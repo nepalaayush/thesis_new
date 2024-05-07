@@ -290,8 +290,19 @@ To illustrate the principle of radial k-space sampling, Figure X presents a simp
 \textbf{Reconstruction}
 
 
-The MRI raw data, with dimension of (352, 276, 16, 100) was processed using a reconstruction script to generate the final image dataset.
+The MRI raw data, with dimensions of (352, 276, 16, 100), was processed using a reconstruction script to generate the final image dataset. First, the binary data from the optical sensor was loaded, and the physical angle information was grouped according to each repetition cycle. This was done by detecting significant changes in the trigger signal, which was obtained from the sensor data too. This grouping resulted in 100 groups, each containing the physical angle information for a specific repetition. For each repetition, spokes in k-space were assigned to their corresponding physical angles. An angle increment of 2 degrees was chosen, which led to a collection of spokes corresponding to each 2-degree range. This approach was applied to all repetitions, allowing spokes to be mapped to physical angles across the full range of motion.
 
+Subsequently, reconstruction was performed on each group of spokes. Depending on the specific angle range, the number of spokes assigned varied between 300 and 1000. Additionally, the direction of leg movement—either from flexion to extension or vice versa—was determined by calculating the slope of the angle information. Images were then reconstructed separately for each direction, depending on whether the leg was moving upward or downward. This distinction is crucial because leg biomechanics vary significantly depending on whether the movement is working with or against gravity.
+
+\textbf{The use of rielsing toolbox}
+
+The actual image reconstruction was done by using the Riesling reconstruction toolbox \parencite{wood2020riesling}. This toolbox offers a range of advanced algorithms tailored for non-Cartesian MRI reconstruction. In this study, an Alternating Direction Method of Multipliers (ADMM) approach was employed, incorporating Total Generalized Variation (TGV) regularization. 
+
+ADMM is an iterative optimization algorithm that breaks down complex problems into smaller subproblems to solve them efficiently. It ensures accurate reconstruction by maintaining a balance between the primal (actual solution) and dual (approximate solution) residuals. This balance is particularly important for non-Cartesian MRI reconstruction, given the unique geometry of the data. ADMM allows different regularization techniques, like TGV, to be applied simultaneously during reconstruction.\parencite{MAL-016} 
+
+TGV is an advanced regularization method that reduces noise while promoting smoothness in the reconstructed images. Unlike basic Total Variation (TV) regularization, TGV allows for piecewise smooth transitions between different regions, making it better suited for images with varied structures. In this study, a regularization strength of 5e-2 was chosen empirically, striking a balance between noise suppression and edge detection.
+
+The final reconstructed images were affected by the chosen reconstruction parameters, including the zero-filling factor and the field of view (FoV) trimming factor. The use of TGV regularization and the ADMM algorithm influenced the resulting image resolution, providing images with a consistent size suitable for downstream analysis. Each image frame was reconstructed with dimensions of (528, 528) and the number of frames were subject dependent. 
 
 
 \subsection{Data Analysis}
@@ -319,7 +330,7 @@ Subsequently, the algorithm applies double thresholding, which involves two thre
 \end{figure}
 
 
-Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. 
+Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. It should be pointed out that the final edge does not necesarrily need to span the full boundary of the interior edge of the cortical bone; even partial edges were successfully used for this purpose.  
 
 \textbf{Step 2: Labelling}
 
@@ -360,7 +371,8 @@ In this step, a set of transformation matrices are obtained, each matrix contain
 
 Mathematically, the transformation of each point from one frame to the next can be expressed as 
 \begin{equation}
-	p^{'} = R(\phi)p + t 
+	p^{'} = R(\phi)p + t
+	\label{eq:rot} 
 \end{equation}
 where: 
 \begin{itemize}
@@ -386,17 +398,30 @@ where:
 	 \end{itemize}
  	\item x and y are the translations in the cartesian coodinate system. 
 \end{itemize}   
-As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its corresponding point in the transformed frame. The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:image137} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its corresponding point in the transformed frame. The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
 	\caption{Left: The reference points in the first frame (orange) overlayed with the binary edge image of the target frame (white).Right: The reference points have been transformed by using the results from the optimization showing almost perfect overlap, illustrating the effective alignment achieved through the minimization of the cost function.}
-	\label{fig:image137}
+	\label{fig:edge_tracking}
 \end{figure}
 
+Step 5: Segmentation 
+
+With the transformation matrices obtained for the femur and the tibia, manual segmentation is performed on the first frame. An example is given in figure \ref{fig:manualsegment}. 
+\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{manual_segment}
+	\caption{Manual segmentation is performed to complete the boundary of the tibia's interior edge shown in green, along with the reference points (orange).}
+	\label{fig:manualsegment}
+\end{figure}
+
+Using the points from this segement, the transformation matrices are now applied once more using equation \ref{eq:rot} to transform one frame to the next to complete the full segmentation across all the frames automatically.   
 
 \section{Results}
 \label{sec:yetanother}
+
+
 
 \section{Discussion}
 
