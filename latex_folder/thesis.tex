@@ -416,10 +416,63 @@ With the transformation matrices obtained for the femur and the tibia, manual se
 	\label{fig:manualsegment}
 \end{figure}
 
-Using the points from this segement, the transformation matrices are now applied once more using equation \ref{eq:rot} to transform one frame to the next to complete the full segmentation across all the frames automatically.   
+Using the points from this segment, the transformation matrices are now applied once more using equation \ref{eq:rot} to transform one frame to the next subsequently to complete the full segmentation across all the frames automatically. The result of the segmentation for one of the datasets is given in figure blank. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{full_segmented}
+	\caption{A mosaic showing the segmented tibia and femur shapes(green) where each tile is a particular time point. The leg is fully flexed at Frame 0}
+	\label{fig:fullsegmented}
+\end{figure}
+  
 
 \subsubsection{Extraction of Biomechanical Parameters}
+After achieving automated segmentation of the tibia and femur across all frames, the next step involved extracting biomechanical parameters from the segmented regions. Two key metrics were considered for analysis to assess the relationship between these bones throughout the flexion-extension cycle captured in the 2D Cine images.
 
+The first metric involved calculating the angle between the long axis of femur and tibia segments. This measurement provided insight into how the relative orientation of the two bones changes over time.
+
+The second metric measured the distance between specific anatomical landmarks on both the femur and tibia. Tracking this distance across the frames offered an understanding of how the spatial relationship between these two bones evolved during the motion cycle. 
+
+\textbf{Angle between the bones}
+
+To calculate the angle between the bones, the long axis of each bone segment was identified using a technique called Principal Component Analysis (PCA). The analysis was performed using the PCA implementation from the scikit-learn (v1.3.1) Python library, a module for machine learning built on top of SciPy.
+
+PCA determines the direction of maximum variance in the data, which coincides with the long axis of the bone. PCA first uses the coordinates of the segmented binary mask as input. The centroid of the shape is calculated and subtracted from each data point, centering the data such that the mean of this transformed data is (0, 0). 
+
+Next, the covariance matrix (\text{Cov}) is computed, a square matrix that gives an indication of how the data varies along each dimension and how different dimensions vary together. 
+
+\begin{equation}
+	\text{Cov} = 
+	\begin{bmatrix}
+		\mathrm{Var}(X) & \mathrm{Cov}(X,Y) \\
+		\mathrm{Cov}(Y,X) & \mathrm{Var}(Y) \\
+	\end{bmatrix}
+	\label{eq:cov}
+\end{equation}
+
+where:
+\begin{itemize}
+	\item \(\mathrm{Var}(X)\) is the variance of \(X\), given by:
+	\[
+	\mathrm{Var}(X) = \frac{1}{N-1} \sum_{k=1}^{N} (X_{k} - \bar{X})^2,
+	\]
+	where \(N\) is the number of points, \(X_{k}\) represents the \(k^{th}\) observation in the \(X\) dimension, and \(\bar{X}\) is the mean value of all observations in the \(X\) dimension. 
+	\item \(\mathrm{Cov}(X,Y)\) is the covariance between dimensions \(X\) and \(Y\), defined as:
+	\[
+	\mathrm{Cov}(X,Y) = \frac{1}{N-1} \sum_{k=1}^{N} (X_{k} - \bar{X})(Y_{k} - \bar{Y}),
+	\]
+	where \(Y_{k}\) represents the \(k^{th}\) observation in the \(Y\) dimension, and \(\bar{Y}\) is the mean value of all observations in the \(Y\) dimension.
+	
+	\item \(\mathrm{Cov}(Y,X)\) is equivalent to \(\mathrm{Cov}(X,Y)\) because the covariance matrix is symmetric.
+	
+	\item \(\mathrm{Var}(Y)\) is the variance of \(Y\), calculated similarly to \(\mathrm{Var}(X)\).
+\end{itemize}
+
+Once we have the covariance matrix, we compute its eigenvectors and eigenvalues. The eigenvector corresponding to the largest eigenvalue points in the direction of maximum variance, which is the first principal component. In this specific case, the first principal component aligns with the long axis of the tibia segment.
+
+
+\textbf{Distance between the bones}
+This is how the distance between the bones are calculated. 
 
 
 \section{Results}

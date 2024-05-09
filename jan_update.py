@@ -24,11 +24,11 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
     
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_20_03/MM_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_20_03/MM_NW_ai2_tgv_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
-image_neg = path_to_image(path_neg)
-image_pos = path_to_image(path_pos)
+image_neg = path_to_image(path_neg)[1:]
+image_pos = path_to_image(path_pos)[1:]
 #%%
 # since our image goes from extened to flexed.. the direction means, pos is going down.. and neg is coming up 
 # which means. if we want to present our data as going up then coming down .. we have to reverse the neg, put it at the first half. 
@@ -39,6 +39,32 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 #%%
 #add the original image to napari
 viewer = napari.view_image(full_image,  name='MK_NW_full')
+
+#%%
+import matplotlib.pyplot as plt
+image1 = full_image # added this because i directly opened this in the viiewer without path 
+
+total_frames = len(full_image) 
+desired_frames = 6
+
+frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
+
+disp_layer_tib = viewer.layers["MK_NW_tib_shape_stiched"].to_labels(image1.shape)
+disp_layer_fem = viewer.layers["MK_NW_fem_shape_stiched"].to_labels(image1.shape)
+
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
+xrange = slice(80,480)
+yrange=slice(120,400)
+for ax, idi in zip(axes.flatten(), frame_indices):
+    ax.imshow(image1[idi,xrange,yrange], cmap="gray")
+    ax.imshow(disp_layer_tib[idi,xrange,yrange], alpha=(disp_layer_tib[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
+    ax.imshow(disp_layer_fem[idi,xrange,yrange], alpha=(disp_layer_fem[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(f"Frame {idi}", color='white')
+     
+plt.tight_layout()
+
 #%%
 # add the 4d image to a new viewer
 viewer3 = napari.Viewer() 
