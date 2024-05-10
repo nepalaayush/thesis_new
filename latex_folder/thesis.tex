@@ -476,12 +476,19 @@ When this covariance matrix is applied to a vector, the matrix transforms the ve
 	\label{fig:longaxes}
 \end{figure}
 
-The angles between the bones was approximated by calculating the angle between the longitudinal axes. 
+The angles between the segments was calculated by using the dot product between unit vectors, as given in equation \ref{eq:angle}
+
+\begin{equation}
+	\theta = \arccos(\mathbf{U}_{fem} \cdot \mathbf{U}_{tib})
+	\label{eq:angle}
+\end{equation}
+where, $\mathbf{U_{fem}}$ and $\mathbf{U_{tib}}$ are the unit vectors of the longitudinal axes for the femur and tibia segments respectively.
+
 
 
 \textbf{Distance between the bones}
 
-To calculate a proxy for the distance between the bones, anatomical landmarks were identified for the bones. The most distal point on the femur segment was chosen for the femur and a point on the proximal tibia for the tibia as shown in figure blank   
+To calculate a proxy for the distance between the bones, anatomical landmarks were identified for the bones. The most distal point on the femur segment was chosen for the femur and a point on the proximal tibia for the tibia as shown in figure \ref{fig:twopoints}.   
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{two_points}
@@ -489,7 +496,12 @@ To calculate a proxy for the distance between the bones, anatomical landmarks we
 	\label{fig:twopoints}
 \end{figure}
 
-The euclidean distance between these two points was measured across time. 
+The euclidean distance between these two points was measured across time by using equation blank: 
+\begin{equation}
+	d = \sqrt{(y_2 - y_1)^2 + (x_2 - x_1)^2}
+	\label{eq:distance}
+\end{equation} 
+
 
 \section{Results}
 \label{sec:yetanother}

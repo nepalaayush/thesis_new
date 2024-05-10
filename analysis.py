@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import pandas as pd
@@ -32,8 +32,8 @@ with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_fem_info_st
 with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_tib_info_stiched.pkl', 'rb') as file:
     MM_W_tib_info_stiched =  pickle.load(file)
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/AN_NW_t_matrices_tib_s.pkl', 'rb') as file:
-    transformation_matrices_first =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MM/03.08/stiched_analysis/MM_W_t_matrices_tib_s.pkl', 'rb') as file:
+    MM_W_t_tib =  pickle.load(file)     
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, residuals_color, ax=None):
@@ -200,6 +200,7 @@ def convert_point_list_to_napari (single_point_list):
 viewer1.add_points(convert_point_list_to_napari(tib_points))
 #%%
 image1 = full_image # added this because i directly opened this in the viiewer without path 
+#%%
 # tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
 tib_label = final_label
 
@@ -226,8 +227,7 @@ plt.savefig('JL_W_segmented_fem_s.svg')
 
 #%%
 
-shapes_data = viewer1.layers['fem_W']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
-#binary_frame = (viewer1.layers['MM_NW_fem_shape_binary'].data == 1 )[0] 
+shapes_data = viewer1.layers['MM_NW_tib_shape']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
 binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
 
 binary_coords = np.column_stack(np.where(binary_frame))
@@ -251,7 +251,7 @@ def process_and_transform_shapes(binary_coords , transformation_matrices, ref_in
 
     return transformed_dicts
 
-JL_W_fem_info_s = process_and_transform_shapes(binary_coords, transformation_matrices_first, 0)
+MM_NW_tib_info = process_and_transform_shapes(binary_coords, MM_NW_t_tib, 0)
 
 
 #%%
@@ -260,9 +260,9 @@ JL_W_fem_info_s = process_and_transform_shapes(binary_coords, transformation_mat
 with open('JL_W_fem_info_s.pkl', 'wb') as f:
     pickle.dump(JL_W_fem_info_s, f)
 #%%
-show_stuff(JL_W_tib_info_s, 'JL_W_tib_info_s', viewer1)
+show_stuff(MM_NW_fem_info, 'MM_NW_fem_info', viewer1)
 #%%
-show_stuff(JL_W_fem_info_s, 'JL_W_fem_info_s', viewer1)
+show_stuff(MM_NW_tib_info, 'MM_NW_tib_info', viewer1)
 
 #%%
 screenshots = []
