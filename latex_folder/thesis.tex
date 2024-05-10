@@ -383,19 +383,18 @@ where:
 	 \[
 	 R(\phi) = 
 	 \begin{bmatrix}
-	 	\cos \phi & \sin \phi \\
-	 	-\sin \phi & \cos \phi
+	 	\cos \phi & -\sin \phi \\
+	 	\sin \phi & \cos \phi
 	 \end{bmatrix}
 	 \]
-	 \begin{itemize}
-	 	\item $t$ is the translation vector,
+	 
+	 \item $t$ is the translation vector,
 	 	\[
 	 	t = \begin{bmatrix}
 	 		x \\
 	 		y
 	 	\end{bmatrix}
 	 	\]
-	 \end{itemize}
  	\item x and y are the translations in the cartesian coodinate system. 
 \end{itemize}   
 As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its corresponding point in the transformed frame. The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
@@ -437,7 +436,7 @@ The second metric measured the distance between specific anatomical landmarks on
 
 To calculate the angle between the bones, the long axis of each bone segment was identified using a technique called Principal Component Analysis (PCA). The analysis was performed using the PCA implementation from the scikit-learn (v1.3.1) Python library, a module for machine learning built on top of SciPy.
 
-PCA determines the direction of maximum variance in the data, which coincides with the long axis of the bone. PCA first uses the coordinates of the segmented binary mask as input. The centroid of the shape is calculated and subtracted from each data point, centering the data such that the mean of this transformed data is (0, 0). 
+PCA determines the direction of maximum variance in the data, which coincides with the longitudinal axis of the bone. PCA first uses the coordinates of the segmented binary mask as input. The centroid of the shape is calculated and subtracted from each data point, centering the data such that the mean of this transformed data is (0, 0). 
 
 Next, the covariance matrix (\text{Cov}) is computed, a square matrix that gives an indication of how the data varies along each dimension and how different dimensions vary together. 
 
@@ -468,12 +467,29 @@ where:
 	\item \(\mathrm{Var}(Y)\) is the variance of \(Y\), calculated similarly to \(\mathrm{Var}(X)\).
 \end{itemize}
 
-Once we have the covariance matrix, we compute its eigenvectors and eigenvalues. The eigenvector corresponding to the largest eigenvalue points in the direction of maximum variance, which is the first principal component. In this specific case, the first principal component aligns with the long axis of the tibia segment.
+When this covariance matrix is applied to a vector, the matrix transforms the vector such that it aligns more closely with the direction of maximum variance in the dataset. Therefore, by computing the matrix's eigenvectors and eigenvalues, the vectors representing the direction of maximum variance is identified. The first principal component refers to the eigenvector associated with the largest eigenvalue. In figure \ref{fig:longaxes}, the longitudinal axis of femur and tibia are shown. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{long_axes}
+	\caption{The long axis of the bones are identified by using the PCA (blue) along with the centroid (white cross) for each segment}
+	\label{fig:longaxes}
+\end{figure}
+
+The angles between the bones was approximated by calculating the angle between the longitudinal axes. 
 
 
 \textbf{Distance between the bones}
-This is how the distance between the bones are calculated. 
 
+To calculate a proxy for the distance between the bones, anatomical landmarks were identified for the bones. The most distal point on the femur segment was chosen for the femur and a point on the proximal tibia for the tibia as shown in figure blank   
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{two_points}
+	\caption{Points based on anatomical landmarks are shown in yellow.}
+	\label{fig:twopoints}
+\end{figure}
+
+The euclidean distance between these two points was measured across time. 
 
 \section{Results}
 \label{sec:yetanother}
