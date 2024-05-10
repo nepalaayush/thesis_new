@@ -338,7 +338,7 @@ def create_points_arrays(fem_NW_name, tib_NW_name, fem_W_name, tib_W_name, fem_i
     
     return fem_points_NW, tib_points_NW, fem_points_W, tib_points_W
 
-fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('US_NW_fem_shape', 'US_NW_tib_shape', 'US_W_fem_shape', 'US_W_tib_shape',38,0)
+fem_points_NW, tib_points_NW, fem_points_W, tib_points_W = create_points_arrays('MK_NW_fem_shape_stiched', 'MK_NW_tib_shape_stiched', 'MK_NW_fem_shape_stiched', 'MK_NW_tib_shape_stiched',23,3)
 
 
 #%%

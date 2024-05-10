@@ -16,17 +16,15 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 #%%
 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_NW_tib_info_s.pkl', 'rb') as file:
-    JL_NW_tib_info_s = pickle.load(file)    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/HS/stiched_analysis/HS_NW_tib_info_s.pkl', 'rb') as file:
+    HS_NW_tib_info_s = pickle.load(file)    
+    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/HS/stiched_analysis/HS_NW_fem_info_s.pkl', 'rb') as file:
+    HS_NW_fem_info_s = pickle.load(file)
 
-
+#%%
 with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_W_tib_info_s.pkl', 'rb') as file:
-    JL_W_tib_info_s = pickle.load(file)
-    
-    
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/try_JL_NW_fem_info_s.pkl', 'rb') as file:
-    JL_NW_fem_info_s = pickle.load(file)
-    
+    JL_W_tib_info_s = pickle.load(file)    
 
 with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_W_fem_info_s.pkl', 'rb') as file:
     JL_W_fem_info_s = pickle.load(file)
@@ -64,7 +62,7 @@ def calculate_angle_between_bones(bone1, bone2, axis='long'):
 
     return angle_degrees
 
-
+#%%
 
 def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', new_figure=True):
     """
@@ -97,6 +95,14 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', 
     
 
     return np.array(angles)
+
+#%%
+
+calculate_and_plot_angles_between_bones(MM_NW_tib_info, MM_NW_fem_info, name='test_MM')
+
+#%%
+
+
 def tib_relative_to_fem(tib_array, fem_array):
     return tib_array - fem_array 
 ''' this code attempts to streamline the process that is shown below  ''' 
