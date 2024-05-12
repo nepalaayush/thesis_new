@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np 
+
 sns.set_context("talk")
 #%%
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
@@ -125,19 +126,62 @@ add_bins(master_df_point)
 def add_bins(df, bin_width):
 
     # Define bin edges
-    bin_edges = [-101, -100]  # Bin for -100
-    bin_edges += list(range(-100 + bin_width, 0, bin_width))  # Bins from -100 to 0
-    bin_edges += [0]  # Bin for 0
-    bin_edges += list(range(bin_width, 100, bin_width))  # Bins from 0 to 100
-    bin_edges += [100, 101]  # Bin for 100
+    #bin_edges = [-101, -100]  # Bin for -100
+    #bin_edges += list(range(-100 + bin_width, 0, bin_width))  # Bins from -100 to 0
+    #bin_edges += [0]  # Bin for 0
+    #bin_edges += list(range(bin_width, 100, bin_width))  # Bins from 0 to 100
+    #bin_edges += [100, 101]  # Bin for 100
     
+    
+    # doing a simple bin without the fancy exact bins for the three extreme values: 
+        
+    bin_edges = list(range(-100,100,bin_width))    
     # Assign 'Percent Flexed' values to bins
-    df['Custom_Bin'] = pd.cut(df['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df['Custom_Bin_10'] = pd.cut(df['Percent Flexed'], bins=bin_edges, include_lowest=True)
     
     return df 
 
 # Check the binning results
-add_bins(master_df_point, bin_width=5) 
+add_bins(master_df_point, bin_width=10) 
+
+
+#%%
+''' ! ! !  saved in the latex folder latest attempt at this plot  ''' 
+def plot_binned_data(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that include the full range from -100 to 100
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percent Flexed' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Norm'].mean().reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+
+    # Plotting the data
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(
+        data=grouped,
+        x='Bin_Center',
+        y='Relative Norm',
+        hue='Condition',
+        marker="o",  # Adds markers to each data point
+        #err_style="bars",  # Shows error bars instead of a band
+        ci='sd'  # Uses standard deviation for the error bars
+    )
+    plt.axhline(y=0, color='gray', linestyle='--')  # Adds a horizontal line at y=0
+    plt.xlabel("Bin Centre of flexion percentage [%]")
+    plt.ylabel("Euclidean Distance (mm)")
+    plt.title("Variation of distance with respect to flexion-extension cycle")
+    plt.savefig('distance_stickman.png', dpi=300)
+    plt.show()
+
+# Example usage
+plot_binned_data(master_df_point, 10)
 
 #%%
 # Make sure to include 'Condition' in the groupby
@@ -154,7 +198,9 @@ fg = sns.relplot(
     y="Relative Norm", 
     #col="Condition", 
     hue="Condition", 
-    kind="line"
+    kind="line",
+    errorbar='sd',
+    err_style='bars'
 )
 
 # Add a reference line at y=0
@@ -420,6 +466,7 @@ def add_percent_flexed(df):
             df.at[index, 'Percent Flexed'] = percent_flexed
 
     return df
+
 MM_point_df_2 = add_percent_flexed(MM_point_df_2)
 #%%
 def add_relative_norm_column(df):
@@ -464,9 +511,99 @@ fg = sns.relplot(
 )
 fg.refline(y=0)
 fg.set_axis_labels("% Flexed", "Relative Norm (mm)")
+
+
 #%%
-with open('master_df_point.pkl', 'wb') as f:
-    pickle.dump(master_df_point, f) 
+def get_bin_center(bin_range):
+    bounds = bin_range.strip('()[]').split(',')
+    return (float(bounds[0]) + float(bounds[1])) / 2
+
+# Calculating bin centers
+df['Bin Center'] = df['Bin'].apply(get_bin_center)
+
+# Filtering for "No Weight" condition
+df_filtered = df[df['Condition'] == 'No Weight']
+
+# Plotting
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df_filtered, x='Bin Center', y='angle', hue='Dataset', style='Dataset', palette='deep')
+plt.title('Angle vs. Bin Center for No Weight Condition Across Datasets')
+plt.xlabel('Bin Center')
+plt.ylabel('Angle')
+plt.grid(True)
+plt.legend(title='Dataset')
+plt.show()
+
+
+#%%
+
+def get_bin_center(bin_range):
+    bounds = bin_range.strip('()[]').split(',')
+    return (float(bounds[0]) + float(bounds[1])) / 2
+
+# Calculating bin centers
+df['Bin Center'] = df['Bin'].apply(get_bin_center)
+
+# Filtering for "No Weight" condition
+df_filtered = df[df['Condition'] == 'No Weight']
+
+# Grouping by Bin Center and calculating average
+average_per_bin = df_filtered.groupby('Bin Center')['angle'].mean().reset_index()
+
+# Plotting
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=df[df['Dataset']!=6], x='Bin Center', y='angle', ci='sd', marker='o', estimator='mean', hue='Condition')
+plt.title('Angle between the long axis of tibia and femur segments')
+plt.xlabel('Percentage of flexion [%]')
+plt.ylabel('Average Angle [°]')
+plt.grid(True)
+#plt.savefig('results_angle.png', dpi=300)
+plt.show()
+
+#%%
+''' ! ! ! ! the figure for Results saved in \thesis_new\angle_datasets folder ''' 
+def plot_binned_angle_data(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: (x.left + x.right) / 2)
+
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['angle'].mean().reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: (x.left + x.right) / 2)
+
+    # Filter out a specific dataset if needed
+    final_data = grouped[grouped['Dataset'] != 6]
+
+    # Plotting the data
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(
+        data=final_data,
+        x='Bin_Center',
+        y='angle',
+        hue='Condition',
+        marker="o",  # Adds markers to each data point
+        ci='sd'  # Uses standard deviation for the confidence intervals
+    )
+    plt.axhline(y=180, color='gray', linestyle='--')  # Adds a horizontal line at y=0
+    plt.xlabel("Percentage of Flexion [%]")
+    plt.ylabel("Average Angle [°]")
+    plt.title("Angle between the Long Axis of Tibia and Femur Segments")
+    plt.grid(True)
+    plt.savefig('resutl_angle.png', dpi=300)
+    plt.show()
+
+# Example usage
+plot_binned_angle_data(df, 10)
+
+#%%
+with open('df_angle_bin_all.pkl', 'wb') as f:
+    pickle.dump(df, f) 
     
     
 #%%
@@ -568,3 +705,95 @@ for result in results:
 print("\nSignificant Results (p < 0.05):")
 for result in significant_results:
     print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+
+#%%
+'''  ''' 
+master_binned = master_df_point.copy() 
+bin_edges = np.arange(-100, 106, 5)
+
+master_binned['Bin'] = pd.cut(master_binned['Percent Flexed'], bins=bin_edges, right=False, include_lowest=True)
+
+results = []
+significant_results = []
+significance_level = 0.05
+
+# Group by the newly created 'Bin' column and perform t-tests
+for bin_label, group in master_binned.groupby('Bin'):
+    loaded_data = group[group['Condition'] == 'Loaded']['angle']
+    unloaded_data = group[group['Condition'] == 'Unloaded']['angle']
+
+    # Only perform the t-test if both conditions have enough data
+    if len(loaded_data) > 1 and len(unloaded_data) > 1:
+        t_stat, p_value = stats.ttest_ind(loaded_data, unloaded_data)
+        results.append((bin_label, t_stat, p_value))
+        # Check significance
+        if p_value < significance_level:
+            significant_results.append((bin_label, t_stat, p_value))
+    else:
+        results.append((bin_label, 'Not enough data', 'N/A'))
+
+# Output results
+print("All Results:")
+for result in results:
+    print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+
+print("\nSignificant Results (p < 0.05):")
+for result in significant_results:
+    print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+
+
+#%%
+''' this function is used to get the p value for the results using t test  '''
+def perform_t_tests(df, bin_width):
+    # Create a copy of the DataFrame
+    master_binned = df.copy() 
+
+    # Define bin edges the same way as in plotting
+    bin_edges = np.arange(-100, 101, bin_width)  # Note: To include 100, range goes to 101
+
+    # Create bins
+    master_binned['Bin'] = pd.cut(master_binned['Percent Flexed'], bins=bin_edges, right=True, include_lowest=True)
+
+    # Initialize lists to store results
+    results = []
+    significant_results = []
+    significance_level = 0.05
+
+    # Group by the newly created 'Bin' column and perform t-tests
+    for bin_label, group in master_binned.groupby('Bin'):
+        loaded_data = group[group['Condition'] == 'Loaded']['Relative Norm']
+        unloaded_data = group[group['Condition'] == 'Unloaded']['Relative Norm']
+
+        # Only perform the t-test if both conditions have enough data
+        if len(loaded_data) > 1 and len(unloaded_data) > 1:
+            t_stat, p_value = stats.ttest_ind(loaded_data, unloaded_data)
+            results.append((bin_label, t_stat, p_value))
+            # Check significance
+            if p_value < significance_level:
+                significant_results.append((bin_label, t_stat, p_value))
+        else:
+            results.append((bin_label, 'Not enough data', 'N/A'))
+
+    # Output results
+    print("All Results:")
+    for result in results:
+        print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+
+    print("\nSignificant Results (p < 0.05):")
+    for result in significant_results:
+        print(f"Bin {result[0]}: T-statistic = {result[1]}, P-value = {result[2]}")
+
+# Example usage
+perform_t_tests(master_df_point, 10) 
+#%%
+
+# adding bins once again 
+bin_edges = np.arange(-100, 101, 10)
+master_df_point['Bin'] = pd.cut(master_df_point['Percent Flexed'], bins=bin_edges, right=True, include_lowest=True)
+aov = pg.rm_anova(dv='Relative Norm', within=['Condition', 'Bin'], subject='Dataset', data=master_df_point)
+
+# Print the summary of the ANOVA results
+
+
+significant_bins = aov[aov['p-unc'] < 0.05]
+print(significant_bins)
