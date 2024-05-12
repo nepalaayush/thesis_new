@@ -6,7 +6,7 @@ Created on Sat Mar 16 16:32:54 2024
 """
 import os 
 os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 
 
 import pickle
@@ -16,17 +16,16 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 #%%
 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/HS/stiched_analysis/HS_NW_tib_info_s.pkl', 'rb') as file:
-    HS_NW_tib_info_s = pickle.load(file)    
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/try_JL_NW_fem_info_s.pkl', 'rb') as file:
+    JL_NW_fem_info_s = pickle.load(file)    
     
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/HS/stiched_analysis/HS_NW_fem_info_s.pkl', 'rb') as file:
-    HS_NW_fem_info_s = pickle.load(file)
-
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/JL_NW_tib_info_s.pkl', 'rb') as file:
+    JL_NW_tib_info_s = pickle.load(file)
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_W_tib_info_s.pkl', 'rb') as file:
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/JL_W_tib_info_s.pkl', 'rb') as file:
     JL_W_tib_info_s = pickle.load(file)    
 
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/JL/JL_W_fem_info_s.pkl', 'rb') as file:
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/JL_W_fem_info_s.pkl', 'rb') as file:
     JL_W_fem_info_s = pickle.load(file)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
@@ -97,9 +96,37 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', 
     return np.array(angles)
 
 #%%
+dataset_7_NW_angles = calculate_and_plot_angles_between_bones(JL_NW_fem_info_s, JL_NW_tib_info_s, name='dataset_7_NW')
 
-calculate_and_plot_angles_between_bones(MM_NW_tib_info, MM_NW_fem_info, name='test_MM')
 
+#%%
+# Initialize a list to store each row of the DataFrame
+data = []
+
+# Define the range of your datasets and conditions
+num_datasets = 7
+conditions = ['NW', 'W']  # 'NW' for No Weight, 'W' for Weight
+
+# Iterate over each dataset number and condition
+for i in range(1, num_datasets + 1):
+    for cond in conditions:
+        var_name = f'dataset_{i}_{cond}_angles'
+        # Access the variable by name
+        if var_name in globals():
+            angles = globals()[var_name]
+            # Append each angle with its corresponding metadata to the data list
+            for idx, angle in enumerate(angles):
+                data.append({
+                    'frame': idx + 1,
+                    'dataset': i,
+                    'condition': 'No Weight' if cond == 'NW' else 'Weight',
+                    'angle': angle
+                })
+        else:
+            print(f'Variable {var_name} not found.')
+
+# Convert the list of dictionaries to a DataFrame
+df = pd.DataFrame(data)
 #%%
 
 

@@ -32,8 +32,8 @@ with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_fem_info_st
 with open('/data/projects/ma-nepal-segmentation/data/data_20_03/MM_W_tib_info_stiched.pkl', 'rb') as file:
     MM_W_tib_info_stiched =  pickle.load(file)
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MM/03.08/stiched_analysis/MM_W_t_matrices_tib_s.pkl', 'rb') as file:
-    MM_W_t_tib =  pickle.load(file)     
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/08.03.24/stiched_analysis/AN_W_t_matrices_fem_s.pkl', 'rb') as file:
+    AN_W_t_fem =  pickle.load(file)     
 #%%
 
 def plot_transformations_and_calculate_MAE(transformation_matrices, offset, angle_increment, reference_index, condition, residuals_color, ax=None):
@@ -227,9 +227,9 @@ plt.savefig('JL_W_segmented_fem_s.svg')
 
 #%%
 
-shapes_data = viewer1.layers['MM_NW_tib_shape']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
-binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
-
+shapes_data = viewer1.layers['AN_W_fem_shape']  # need to reverse if last frame is extended (or in the future, simply reverse the source image) was .data 
+#binary_frame = ( shapes_data.to_labels(image1.shape) == 1 ) [0]
+binary_frame = ( shapes_data.to_labels(((30, 528, 528))) == 1 ) [0]
 binary_coords = np.column_stack(np.where(binary_frame))
 
 
@@ -251,18 +251,18 @@ def process_and_transform_shapes(binary_coords , transformation_matrices, ref_in
 
     return transformed_dicts
 
-MM_NW_tib_info = process_and_transform_shapes(binary_coords, MM_NW_t_tib, 0)
+AN_W_fem_info = process_and_transform_shapes(binary_coords, AN_W_t_fem, 0)
 
 
 #%%
 
 # Saving the dictionary to a file
-with open('JL_W_fem_info_s.pkl', 'wb') as f:
-    pickle.dump(JL_W_fem_info_s, f)
+with open('AN_W_fem_info.pkl', 'wb') as f:
+    pickle.dump(AN_W_fem_info, f)
 #%%
-show_stuff(MM_NW_fem_info, 'MM_NW_fem_info', viewer1)
+show_stuff(AN_W_tib_info, 'AN_W_tib_info', viewer1)
 #%%
-show_stuff(MM_NW_tib_info, 'MM_NW_tib_info', viewer1)
+show_stuff(AN_W_fem_info, 'AN_W_fem_info', viewer1)
 
 #%%
 screenshots = []

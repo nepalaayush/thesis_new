@@ -99,7 +99,7 @@ FSU Jena & Friedrich-Schiller-Universität Jena\\
 \onehalfspacing % for linespacing 1.5, you can turn it off with \singlespacing, e.g. for quotes or tables with multiline cells
 
 
-\section{Introduction}
+\section{Fundamentals}
 \label{sec:intro}
 
 
@@ -113,7 +113,7 @@ Understanding the anatomy of the knee is the first step in tackling this problem
 \textbf{Anatomy and Function}
 
 The knee joint is the largest and the most superficial synovial joint in the body. \parencite{dalley_moores_2023}. 
-It comprises three primary articulations:two femorotibial articulations (see Figure \ref{fig:rightkneeplate519}) and one femoropatellar articulation. These articulations, illustrated in figures \ref{fig:rightkneeplate519} and \ref{fig:patellarsurface}, are defined by their complexity and incongruence, features that are crucial for the joint's biomechanical performance. 
+It comprises three primary articulations:two femorotibial articulations (see Figure \ref{fig:rightkneeplate519}) and one femoropatellar articulation. These articulations, illustrated in Figure \ref{fig:rightkneeplate519} and \ref{fig:patellarsurface}, are defined by their complexity and incongruence, features that are crucial for the joint's biomechanical performance. 
  
 \begin{figure}[H]
 	\centering
@@ -142,6 +142,7 @@ Such mechanical forces, influenced by activities and body mass index (BMI), are 
 
 The relationship between biomechanical stresses and knee health highlights the need for diagnostic tools that fulfill two key criteria: they must capture the knee's dynamic behavior during motion and assess the joint under varying loads. Dynamic magnetic resonance imaging (MRI) excels in meeting these requirements as one of the most advanced imaging modalities.
 
+\section{Introduction}
 \subsection{Dynamic MRI}
 In a broad sense, dynamic MRI is an umbrella term encompassing various MRI techniques designed to capture and visualize physiological processes and motion over time. The dynamic aspect of MRI is crucial for studying systems or structures involving inherent motion, such as blood flow, tissue perfusion, or cardiac activity. For the purposes of this project, the focus of "dynamic MRI" narrows down to capturing the bulk movement of the knee joint undergoing active flexion extension cycles inside the scanner. Compared to traditional static MRI scans, which are highly susceptible to motion artifacts compared to other imaging modalities \parencite{zaitsev_motion_2015}, dynamic MRI techniques not only accommodates motion, but can even leverage it to offer comprehensive insights into the functional and biomechanical properties of the concerned structures.  Among these techniques, CINE imaging, particularly renowned in cardiac MRI, is considered the gold standard for evaluating cardiac function \parencite{menchon-lara_reconstruction_2019}. Its high regard in cardiac MRI demonstrates the method's precision and adaptability—traits that are leveraged in knee imaging.
 
@@ -238,7 +239,7 @@ Structure of the thesis is as follows:
 \subsection{Data Collection Methods}
 
 \subsubsection{Procedure Details}
-Dynamic MRI scans were conducted on four healthy individuals, ranging in age from 28 to 37 years and weighing between 55 to 90 kilograms, utilizing a 3 T Siemens Prisma fit scanner. These volunteers were free from any known musculoskeletal disorders and provided their written consent, adhering to the ethical standards approved by the institutional review board. For all of these subjects, the left leg was scanned. 
+Dynamic MRI scans were conducted on five healthy individuals, ranging in age from 28 to 37 years and weighing between 55 to 90 kilograms, utilizing a 3 T Siemens Prisma fit scanner. These volunteers were free from any known musculoskeletal disorders and provided their written consent, adhering to the ethical standards approved by the institutional review board. For all of these subjects, the left leg was scanned. In total, 7 unique datasets were acquired for analysis with two subjects measured twice on separate days to check for protocol stability. 
 
 
 Once the subject was placed supine in the scanner, the thigh was secured on a wedge positioner, and the lower leg was attached to an ankle rest, just above the malleoli, using Velcro straps to minimize lateral movement. The knee to be examined is aligned with the device’s axis of rotation, while the other leg rests alongside the MRI scanner's bore.  Knee motion is guided by a belt and sprocket assembly running alongside the lower leg, connected to a gearbox activated by the leg support as the participant flexes and extends the knee. Once the subject was positioned at the scanner's isocenter, their leg naturally assumed a flexed posture due to the design of the device. In this configuration, the leg is cradled by the device arm which is positioned below the level of the knee, ensuring that the leg remains flexed without the volunteer exerting any force.
@@ -506,8 +507,32 @@ The euclidean distance between these two points was measured across time by usin
 \section{Results}
 \label{sec:yetanother}
 
+To ensure consistent comparisons, the number of frames reconstructed, which represents the time axis, is grouped into 'bins'. This grouping allows all datasets to span the same bins, enabling the averaging and plotting of values within these bins. The axis is defined by the percentage of flexion at a given time point. For all datasets, the data begins at the maximally flexed position, progresses to full extension, and then returns to the maximally flexed position. In this context, maximal flexion is defined as -100\%, full extension as 0\%, and the return to maximal flexion as 100\%.
 
 
+\textbf{Angle calculation}
+
+Figure blank displays the result of calculating the angle between the long axes of bone segments across the flexion-extension cycle. 
+ 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{results_angle_stickman}
+	\caption{Plot of angle between long axes of bone segments between tibia and femur versus the flexion percentage.}
+	\label{fig:anglegraphstickman}
+\end{figure}
+
+
+\textbf{Distance calculation }
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{results_distance_stickman}
+	\caption{Plot showing the variation of euclidean distance between two points with respect to different time points in the motion cycle. The shaded region represents one standard deviation uncertainty.}
+	\label{fig:resultsdistancestickman}
+\end{figure}
+
+
+Bin (0.0, 10.0]: T-statistic = 2.581347448142401, P-value = 0.021752348033689917
+Bin (10.0, 20.0]: T-statistic = 2.651870913157143, P-value = 0.015303907958726073
 \section{Discussion}
 
  
