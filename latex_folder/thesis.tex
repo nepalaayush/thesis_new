@@ -104,7 +104,7 @@ This thesis investigates the biomechanical analysis of the knee joint using high
 
 The primary challenge in utilizing these detailed images lies in the accurate segmentation of key anatomical structures. This segmentation is crucial, as it significantly influences the reliability of biomechanical measurements derived from the MRI data. Traditional manual segmentation methods, while straightforward, are time-consuming and prone to inconsistencies, especially when dealing with multiple frames across time. To address these issues, this thesis proposes the development of a semi-automated segmentation pipeline. This new methodology aims to streamline the segmentation process, reducing the time and effort involved while enhancing accuracy and consistency across sequential images.
 
-Following the successful segmentation of the femur and tibia, the subsequent analysis involves quantifying two distinct biomechanical parameters: the angle between the long axes of the segments and the distance between specific anatomical landmarks on these bones. These measurements are calculated from single-slice 2D images in sagital view captured throughout the knee's motion cycle under both loaded and unloaded conditions. The purpose of this quantification is to explore potential differences in the kinematics of the knee joint under varying load and providing an indirect assessment of joint space and functionality.
+Following the successful segmentation of the femur and tibia, the subsequent analysis involves quantifying two distinct biomechanical parameters: the angle between the long axes of the segments and the distance between specific anatomical landmarks on these bones. These measurements are calculated from single-slice 2D images in sagital view captured throughout the knee's motion cycle under both loaded and unloaded conditions. The purpose of this quantification is to explore potential differences in the kinematics of the knee joint under varying load and to provide an indirect assessment of joint space and functionality.
 
 
 
@@ -314,11 +314,13 @@ The semi-auto segmentation process is achieved in five distinct steps as describ
 
 The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. The Canny edge detection algorithm operates in several key steps to identify edges with high accuracy in images. Initially, the image is smoothed using a Gaussian filter to reduce noise and potential false edge detections. Following this, the algorithm calculates the gradient intensity and direction at each pixel, which helps in identifying the edges' boundaries.
 
-Subsequently, the algorithm applies double thresholding, which involves two thresholds: a low and a high. Pixels with intensities above the high threshold are marked as strong edge pixels, while those below the low threshold are discarded. Pixels between these two thresholds are marked as weak edge pixels but can only be accepted as true edge pixels if they are connected to strong edge pixels. This step helps in discriminating between real edges and noise. Finally, edge tracking by hysteresis completes the process by converting weak edge pixels that are connected to strong edge pixels into strong edges, ensuring the continuity and completeness of detected edges in the image. Various parameters of the Canny algorithm were adjusted, including edge thresholds and Gaussian blur, to optimize edge detection. Figure \ref{fig:edgemitimg} shows the output of this step.  
+Subsequently, the algorithm applies double thresholding, which involves two thresholds: a low and a high. This creates three categories of pixels: strong, weak, and non-edges. Pixels with intensities above the high threshold are marked as strong edge pixels, while those below the low threshold are considered to be non-edges. Pixels between these two thresholds are marked as weak edge pixels. Weak edge pixels are potentially converted into strong edges through a process known as hysteresis, where only those weak edges that are connected to strong edges are confirmed as true edges. In this context, hysteresis refers to the algorithm's reliance on the connectivity history of pixels to decide their edge status, ensuring that only meaningful, connected edges are preserved. This step is crucial for ensuring the continuity and completeness of detected edges.  
+
+To optimize the edge detection specifically to capture the desired edges of the tibia and femur, the different parameters like the standard deviation of gaussian blur (sigma) and the thresholds were tested in different combinations. The optimal results were achieved with a low threshold between 0 to 5 and a high threshold between 6 to 10. The sigma value was set at 2. Figure \ref{fig:edgemitimg} displays the output of with these parameters.  
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{edge_new}
-	\caption{Output of canny edge detection algorithm overlayed on top of the image.}
+	\caption{Output of the Canny edge detection algorithm applied to one of the frames, showing the detected edges of the tibia and femur bones overlayed on top of the original image for visual comparision.}
 	\label{fig:edgemitimg}
 \end{figure}
 
@@ -327,7 +329,19 @@ Subsequently, the scikit-image's morphology library was utilized to remove small
 
 \textbf{Step 2: Labelling}
 
-For the final selection of the desired edge, a labeling algorithm from SciPy, an open-source Python library designed for scientific computing(v1.11.3) was used. The goal was to isolate an edge that accurately represents the overall shape of the bone slice. Labelling was useful in this regard as it allowed for easy separation of distinct edges. Figure \ref{fig:labelimg} shows the output from the labelling algorithm, where each color represents a separate label. 
+For the final selection of the desired edges, a labeling algorithm (`ndimage.label`) from SciPy, an open-source Python library designed for scientific computing (version 1.11.3), was utilized. The purpose of employing this labeling algorithm is to effectively isolate specific structural features, such as distinguishing the interior cortical bone from the exterior, by assigning unique labels to separate closely situated edges detected in the image. This algorithm applies the principle of connected-component labeling,  a method used in computer vision to detect connected regions in binary digital images. Connected-component labeling algorithm scans an image and groups its pixels into components based on pixel connectivity, meaning that all pixels in a connected component share similar pixel values and are adjacent to each other.
+
+The labeling process treats any non-zero values in the input array as part of potential edges and zero values as background. The connectivity of these components is determined by a structuring element, which in this case was a fully connected 3x3 matrix:
+$$
+\begin{bmatrix}
+	1 & 1 & 1 \\
+	1 & 1 & 1 \\
+	1 & 1 & 1
+\end{bmatrix}
+$$
+This matrix is crucial as it defines the connectivity rules used during the labeling. Each pixel is considered connected to its eight immediate neighbors (above, below, left, right, and diagonals), known as eight-way connectivity. This element was chosen by trial and error. Alternatives, such as a four-way connectivity matrix, were tested but gave different labels to the same edge across frames. By using the eight-way connectivity, the same edge maintains consistent labeling across all frames, simplifying the analysis and reducing the need for manual adjustments. 
+
+Figure \ref{fig:labelimg} shows the output from the labelling algorithm, where each color represents a separate label. 
 
 \begin{figure}[H]
 	\centering
@@ -336,20 +350,22 @@ For the final selection of the desired edge, a labeling algorithm from SciPy, an
 	\label{fig:labelimg}
 \end{figure}
  
-After choosing the appropriate labels, a binary image for each frame is obtained, where the foreground has the boundary for the interior edge of tibia and femur, and the background is null.   
+After choosing the appropriate labels, a binary image for each frame is obtained, where the foreground has the boundary for the interior edge of tibia and femur, and the background has intensity value of zero.   
 
 \textbf{Step 3: Obtaining the set of reference points}
 
-Upon successfully isolating the binary edge images of the tibia and femur in Step 2, the subsequent step deals with establishing a set of reference points along each bone's edge in the first frame. This frame, captured when the knee is in a fully flexed position, serves as the reference frame for the study. The purpose of establishing these reference points is twofold: to simplify the complex data set for efficient processing and to ensure a consistent basis for accurately calculating transformations between subsequent frames. This is essential, as direct use of the densely packed binary edge data would be computationally cumbersome and less precise for such transformations.
+Upon successfully isolating the binary edge images of the tibia and femur in Step 2, the subsequent step deals with establishing a set of reference points along each bone's edge in the first frame. This frame, captured when the knee is in a fully flexed position, serves as the reference frame for further analysis.  This frame is chosen as the baseline (where transformations are initialized to zero) to facilitate the accurate calculation of rotation and translation matrices that describe the movement of the knee through subsequent frames. The purpose of establishing these reference points is twofold: to simplify the complex data set for efficient processing and to ensure a consistent basis for accurately calculating transformations between subsequent frames. This is essential, as direct use of the densely packed binary edge data would be computationally cumbersome and less precise for such transformations.
 
 To begin, the points along the boundary were organised and sorted. This was done by first, defining a starting point, and then iteratively using a greedy nearest neighbor algorithm for sorting. The most distal point of the bone was taken as the initial seed. Various functions from the numeric python library 'Numpy' (v. 1.26.4) were employed for this task. 
 
 
-Once the points are sorted, the next step involves downsampling these points to a set of uniform equidistant reference points along the boundary of the binary edge. The necessity for this step arises from the inherent irregularity and density of the binary edge data. Directly sampling every nth point from the sorted list would not suffice, as it could result in uneven spacing due to the variable distances between consecutive points in the original data.
+Once the points are sorted, the next step involves downsampling these points to a set of uniform equidistant reference points along the boundary of the binary edge. The necessity for this step arises from the inherent irregularity and density of the binary edge data. Directly sampling every n-th point from the sorted list would not suffice, as it could result in uneven spacing due to the variable distances between consecutive points in the original data.
 
-This process begins by calculating the cumulative distances between each consecutive pair of points in the sorted list. Using these distances, a total path length is established. The desired interval between the new points is then determined by dividing this total path length by the number of intervals (number of desired points minus one). Between 50 to 80 points were found to be sufficient to accurately reflect the edge contours. 
+This process begins by calculating the cumulative distances between each consecutive pair of points in the sorted list. Using these distances, a total path length is established. The desired interval between the new points is then determined by dividing this total path length by the number of intervals (number of desired points minus one). 
 
-To achieve precise positioning of these points, cubic spline interpolation from SciPy's interpolate libary is used. This interpolation method is particularly effective for ensuring that the new points adhere closely to the original curve while maintaining equidistant. 
+Determining the optimal number of points—ranging between 50 to 80—was established through trial and error. Fewer than 50 points often compromised the accuracy of the edge overlap by failing to capture the essential contours of the bone. Conversely, exceeding 80 points did not significantly enhance the algorithm's accuracy but increased the code execution time slightly. 
+
+To achieve precise positioning of these points, cubic spline interpolation from SciPy's interpolate libary was used. This interpolation method is particularly effective for ensuring that the new points adhere closely to the original curve while maintaining equidistance. 
 Figure \ref{fig:downsampled} depicts this result. 
 \begin{figure}[H]
 	\centering
@@ -360,7 +376,7 @@ Figure \ref{fig:downsampled} depicts this result.
 
 \textbf{Step 4: Transformation matrices computation}
 
-In this step, a set of transformation matrices are obtained, each matrix containing the paramters that align the segment of the bone in one frame to the next. Given that the subject movement is restricted to only a single plane, it is reasonable to assume that the edges of the bone undergo motions that can be described by rigid transformations. These transformations includes solely the translation in the sagital plane, and rotation about transverse axis. In this approach, it is assumed that the bone does not undergo any deformation, and that through plane motion is negligible throughout the motion cycle. 
+In this step, a set of transformation matrices are obtained, each matrix containing the paramters that align the segment of the bone in one frame to the next. These transformations includes solely the translation in the sagital plane, and rotation about transverse axis. In this approach, it is assumed that the bone does not undergo any deformation, and that through plane motion is negligible throughout the motion cycle. 
 
 Mathematically, the transformation of each point from one frame to the next can be expressed as 
 \begin{equation}
@@ -370,7 +386,7 @@ Mathematically, the transformation of each point from one frame to the next can 
 where: 
 \begin{itemize}
 	\item \textbf{$p$} is the coordinate of the point in its current frame
-	\item \textbf{$p^{'}$} is the coordinate of the point in the next frame
+	\item \textbf{$p^{'}$} is the coordinate of the point after transformation
 	\item $\phi$ is the angle of rotation
 	\item \textbf{$R(\phi)$}  is the rotation matrix, given by 
 	 \[
@@ -390,7 +406,29 @@ where:
 	 	\]
  	\item x and y are the translations in the cartesian coodinate system. 
 \end{itemize}   
-As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its corresponding point in the transformed frame. The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its nearest point in the transformed frame. 
+
+The cost function $C(x, y, \phi)$ is defined as:
+\begin{equation}
+	C(x, y, \phi) = \sum_{p=1}^{N} \min_{q \in Q} \left( \sqrt{(x_q - x_p')^2 + (y_q - y_p')^2} \right)
+\end{equation}
+where:
+\begin{itemize}
+	\item $ (x_p, y_p) $ are the coordinates of points in the reference frame
+	\item $(x_p', y_p')$ are the coordinates of points after transformation:
+	\begin{align*}
+		x_p' &= x + x_p \cos(\phi) - y_p \sin(\phi) \\
+		y_p' &= y + x_p \sin(\phi) + y_p \cos(\phi)
+	\end{align*}
+	\item $(x_q, y_q)$ are the coordinates of points in the target frame.
+	\item $N$ is the number of points in the reference frame, and $Q$ represents all points in the target frame.
+\end{itemize}
+
+This cost function evaluates the alignment of transformed coordinates to target coordinates by calculating the sum of the shortest distances from each point in the transformed frame to the closest point in the target frame. Each $(x_p', y_p')$ is the position of a point from the reference frame after being transformed by the parameters $x$, $y$, and $\phi$. For each transformed point,the distance to every point $(x_q, y_q)$ in the target frame is computed, the minimum of these distances is selected, and sum these minimum distances across all points is calculated. This sum forms the output of the cost function, which we seek to minimize.
+
+
+
+The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
@@ -526,7 +564,7 @@ Figure blank displays the result of calculating the angle between the long axes 
 Bin (0.0, 10.0]: T-statistic = 2.581347448142401, P-value = 0.021752348033689917
 Bin (10.0, 20.0]: T-statistic = 2.651870913157143, P-value = 0.015303907958726073
 \section{Discussion}
-
+Given that the subject movement is restricted to only a single plane, it is reasonable to assume that the edges of the bone undergo motions that can be described by rigid transformations.
  
 
 \section{Conclusion}
