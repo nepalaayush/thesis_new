@@ -602,3 +602,89 @@ def plot_radial_kspace_single_spoke(n_spokes, points_per_spoke):
 
 # Example usage: 276 spokes and 352 points per spoke
 plot_radial_kspace_single_spoke(25, 10)
+
+#%%
+
+''' trying to flip the angle curve:  '''
+# Extracting subset based on Dataset and Condition
+df_1_W_angles = df_angle[(df_angle['Dataset'] == 1) & (df_angle['Condition'] == 'Weight')]['angle'].reset_index(drop=True)
+
+# Calculating the halfway point
+half = len(df_1_W_angles) // 2
+
+# Splitting the data into first half and second half
+first_half = df_1_W_angles.iloc[:half]
+second_half = df_1_W_angles.iloc[half:]
+
+# Finding the index of the maximum value in the first half
+max_index_first_half = first_half.idxmax()
+
+for i in range(max_index_first_half + 1 , len(first_half) ):
+    first_half[i] +=  2 * ( first_half[max_index_first_half] - first_half[i] )
+
+# Finding the index of the maximum value in the first half
+max_index_second_half = second_half.idxmax()
+
+for i in range( half, max_index_second_half ):
+    second_half[i] += 2 * ( second_half[max_index_second_half] - second_half[i] )
+    
+modified_angles = pd.concat([first_half, second_half], ignore_index=True)    
+
+#%%
+def flip_angle_curve(df, dataset, condition):
+    # Extracting subset based on Dataset and Condition
+    subset_angles = df[(df['Dataset'] == dataset) & (df['Condition'] == condition)]['angle'].reset_index(drop=True)
+
+    # Calculating the halfway point
+    half = len(subset_angles) // 2
+
+    # Splitting the data into first half and second half
+    first_half = subset_angles.iloc[:half].copy()
+    second_half = subset_angles.iloc[half:].copy()
+
+    # Finding the index of the maximum value in the first half
+    max_index_first_half = first_half.idxmax()
+
+    for i in range(max_index_first_half + 1, len(first_half)):
+        first_half[i] += 2 * (first_half[max_index_first_half] - first_half[i])
+
+    # Finding the index of the maximum value in the second half
+    max_index_second_half = second_half.idxmax()
+
+    for i in range(half, max_index_second_half):
+        second_half[i] += 2 * (second_half[max_index_second_half] - second_half[i])
+
+    # Concatenating modified first half and second half
+    modified_angles = pd.concat([first_half, second_half], ignore_index=True)
+    return modified_angles
+
+
+def apply_modification(df):
+    unique_datasets = df['Dataset'].unique()
+    unique_conditions = df['Condition'].unique() 
+    
+    result_df = df.copy()  # Create a copy of the dataframe to hold modified values
+    
+    for dataset in unique_datasets:
+        for condition in unique_conditions:
+            # Identifying the rows that meet the current dataset and condition
+            condition_mask = (df['Dataset'] == dataset) & (df['Condition'] == condition)
+            
+            # Extracting the indexes of rows that meet the condition
+            relevant_indexes = df.index[condition_mask]
+            
+            # Generate modified angles using the flip_angle_curve function
+            modified_angles = flip_angle_curve(df, dataset, condition)
+            
+            # Set the index of modified_angles to match the indexes of the rows being replaced
+            modified_angles.index = relevant_indexes
+            
+            # Assigning the modified angles back to the result DataFrame
+            result_df.loc[condition_mask, 'angle'] = modified_angles
+            
+            print(modified_angles)  # Optional: Check output of modified angles
+            
+    return result_df
+
+
+modified_angle_df = apply_modification(df_angle)

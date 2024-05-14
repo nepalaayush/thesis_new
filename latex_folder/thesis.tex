@@ -406,11 +406,10 @@ where:
 	 	\]
  	\item x and y are the translations in the cartesian coodinate system. 
 \end{itemize}   
-As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To compute these, a cost function is defined that measures the sum of squared distances between each point in the reference frame and its nearest point in the transformed frame. 
-
-The cost function $C(x, y, \phi)$ is defined as:
+As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To determine these parameters, a cost function is defined. This function, denoted as $C(x,y,\phi)$, quantifies the alignment error by calculating the 'cost' of deviations for any given set of transformation parameters. The minimization of this cost identifies the combination of parameters that achieves the best alignment or overlap of the transformed frame with the reference frame. A lower value of the cost function indicates a closer match to the target frame, suggesting a superior alignment, whereas a higher value signifies a less accurate alignment. The cost function is defined in equation \ref{eq:cost_func}:  
 \begin{equation}
 	C(x, y, \phi) = \sum_{p=1}^{N} \min_{q \in Q} \left( \sqrt{(x_q - x_p')^2 + (y_q - y_p')^2} \right)
+	\label{eq:cost_func}
 \end{equation}
 where:
 \begin{itemize}
@@ -426,9 +425,7 @@ where:
 
 This cost function evaluates the alignment of transformed coordinates to target coordinates by calculating the sum of the shortest distances from each point in the transformed frame to the closest point in the target frame. Each $(x_p', y_p')$ is the position of a point from the reference frame after being transformed by the parameters $x$, $y$, and $\phi$. For each transformed point,the distance to every point $(x_q, y_q)$ in the target frame is computed, the minimum of these distances is selected, and sum these minimum distances across all points is calculated. This sum forms the output of the cost function, which we seek to minimize.
 
-
-
-The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance, ensuring precise alignment of the frames. This method ensures that the computed transformations accurately represent the actual movements of the bone throughout its movement cycle. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess of [0,0,0] is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
@@ -446,15 +443,7 @@ With the transformation matrices obtained for the femur and the tibia, manual se
 	\label{fig:manualsegment}
 \end{figure}
 
-Using the points from this segment, the transformation matrices are now applied once more using equation \ref{eq:rot} to transform one frame to the next subsequently to complete the full segmentation across all the frames automatically. The result of the segmentation for one of the datasets is given in figure blank. 
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.7\linewidth]{full_segmented}
-	\caption{A mosaic showing the segmented tibia and femur shapes(green) where each tile is a particular time point. The leg is fully flexed at Frame 0}
-	\label{fig:fullsegmented}
-\end{figure}
-  
+Using the points from this segment, the transformation matrices are now applied once more using equation \ref{eq:rot} to transform one frame to the next subsequently to complete the full segmentation across all the frames automatically. 
 
 \subsubsection{Extraction of Biomechanical Parameters}
 After achieving automated segmentation of the tibia and femur across all frames, the next step involved extracting biomechanical parameters from the segmented regions. Two key metrics were considered for analysis to assess the relationship between these bones throughout the flexion-extension cycle captured in the 2D Cine images.
@@ -537,6 +526,32 @@ The euclidean distance between these two points was measured across time by usin
 \section{Results}
 \label{sec:yetanother}
 
+To evaluate the accuracy of edge tracking, the following graphs were obtained: 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{average_cost_plot}
+	\caption{Average cost value per point for all datasets for unloaded condition across frames}
+	\label{fig:averagecostplot}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{avg_of_avg}
+	\caption{Bar diagram showing the average cost value across all frames for each dataset}
+	\label{fig:avgofavg}
+\end{figure}
+
+
+The result of the segmentation for one of the datasets is given in figure \ref{fig:fullsegmented}. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{full_segmented}
+	\caption{A mosaic showing the segmented tibia and femur shapes(green) where each tile is a particular time point. The leg is fully flexed at Frame 0}
+	\label{fig:fullsegmented}
+\end{figure}
+
+
 To ensure consistent comparisons, the number of frames reconstructed, which represents the time axis, is grouped into 'bins'. This grouping allows all datasets to span the same bins, enabling the averaging and plotting of values within these bins. The axis is defined by the percentage of flexion at a given time point. For all datasets, the data begins at the maximally flexed position, progresses to full extension, and then returns to the maximally flexed position. In this context, maximal flexion is defined as -100\%, full extension as 0\%, and the return to maximal flexion as 100\%.
 
 
@@ -546,7 +561,7 @@ Figure blank displays the result of calculating the angle between the long axes 
  
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{results_angle_stickman}
+	\includegraphics[width=0.7\linewidth]{angle_graph_stickman_modified}
 	\caption{Plot of angle between long axes of bone segments between tibia and femur versus the flexion percentage.}
 	\label{fig:anglegraphstickman}
 \end{figure}
