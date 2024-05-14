@@ -14,8 +14,8 @@ import numpy as np
 
 sns.set_context("talk")
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
-    master_df_point =  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/angle_datasets/df_angle_bin_all.pkl', 'rb') as file:
+    df_angle =  pickle.load(file)
 
 #%%
 angle_and_rel_df["Dataset"] = pd.Categorical(angle_and_rel_df["Dataset"].apply(lambda x: x.split(" ")[1]))
@@ -582,7 +582,7 @@ def plot_binned_angle_data(df, bin_width):
 
     # Plotting the data
     plt.figure(figsize=(10, 6))
-    sns.lineplot(
+    lineplot = sns.lineplot(
         data=final_data,
         x='Bin_Center',
         y='angle',
@@ -590,16 +590,23 @@ def plot_binned_angle_data(df, bin_width):
         marker="o",  # Adds markers to each data point
         ci='sd'  # Uses standard deviation for the confidence intervals
     )
-    plt.axhline(y=180, color='gray', linestyle='--')  # Adds a horizontal line at y=0
+    handles, labels = lineplot.get_legend_handles_labels()
+    new_labels = ['Unloaded', 'Loaded']
+    lineplot.legend(handles, new_labels)
+    #plt.axhline(y=180, color='gray', linestyle='--')  # Adds a horizontal line at y=0
+    plt.xlim(-100,100)
     plt.xlabel("Percentage of Flexion [%]")
     plt.ylabel("Average Angle [°]")
-    plt.title("Angle between the Long Axis of Tibia and Femur Segments")
+    plt.title("Angle between the long axis of tibia and femur segments")
     plt.grid(True)
-    plt.savefig('resutl_angle.png', dpi=300)
+    plt.savefig('resutl_angle_modification.svg', dpi=300)
+    plt.tight_layout()
     plt.show()
-
+    
+    
 # Example usage
-plot_binned_angle_data(df, 10)
+plot_binned_angle_data(modified_angle_df, 10)
+
 
 #%%
 with open('df_angle_bin_all.pkl', 'wb') as f:
@@ -797,3 +804,5 @@ aov = pg.rm_anova(dv='Relative Norm', within=['Condition', 'Bin'], subject='Data
 
 significant_bins = aov[aov['p-unc'] < 0.05]
 print(significant_bins)
+
+

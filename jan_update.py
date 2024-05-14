@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -168,7 +168,7 @@ viewer.add_image(final_label_3d)
 final_label = viewer.layers['final_label_3d'].data  # or final_label_3d
 #Step 11: once the final edge has been found, convert it to a list of arrays.
 #%% 
-tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
+#tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
 #  just finding the frame with the least number of points
 find_array_with_min_n(tib_coords)
 #%%
@@ -178,12 +178,12 @@ new_tib_coords_last = tib_coords.copy()
 new_tib_coords_last[-1] = reference_frame_last
 viewer.add_points(reference_frame_last, face_color='blue', size =1, name='reference_frame_last')
 #%%
-#reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='femur')
-new_tib_coords_first = tib_coords.copy() 
-#new_tib_coords_first[0] = reference_frame_first
-new_tib_coords_first[0] = MM_NW_ref_frame_fem
-#viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
-viewer.add_points(MM_NW_ref_frame_fem, face_color='green', size =1, name='reference_frame_first_using_NW_fem')
+reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='tibia')
+#new_tib_coords_first = tib_coords.copy() 
+tib_coords[0] = reference_frame_first
+#new_tib_coords_first[0] = MM_NW_ref_frame_fem
+viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
+#viewer.add_points(MM_NW_ref_frame_fem, face_color='green', size =1, name='reference_frame_first_using_NW_fem')
 
 #%%
 #Step 13. find the transformation matrices, list of coordinates and minimized cost function values per frame 
@@ -192,9 +192,98 @@ viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='green'
             
 
 #%%
-transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(new_tib_coords_first)
-viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='transformed_frame_NW_stiched')
+transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(tib_coords) # new_tib_coords_first
+viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='transformed_frame_W_stiched')
 #%%
+''' below is the cost value dataframe creation and plotting routine  ''' 
+with open('cost_df_NW_all.pkl', 'wb') as file:
+    pickle.dump(cost_df, file)
+    
+#%%
+import pandas as pd
+def create_cost_value(array):
+    tib_coords = boolean_to_coords(array)
+    reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='tibia')
+    tib_coords[0] = reference_frame_first
+    transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(tib_coords)
+    return cost_values_first
 
-with open('MM_W_t_matrices_fem_s.pkl', 'wb') as file:
-    pickle.dump(transformation_matrices_first, file)
+array_names = ['MK_NW_final_label_tib_stiched', 'MM_NW_final_label_tib', 'AN_NW_final_label_s',  'MK_NW_final_label_tib_s', 'AN_NW_final_label_tib','HS_NW_final_label_tib', 'JL_NW_final_label_tib' ]
+
+def create_dataframe(array_names):
+    # Create an empty DataFrame
+    all_data = pd.DataFrame()
+    
+    for i, name in enumerate(array_names):
+        # Assuming the arrays are accessible as global variables, you might need to use eval() to access them
+        array = eval(name)
+        
+        # Generate cost values for the current array
+        cost_values = create_cost_value(array)
+        
+        # Create a temporary DataFrame
+        temp_df = pd.DataFrame({
+            'Dataset': [name] * len(cost_values),
+            'Total Cost': cost_values,
+            'Frame': list(range(len(cost_values)))
+        })
+        
+        # Append to the main DataFrame
+        all_data = pd.concat([all_data, temp_df], ignore_index=True)
+    
+    return all_data
+
+
+cost_df_50 = create_dataframe(array_names)
+#%%
+unique_labels = cost_df['Dataset'].unique()
+
+# Create a dictionary mapping each unique label to an integer
+label_to_int = {label: idx + 1 for idx, label in enumerate(unique_labels)}
+
+# Replace the string labels in the DataFrame with integers
+cost_df['Dataset'] = cost_df['Dataset'].replace(label_to_int)
+
+#%%
+cost_df_50['Average Cost'] = cost_df_50['Total Cost'] / 50 
+#%%
+# Correct the DataFrame filtering to include frames from 1 to 29
+filtered_df = cost_df_50[(cost_df_50['Frame'] > 0) & (cost_df_50['Frame'] < 31)]
+
+# Set the aesthetic style of the plots
+sns.set(style="whitegrid")
+
+# Create a line plot of Average Cost vs Frame
+plt.figure(figsize=(10, 6), dpi=300)  # Set the figure size and dpi for high resolution
+plot = sns.lineplot(data=filtered_df, x='Frame', y='Average Cost', marker='o')
+
+# Adding title and labels
+plt.xlim(1, 30)
+plt.xticks(np.arange(1,31))
+plt.title('Average cost value per frame for all unloaded tibia datasets')
+plt.xlabel('Frame Number')
+plt.ylabel('Average Cost')
+plt.tight_layout()
+plt.savefig('average_cost_plot.png', dpi=300)
+# Display the plot
+plt.show()
+
+#%% 
+
+# that showed a trend.. so aggregating further to see differences from datasets: 
+# Calculate the mean of the 'Average Cost' for each dataset
+average_of_averages = cost_df.groupby('Dataset')['Average Cost'].mean()
+
+# Reset the index to make 'Dataset' a column again if you want to plot using seaborn directly
+average_of_averages = average_of_averages.reset_index()    
+    
+plt.figure(figsize=(10, 6), dpi=300)  # Set figure size and dpi for high resolution
+bar_plot = sns.barplot(data=average_of_averages, x='Dataset', y='Average Cost')
+
+# Adding title and labels
+plt.title('Mean cost per point across all frames')
+plt.xlabel('Dataset')
+plt.ylabel('Mean cost per point')
+plt.savefig('avg_of_avg.png', dpi=300)
+# Display the plot
+plt.show()
