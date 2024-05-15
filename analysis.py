@@ -683,8 +683,8 @@ with open('angle_and_rel_df.pkl', 'wb') as f:
     
 #%%
 # loading from pkl 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/AN/02.02/AN_W/stiched_analysis/AN_W_t_matrices_fem_s.pkl', 'rb') as file:
-    t_matrices_fem = pickle.load(file)    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/cost_df_NW_all.pkl', 'rb') as file:
+    cost_df_NW = pickle.load(file)    
 
     
 #%%

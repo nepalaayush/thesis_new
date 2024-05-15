@@ -376,7 +376,7 @@ Figure \ref{fig:downsampled} depicts this result.
 
 \textbf{Step 4: Transformation matrices computation}
 
-In this step, a set of transformation matrices are obtained, each matrix containing the paramters that align the segment of the bone in one frame to the next. These transformations includes solely the translation in the sagital plane, and rotation about transverse axis. In this approach, it is assumed that the bone does not undergo any deformation, and that through plane motion is negligible throughout the motion cycle. 
+In this step, a set of transformation matrices is obtained, each containing the parameters that align a segment of the bone from one frame to the next. These transformations includes solely the translation in the sagittal plane and rotation about the transverse axis. This approach assumes that the bone does not undergo any deformation and that through-plane motion is negligible throughout the motion cycle. 
 
 Mathematically, the transformation of each point from one frame to the next can be expressed as 
 \begin{equation}
@@ -404,9 +404,9 @@ where:
 	 		y
 	 	\end{bmatrix}
 	 	\]
- 	\item x and y are the translations in the cartesian coodinate system. 
+ 	\item x and y are the translations in the Cartesian coordinate system. 
 \end{itemize}   
-As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To determine these parameters, a cost function is defined. This function, denoted as $C(x,y,\phi)$, quantifies the alignment error by calculating the 'cost' of deviations for any given set of transformation parameters. The minimization of this cost identifies the combination of parameters that achieves the best alignment or overlap of the transformed frame with the reference frame. A lower value of the cost function indicates a closer match to the target frame, suggesting a superior alignment, whereas a higher value signifies a less accurate alignment. The cost function is defined in equation \ref{eq:cost_func}:  
+As such, only three parameters, $x$, $y$, and $\phi$ need to be computed. To determine these parameters, a cost function is defined. This function, denoted as $C(x,y,\phi)$, quantifies the alignment error by calculating the 'cost' of deviations for any given set of transformation parameters. The minimization of this cost identifies the combination of parameters that achieves the best alignment or overlap of the transformed frame with the reference frame. A lower value of the cost function output indicates a closer match to the target frame, suggesting a superior alignment, whereas a higher value signifies a less accurate alignment. The cost function is defined in Equation \ref{eq:cost_func}:  
 \begin{equation}
 	C(x, y, \phi) = \sum_{p=1}^{N} \min_{q \in Q} \left( \sqrt{(x_q - x_p')^2 + (y_q - y_p')^2} \right)
 	\label{eq:cost_func}
@@ -425,11 +425,11 @@ where:
 
 This cost function evaluates the alignment of transformed coordinates to target coordinates by calculating the sum of the shortest distances from each point in the transformed frame to the closest point in the target frame. Each $(x_p', y_p')$ is the position of a point from the reference frame after being transformed by the parameters $x$, $y$, and $\phi$. For each transformed point,the distance to every point $(x_q, y_q)$ in the target frame is computed, the minimum of these distances is selected, and sum these minimum distances across all points is calculated. This sum forms the output of the cost function, which we seek to minimize.
 
-The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess of [0,0,0] is provided. The optimization process uses the fmin function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess of [0,0,0] is provided. The optimization process uses the \texttt{fmin} function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
-	\caption{Left: The reference points in the first frame (orange) overlayed with the binary edge image of the target frame (white).Right: The reference points have been transformed by using the results from the optimization showing almost perfect overlap, illustrating the effective alignment achieved through the minimization of the cost function.}
+	\caption{Left: The reference points in the first frame (orange) overlaid with the binary edge image of the target frame (white).Right: The reference points have been transformed by using the results from the optimization showing almost perfect overlap, illustrating the effective alignment achieved through the minimization of the cost function.}
 	\label{fig:edge_tracking}
 \end{figure}
 
@@ -526,18 +526,18 @@ The euclidean distance between these two points was measured across time by usin
 \section{Results}
 \label{sec:yetanother}
 
-To evaluate the accuracy of edge tracking, the following graphs were obtained: 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.7\linewidth]{average_cost_plot}
-	\caption{Average cost value per point for all datasets for unloaded condition across frames}
-	\label{fig:averagecostplot}
-\end{figure}
+\subsection{Accuracy of edge tracking and segmentation}
+
+To evaluate the accuracy of edge tracking achieved through cost function minimization, the deviation of overlap between points on the transformed frame and the target frame was measured. The cost function output, which indicates the overlap accuracy, calculates the minimum distance from each point on the transformed frame to the points on the target frame and sums these minimum distances for all points in the transformed frame.
+
+The mean alignment error per point was derived by dividing the cost function output by the total number of points in the transformed frame. This value was calculated for all frames, and the average of these values was taken for each dataset.
+
+The bar chart in Figure \ref{fig:avgofavg} presents this result: 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{avg_of_avg}
-	\caption{Bar diagram showing the average cost value across all frames for each dataset}
+	\includegraphics[width=0.7\linewidth]{bar_alignment}
+	\caption{Mean alignment error per point across all frames for each dataset in the unloaded condition.}
 	\label{fig:avgofavg}
 \end{figure}
 
@@ -551,6 +551,7 @@ The result of the segmentation for one of the datasets is given in figure \ref{f
 	\label{fig:fullsegmented}
 \end{figure}
 
+\subsection{Results of biomechanical parameter extraction}
 
 To ensure consistent comparisons, the number of frames reconstructed, which represents the time axis, is grouped into 'bins'. This grouping allows all datasets to span the same bins, enabling the averaging and plotting of values within these bins. The axis is defined by the percentage of flexion at a given time point. For all datasets, the data begins at the maximally flexed position, progresses to full extension, and then returns to the maximally flexed position. In this context, maximal flexion is defined as -100\%, full extension as 0\%, and the return to maximal flexion as 100\%.
 
@@ -579,8 +580,19 @@ Figure blank displays the result of calculating the angle between the long axes 
 Bin (0.0, 10.0]: T-statistic = 2.581347448142401, P-value = 0.021752348033689917
 Bin (10.0, 20.0]: T-statistic = 2.651870913157143, P-value = 0.015303907958726073
 \section{Discussion}
-Given that the subject movement is restricted to only a single plane, it is reasonable to assume that the edges of the bone undergo motions that can be described by rigid transformations.
- 
+
+\subsection{Edge tracking and segmentation}
+The accuracy of segmentation in this study is fundamentally tied to the precision of edge tracking, as the segment boundary is defined by the detected edges. Thus, the fidelity of the segmentation process is directly influenced by the accuracy of edge detection. The edge tracking accuracy, in turn, hinges on two key factors: the assumption of single-plane motion and the quality of the image data.
+
+Firstly, the assumption of single-plane motion with rotation and translation is crucial. If there is any through-plane motion, the resulting transformations will be inaccurate since the algorithm is designed to handle only rigid transformations within a single plane. Deviations from this assumption will inevitably lead to errors in edge detection
+
+Secondly, the quality of the cine MRI images plays a significant role. Inconsistent movements during the imaging process can cause blurring, which the reconstruction algorithm cannot fully mitigate. Blurred images lead to less precise edge detection by the Canny algorithm, thereby affecting the accuracy of the segmentation.
+
+The performance of the edge tracking algorithm is illustrated by the bar chart in Figure \ref{fig:avgofavg}, which shows the mean alignment error per point across seven different datasets. The mean alignment errors range from approximately 0.3 mm to 0.5 mm, with datasets 2,4,5 and 7 demonstrating the smallest errors around 0.3 mm. In contrast, dataset 3 shows the highest mean alignment error, slightly lower than 0.5 mm, and also exhibits the largest variability, as indicated by the error bars. This variability suggests that the algorithm's performance might be less consistent for certain datasets.
+
+Despite this, the overall accuracy of the edge tracking algorithm is notable. The observed mean alignment errors, even at their highest, are relatively small, with the largest mean error being around 0.5 mm.
+
+To illustrate the reliability of the edge tracking algorithm, the results are compared with those of Rathnayaka et al. (2012), who quantified the accuracy of MRI-generated 3D models of long bones, reporting an average error of 0.23 mm \parencite{rathnayaka_quantification_2012}. Although the mean alignment errors in this study are slightly higher, the methodology—measuring the mean alignment error by calculating the average point-to-point distance between corresponding points in the transformed and target frames—is conceptually similar. This comparison indicates that the precision of the algorithm is within a reasonable range, supporting its reliability for segmentation purposes.
 
 \section{Conclusion}
 
