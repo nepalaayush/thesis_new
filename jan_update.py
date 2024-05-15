@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -203,12 +203,12 @@ with open('cost_df_NW_all.pkl', 'wb') as file:
 import pandas as pd
 def create_cost_value(array):
     tib_coords = boolean_to_coords(array)
-    reference_frame_first = downsample_points(tib_coords, 0, 50, bone_type='tibia')
+    reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='tibia')
     tib_coords[0] = reference_frame_first
     transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(tib_coords)
     return cost_values_first
 
-array_names = ['MK_NW_final_label_tib_stiched', 'MM_NW_final_label_tib', 'AN_NW_final_label_s',  'MK_NW_final_label_tib_s', 'AN_NW_final_label_tib','HS_NW_final_label_tib', 'JL_NW_final_label_tib' ]
+array_names = ['MK_W_final_label_tib_stiched', 'MM_W_final_label_tib', 'AN_W_final_label_tib',  'MK_W_final_label_tib_s', 'AN_W_final_label_tib_5','final_label_HS_W_tib', 'JL_W_final_label_tib' ]
 
 def create_dataframe(array_names):
     # Create an empty DataFrame
@@ -234,18 +234,18 @@ def create_dataframe(array_names):
     return all_data
 
 
-cost_df_50 = create_dataframe(array_names)
+cost_df_W = create_dataframe(array_names)
 #%%
-unique_labels = cost_df['Dataset'].unique()
+unique_labels = cost_df_W['Dataset'].unique()
 
 # Create a dictionary mapping each unique label to an integer
 label_to_int = {label: idx + 1 for idx, label in enumerate(unique_labels)}
 
 # Replace the string labels in the DataFrame with integers
-cost_df['Dataset'] = cost_df['Dataset'].replace(label_to_int)
+cost_df_W['Dataset'] = cost_df_W['Dataset'].replace(label_to_int)
 
 #%%
-cost_df_50['Average Cost'] = cost_df_50['Total Cost'] / 50 
+cost_df_W['Average Cost'] = cost_df_W['Total Cost'] / 80 
 #%%
 # Correct the DataFrame filtering to include frames from 1 to 29
 filtered_df = cost_df_50[(cost_df_50['Frame'] > 0) & (cost_df_50['Frame'] < 31)]
@@ -281,9 +281,73 @@ plt.figure(figsize=(10, 6), dpi=300)  # Set figure size and dpi for high resolut
 bar_plot = sns.barplot(data=average_of_averages, x='Dataset', y='Average Cost')
 
 # Adding title and labels
-plt.title('Mean cost per point across all frames')
-plt.xlabel('Dataset')
-plt.ylabel('Mean cost per point')
-plt.savefig('avg_of_avg.png', dpi=300)
+plt.title('Mean alignment error per point across datasets')
+plt.xlabel('Datasets')
+plt.ylabel('Mean Alignment error')
+#plt.savefig('avg_of_avg.png', dpi=300)
 # Display the plot
 plt.show()
+
+
+#%%
+''' adding voxel size here and also sprucing up the bar plot  '''
+voxel_size = 0.48484848484848486
+
+# Calculate the mean and standard deviation of the 'Average Cost' for each dataset
+stats = cost_df_NW.groupby('Dataset')['Average Cost'].agg(['mean', 'std']).reset_index()
+stats['mean_mm'] = stats['mean'] * voxel_size
+stats['std_mm'] = stats['std'] * voxel_size
+
+plt.figure(figsize=(10, 6), dpi=300)  # Set figure size and dpi for high resolution
+bar_plot = sns.barplot(
+    data=stats, 
+    x='Dataset', 
+    y='mean_mm', 
+    palette='viridis',  # Using the 'viridis' color palette
+    ci=None  # Disable seaborn's built-in confidence intervals
+)
+
+# Adding error bars
+plt.errorbar(
+    x=range(len(stats)), 
+    y=stats['mean_mm'], 
+    yerr=stats['std_mm'], 
+    fmt='none', 
+    c='black', 
+    capsize=5  # Adding caps to the error bars
+)
+
+# Adding title and labels
+plt.title('Mean alignment error per point for all datasets')
+plt.xlabel('Dataset')
+plt.ylabel('Mean Alignment Error [mm]')
+#plt.savefig('bar_alignment_W.png', dpi=300)
+# Display the plot
+plt.show()
+
+#%%
+# this is for df_W 
+'''    Dataset      mean       std   mean_mm    std_mm
+0        1  0.718797  0.261929  0.348508  0.126996
+1        2  0.792351  0.269295  0.384170  0.130567
+2        3  1.158230  0.635632  0.561566  0.308185
+3        4  0.554365  0.138189  0.268783  0.067001
+4        5  0.642973  0.177957  0.311744  0.086282
+5        6  0.893317  0.212606  0.433124  0.103082
+6        7  1.050978  0.288532  0.509565  0.139894 ''' 
+
+
+'''
+stats for NW 
+
+   Dataset      mean       std   mean_mm    std_mm
+0        1  0.749045  0.266838  0.363173  0.129376
+1        2  0.663258  0.233765  0.321580  0.113341
+2        3  0.958464  0.379197  0.464710  0.183853
+3        4  0.612775  0.227513  0.297103  0.110309
+4        5  0.585517  0.130719  0.283887  0.063379
+5        6  0.806982  0.178597  0.391264  0.086593
+6        7  0.600224  0.120798  0.291017  0.058569
+
+
+ ''' 
