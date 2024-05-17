@@ -364,8 +364,8 @@ ap_df_1_7 = add_percent_flexed(ap_df_1_7)
 
 #%%
 import pickle
-with open('/data/projects/ma-nepal-segmentation/data/data_20_03/angle_and_rel_df.pkl', 'rb') as file:
-    angle_and_rel_df =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/angle_datasets/df_angle_bin_all.pkl', 'rb') as file:
+    df_angle_bin_all =  pickle.load(file)
     
 #%%
 # Plotting
@@ -570,7 +570,7 @@ def plot_radial_kspace_single_spoke(n_spokes, points_per_spoke):
     fig, ax = plt.subplots()
 
     # Draw a circle
-    circle = plt.Circle((0, 0), 1, edgecolor='b', facecolor='none')
+    circle = plt.Circle((0, 0), 1, edgecolor='black', facecolor='none')
     ax.add_artist(circle)
 
     # Calculate the positions of each spoke end using the golden angle
@@ -580,14 +580,14 @@ def plot_radial_kspace_single_spoke(n_spokes, points_per_spoke):
         y_end = np.sin(angle)
 
         # Plot the spoke
-        ax.plot([0, x_end], [0, y_end], 'r')  # Red lines for the spokes
+        ax.plot([0, x_end], [0, y_end], 'black')  # black lines for the spokes
 
         # Plot points along the spoke, only on the first spoke
         if i == 0:  # Only plot points on the first spoke
             for j in range(1, points_per_spoke + 1):
                 x_point = np.cos(angle) * (j / points_per_spoke)
                 y_point = np.sin(angle) * (j / points_per_spoke)
-                ax.plot(x_point, y_point, 'go', markersize=2)  # Green points
+                ax.plot(x_point, y_point, 'ko', markersize=2)  # Green points
 
     # Set limits and equal aspect ratio to ensure the circle is not distorted
     ax.set_xlim(-1.1, 1.1)
@@ -602,6 +602,50 @@ def plot_radial_kspace_single_spoke(n_spokes, points_per_spoke):
 
 # Example usage: 276 spokes and 352 points per spoke
 plot_radial_kspace_single_spoke(25, 10)
+
+
+#%%
+def plot_radial_kspace(n_spokes, points_per_spoke, max_radius=1):
+    # Define the golden angle in radians
+    golden_angle = 2 * np.pi * (1 - (1 / ((1 + np.sqrt(5)) / 2)))
+
+    # Create a figure and a single subplot
+    fig, ax = plt.subplots()
+
+    # Draw a circle
+    circle = plt.Circle((0, 0), max_radius, edgecolor='black', facecolor='none')
+    ax.add_artist(circle)
+
+    # Calculate the positions of each spoke end using the golden angle
+    for i in range(n_spokes):
+        angle = golden_angle * i
+        x_end = np.cos(angle) * max_radius
+        y_end = np.sin(angle) * max_radius
+
+        # Plot the spoke
+        ax.plot([0, x_end], [0, y_end], 'black', linewidth=0.5)  # Black lines for the spokes
+
+        # Plot points along the spoke
+        for j in range(1, points_per_spoke + 1):
+            radius = (j / points_per_spoke) * max_radius
+            x_point = np.cos(angle) * radius
+            y_point = np.sin(angle) * radius
+            ax.plot(x_point, y_point, 'ko', markersize=2)  # Black points
+
+    # Set limits and equal aspect ratio to ensure the circle is not distorted
+    ax.set_xlim(-1.1 * max_radius, 1.1 * max_radius)
+    ax.set_ylim(-1.1 * max_radius, 1.1 * max_radius)
+    ax.set_aspect('equal')
+
+    # Remove axes for aesthetic reasons
+    ax.axis('off')
+
+    # Show the plot
+    plt.show()
+
+# Example usage: fewer spokes and points to illustrate the concept
+plot_radial_kspace(30, 20, max_radius=1)
+
 
 #%%
 
@@ -687,4 +731,4 @@ def apply_modification(df):
     return result_df
 
 
-modified_angle_df = apply_modification(df_angle)
+modified_angle_df = apply_modification(df_angle_bin_all)

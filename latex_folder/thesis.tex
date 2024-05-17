@@ -274,22 +274,21 @@ Table \ref{tab:mri_seq_params}, lists the MRI sequence parameters along with the
 
 In this study, the k-space data was acquired using 16 receive channels, each recording data simultaneously but with a unique spatial sensitivity profile. With 276 spokes used to sample a k-space dataset and a repetition time (TR) of 5.8 milliseconds per spoke, it takes approximately 1.6 seconds to acquire one k-space data. Over the course of the experiment, 100 such k-space datasets are acquired, equaling 100 repetitions as noted. The total scan duration extends just over two and a half minutes, a time frame reported by the subjects as being manageable, regardless of whether the scan was conducted under loaded or unloaded conditions.
 
-Each k-space dataset contained data across a range of knee angles because of the continuous leg movement set to the metronome beat. This means, assuming the subjects perform perfectly in time of 60 beats per minute where we have 4 beats for flexion to extension, each k-space covers 0.4 times the range of motion. For example, a subject with a range of motion of $40^o$, each k-space dataset contains data across $16^o$. Therefore, with multiple repetitions, data across the full range of motion could be adequately acquired.     
- 
-
-To illustrate the principle of radial k-space sampling, Figure X presents a simplified model, which includes only a few spokes and sampling points for visual purposes. In practice, as given in table \ref{tab:mri_seq_params}, we have 352 points per spoke, and 276 spokes in total per k-space. 
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.7\linewidth]{kspace_depiction}
-	\caption{This illustration depicts a radial sampling pattern with 25 red spokes, using the golden angle for spacing. Only one spoke is detailed, showing 10 green points to represent sampling positions.}
-	\label{fig:kspacedepiction}
-\end{figure}
+Each k-space dataset contained data across a range of knee angles because of the continuous leg movement set to the metronome beat. This means, assuming the subjects perform perfectly in time of 60 beats per minute where we have 4 beats for flexion to extension, each k-space covers 0.4 times the range of motion. For example, a subject with a range of motion of $40^o$, each k-space dataset contains data across $16^o$. Therefore, with multiple repetitions, data across the full range of motion could be adequately acquired.      
 
 \textbf{Reconstruction}
 
 
-The MRI raw data, with dimensions of (352, 276, 16, 100), was processed using a reconstruction script to generate the final image dataset. First, the binary data from the optical sensor was loaded, and the physical angle information was grouped according to each repetition cycle. This was done by detecting significant changes in the trigger signal, which was obtained from the sensor data too. This grouping resulted in 100 groups, each containing the physical angle information for a specific repetition. For each repetition, spokes in k-space were assigned to their corresponding physical angles. An angle increment of 2 degrees was chosen, which led to a collection of spokes corresponding to each 2-degree range. This approach was applied to all repetitions, allowing spokes to be mapped to physical angles across the full range of motion.
+The MRI raw data, with dimensions of (352, 276, 16, 100), was processed using a reconstruction script to generate the final image dataset. These dimensions correspond to: 
+\begin{itemize}
+	\item 352: The number of data points per spoke.
+	\item 276: The number of spokes used to sample a k-space dataset.
+	\item 16: The number of receive channels
+	\item 100: The number of repetitions or k-space datasets acquired over the course of the experiment.
+\end{itemize}
+
+
+First, the binary data from the optical sensor was loaded, and the physical angle information was grouped according to each repetition cycle. This was done by detecting significant changes in the trigger signal, which was obtained from the sensor data too. This grouping resulted in 100 groups, each containing the physical angle information for a specific repetition. For each repetition, spokes in k-space were assigned to their corresponding physical angles. An angle increment of 2 degrees was chosen, which led to a collection of spokes corresponding to each 2-degree range. This approach was applied to all repetitions, allowing spokes to be mapped to physical angles across the full range of motion.
 
 Subsequently, reconstruction was performed on each group of spokes. Depending on the specific angle range, the number of spokes assigned varied between 300 and 1000. Additionally, the direction of leg movement—either from flexion to extension or vice versa—was determined by calculating the slope of the angle information. Images were then reconstructed separately for each direction, depending on whether the leg was moving upward or downward. This distinction is crucial because leg biomechanics vary significantly depending on whether the movement is working with or against gravity.
 
@@ -425,7 +424,7 @@ where:
 
 This cost function evaluates the alignment of transformed coordinates to target coordinates by calculating the sum of the shortest distances from each point in the transformed frame to the closest point in the target frame. Each $(x_p', y_p')$ is the position of a point from the reference frame after being transformed by the parameters $x$, $y$, and $\phi$. For each transformed point,the distance to every point $(x_q, y_q)$ in the target frame is computed, the minimum of these distances is selected, and sum these minimum distances across all points is calculated. This sum forms the output of the cost function, which we seek to minimize.
 
-The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess of [0,0,0] is provided. The optimization process uses the \texttt{fmin} function from SciPy’s optimization module, which uses the nelder-mead simplex method \parencite{nelder_simplex_1965}. It is configured to stop when the change in the cost function is below a small tolerance. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+The optimization of this cost function is performed using a nonlinear least squares approach. where the initial guess of [0,0,0] is provided. This guess represents the starting point for the transformation parameters $x$, $y$ and $\phi$. The \texttt{fmin} function from SciPy’s optimization module is used for this purpose, which uses the Nelder-Mead simplex method \parencite{nelder_simplex_1965}.   The function is configured with a function tolerance and parameter tolerance of $1 \times 10^{-8}$, and maximum iterations of 1000. This method iteratively explores the parameter space to find the set of parameters that result in the lowest cost function value. The optimization procedure continues until the change in the cost function is less than the specified tolerance or the maximum number of iterations is reached, indicating convergence to an optimal solution. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
@@ -491,8 +490,8 @@ When this covariance matrix is applied to a vector, the matrix transforms the ve
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{long_axes}
-	\caption{The long axis of the bones are identified by using the PCA (blue) along with the centroid (white cross) for each segment}
+	\includegraphics[width=0.7\linewidth]{theta_angle}
+	\caption{The long axis of the bones are identified by using the PCA (blue) along with the centroid (white cross) for each segment. $\theta$ represents the angle that is being measured}
 	\label{fig:longaxes}
 \end{figure}
 
@@ -502,9 +501,7 @@ The angles between the segments was calculated by using the dot product between 
 	\theta = \arccos(\mathbf{U}_{fem} \cdot \mathbf{U}_{tib})
 	\label{eq:angle}
 \end{equation}
-where, $\mathbf{U_{fem}}$ and $\mathbf{U_{tib}}$ are the unit vectors of the longitudinal axes for the femur and tibia segments respectively.
-
-
+where, $\mathbf{U_{fem}}$ and $\mathbf{U_{tib}}$ are the unit vectors of the longitudinal axes for the femur and tibia segments respectively. For visualization purposes, when the knee is hyperextended, angles greater than 180° are reported to clearly indicate the degree of hyperextension. Therefore, in graphs presenting the results, the peak angle can exceed 180° (e.g., 185°) to represent hyperextension. 
 
 \textbf{Distance between the bones}
 
@@ -551,24 +548,33 @@ The result of the segmentation for one of the datasets is given in figure \ref{f
 	\label{fig:fullsegmented}
 \end{figure}
 
-\subsection{Results of biomechanical parameter extraction}
+\subsection{Biomechanical parameter extraction}
+The changes in the angle between the long axes of the tibia and femur segments, as well as the distance between these segments, were measured throughout the flexion-extension cycle for both the loaded and unloaded conditions.
 
-To ensure consistent comparisons, the number of frames reconstructed, which represents the time axis, is grouped into 'bins'. This grouping allows all datasets to span the same bins, enabling the averaging and plotting of values within these bins. The axis is defined by the percentage of flexion at a given time point. For all datasets, the data begins at the maximally flexed position, progresses to full extension, and then returns to the maximally flexed position. In this context, maximal flexion is defined as -100\%, full extension as 0\%, and the return to maximal flexion as 100\%.
+To enable consistent comparisons across different datasets, the number of frames from each motion cycle was normalized by grouping the data into 'bins'. This binning process ensured that all datasets spanned the same range, allowing for the averaging and plotting of values within these bins.
 
+The x-axis of the graphs represents the percentage of the flexion-extension cycle, defined by the bin centers. The cycle starts at -100 \% (maximal flexion), progresses to 0 \% (full extension), and returns to 100 \% (maximal flexion). This labeling captures the complete motion cycle, from full flexion to full extension and back to full flexion, allowing a clear visualization of the entire range of motion. The x-axis ticks correspond to the centers of these bins, with each bin having a width of 10 percentage units. 
+
+The y-axis of the graphs represents the average value of the biomechanical parameter (either angle or distance) within each bin, aggregated across all datasets. 
+
+For statistical analysis, a two-sample independent t-test was performed using the \texttt{stats} module from the  SciPy library to compare the loaded and unloaded conditions. The test was applied to the data within each bin to determine if there were significant differences between the two conditions.
 
 \textbf{Angle calculation}
 
-Figure blank displays the result of calculating the angle between the long axes of bone segments across the flexion-extension cycle. 
+Figure \ref{fig:anglegraphstickman} displays the result of calculating the angle between the long axes of bone segments across the flexion-extension cycle. 
  
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{angle_graph_stickman_modified}
-	\caption{Plot of angle between long axes of bone segments between tibia and femur versus the flexion percentage.}
+	\caption{Plot of angle between long axes of bone segments between tibia and femur versus the flexion percentage.The x-axis ticks represent the centers of bins, each with a width of 10 percentage units. The shaded regions represent one standard deviation uncertainty. Angles greater than 180° imply hyperextension.}
 	\label{fig:anglegraphstickman}
 \end{figure}
 
+No significant differences were observed between the loaded and unloaded conditions for any of the bins.
 
 \textbf{Distance calculation }
+
+The Euclidean distance between two points on the tibia and femur segments was measured throughout the flexion-extension cycle for both loaded and unloaded conditions. The aggregated results are shown in Figure \ref{fig:resultsdistancestickman}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{results_distance_stickman}
@@ -576,10 +582,15 @@ Figure blank displays the result of calculating the angle between the long axes 
 	\label{fig:resultsdistancestickman}
 \end{figure}
 
+Statistical analysis revealed significant differences between loaded and unloaded conditions in the following bins: (0.0, 10.0] with a P-value of 0.022, and (10.0, 20.0] with a P-value of 0.015. No significant differences were observed for the remaining bins.
 
-Bin (0.0, 10.0]: T-statistic = 2.581347448142401, P-value = 0.021752348033689917
-Bin (10.0, 20.0]: T-statistic = 2.651870913157143, P-value = 0.015303907958726073
 \section{Discussion}
+
+The accuracy and reliability of the measurements obtained from the dynamic MRI scans are influenced by several factors that need to be considered to ensure meaningful results. One significant factor is the overall bulk movement of the leg during the scan. If the femur is not properly fixated, the entire leg might shift, leading to inaccurate measurements. Ensuring that the thigh is securely positioned on the device with the thigh strap is critical for minimizing this movement. Additionally, improper fixation can allow the upper leg to lift or shift laterally, further compromising the accuracy of the measurements. This overall instability can be exacerbated by the entire leg shifting longitudinally within the scanner, causing misalignment and poor-quality output.
+
+Another important factor is muscle exhaustion. At the start of the exercise, volunteers might overexert themselves, leading to fatigue as the exercise progresses. This can cause variations in the range of motion and affect the position of the leg, resulting in inconsistent data. While the controlled exercise pace, guided by a metronome, aims to standardize the movement, individual differences in endurance can still introduce variability.
+
+By addressing these factors, we can enhance the reliability of the measurements obtained from the dynamic MRI scans. With these considerations in mind, the following sections discuss the specific results of edge tracking and segmentation, angle measurement, and distance calculation in detail.
 
 \subsection{Edge tracking and segmentation}
 The accuracy of segmentation in this study is fundamentally tied to the precision of edge tracking, as the segment boundary is defined by the detected edges. A significant factor that compromises edge tracking accuracy is the through-plane motion of the bones, leading to inaccurate transformations. The algorithm is specifically designed to manage only rigid transformations within a single plane; therefore, any deviations introduced by through-plane motion significantly impair edge detection and, consequently, segmentation accuracy.
@@ -589,6 +600,25 @@ Through-plane motion is particularly problematic for the tibia compared to the f
 The performance of the edge tracking algorithm is illustrated by the bar chart in Figure \ref{fig:avgofavg}, which shows the mean alignment error per point across seven different datasets in millimeters. Datasets 2,4,5 and 7 show the lowest mean alignment error around 0.3 mm, with Dataset 5 having the lowest error of 0.283 mm and standard deviation of 0.063 mm. In contrast, Dataset 3 exhibits the highest mean alignment error at about 0.465 mm and also shows the largest variability with a standard deviation of 0.184 mm. This variability and higher error could suggest specific challenges in edge detection for this dataset, potentially due to factors such as through-plane motion or variations in image quality. The low standard deviation for 7, at 0.059 mm with a mean alignment error of 0.291 mm, further suggest that the edge tracking performance in this dataset was not only accurate but also consistently reliable across different frames.
 
 To illustrate the reliability of the edge tracking algorithm, the results obtained here are compared with those of Rathnayaka et al. (2012), who quantified the accuracy of MRI-generated 3D models of long bones, reporting an average error of 0.23 mm \parencite{rathnayaka_quantification_2012}. Although the specifics of the two studies differ, the reported values offer a perspective on the range of errors encountered in MRI-based segmentation measurements. 
+
+\subsection{Angle calculation}
+The analysis of the angle between the long axes of the tibia and femur segments across the flexion-extension cycle reveals distinct trends under both loaded and unloaded conditions. As illustrated in Figure \ref{fig:anglegraphstickman}, there is a clear pattern where the angle increases from approximately 160° at maximal flexion (-100\%) to around 184° at full extension (0\%), and then decreases back to 160° as the knee returns to maximal flexion (100\%). This behavior aligns with the expected biomechanics of the knee joint, where the alignment of the femur and tibia is closest at full extension and diverges during flexion.
+
+To provide specific data points, at a bin center of -5 (representing the range from -10 to 0, inclusive), the mean angle for the unloaded condition was 184.18° with a standard deviation of 4.04°, while for the loaded condition, the mean angle was 184.07° with a standard deviation of 3.99°. These measurements indicate that both conditions exhibit angles close to 185°, suggesting a slight hyperextension or at least a deviation from a perfectly straight alignment.
+
+This observed deviation can be explained by the nature of the angle measurements and the biomechanics of the knee joint. The angles calculated in this study are best represented by the shaft axes of the femur and tibia. As demonstrated by a study \parencite{dai_comparing_2021} which measured the knee flexion angle using CT and MRI, a range of values was reported between -12.5° and 29.9°, where negative values indicate hyperextension. Their scheme for defining the angles closely match to those done in this study, as given in Figure \ref{fig:daiimage}. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{dai_image}
+	\caption{Femur and Tibia shaft axes defined in CT and T1-weighted MRI scans in the sagital view. \parencite{dai_comparing_2021}}
+	\label{fig:daiimage}
+\end{figure}
+
+Interestingly, despite the observed angles suggesting a slight hyperextension, there was no significant difference in the angles between the loaded and unloaded conditions. This indicates that the loading condition did not significantly affect the alignment of the femur and tibia as measured by the angle between their long axes.
+
+
+
 
 \section{Conclusion}
 

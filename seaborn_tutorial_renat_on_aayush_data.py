@@ -599,7 +599,7 @@ def plot_binned_angle_data(df, bin_width):
     plt.ylabel("Average Angle [°]")
     plt.title("Angle between the long axis of tibia and femur segments")
     plt.grid(True)
-    plt.savefig('resutl_angle_modification.svg', dpi=300)
+    #plt.savefig('resutl_angle_modification.svg', dpi=300)
     plt.tight_layout()
     plt.show()
     
@@ -607,10 +607,37 @@ def plot_binned_angle_data(df, bin_width):
 # Example usage
 plot_binned_angle_data(modified_angle_df, 10)
 
+#%%
+import pandas as pd
+
+def print_binned_angle_stats(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: (x.left + x.right) / 2)
+
+    # Group by 'Condition' and 'Custom_Bin' to calculate means and standard deviations
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin'])['angle'].agg(['mean', 'std']).reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: (x.left + x.right) / 2)
+
+    # Print the mean and standard deviation values for each condition
+    for condition in grouped['Condition'].unique():
+        print(f"Condition: {condition}")
+        condition_data = grouped[grouped['Condition'] == condition]
+        for _, row in condition_data.iterrows():
+            print(f"Bin Center: {row['Bin_Center']}, Mean Angle: {row['mean']}, Std Dev: {row['std']}")
+
+# Example usage
+print_binned_angle_stats(modified_angle_df, 10)
 
 #%%
-with open('df_angle_bin_all.pkl', 'wb') as f:
-    pickle.dump(df, f) 
+with open('modified_angle_df.pkl', 'wb') as f:
+    pickle.dump(modified_angle_df, f) 
     
     
 #%%
@@ -806,3 +833,9 @@ significant_bins = aov[aov['p-unc'] < 0.05]
 print(significant_bins)
 
 
+
+#%%
+'''
+Bin (0.0, 10.0]: T-statistic = 2.581347448142401, P-value = 0.021752348033689917
+Bin (10.0, 20.0]: T-statistic = 2.651870913157143, P-value = 0.015303907958726073
+ ''' 
