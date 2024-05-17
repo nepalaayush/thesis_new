@@ -425,7 +425,7 @@ where:
 
 This cost function evaluates the alignment of transformed coordinates to target coordinates by calculating the sum of the shortest distances from each point in the transformed frame to the closest point in the target frame. Each $(x_p', y_p')$ is the position of a point from the reference frame after being transformed by the parameters $x$, $y$, and $\phi$. For each transformed point,the distance to every point $(x_q, y_q)$ in the target frame is computed, the minimum of these distances is selected, and sum these minimum distances across all points is calculated. This sum forms the output of the cost function, which we seek to minimize.
 
-The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess of [0,0,0] is provided. The optimization process uses the \texttt{fmin} function from SciPy’s optimization module, which is configured to stop when the change in the cost function is below a small tolerance. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+The optimization of this cost function is performed using a nonlinear least squares approach, where the initial guess of [0,0,0] is provided. The optimization process uses the \texttt{fmin} function from SciPy’s optimization module, which uses the nelder-mead simplex method \parencite{nelder_simplex_1965}. It is configured to stop when the change in the cost function is below a small tolerance. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
@@ -526,18 +526,18 @@ The euclidean distance between these two points was measured across time by usin
 \section{Results}
 \label{sec:yetanother}
 
-\subsection{Accuracy of edge tracking and segmentation}
+\subsection{Edge tracking and segmentation}
 
 To evaluate the accuracy of edge tracking achieved through cost function minimization, the deviation of overlap between points on the transformed frame and the target frame was measured. The cost function output, which indicates the overlap accuracy, calculates the minimum distance from each point on the transformed frame to the points on the target frame and sums these minimum distances for all points in the transformed frame.
 
-The mean alignment error per point was derived by dividing the cost function output by the total number of points in the transformed frame. This value was calculated for all frames, and the average of these values was taken for each dataset.
+The mean alignment error per point was then derived by dividing the cost function output by the total number of points in the transformed frame. This value quantifies the average distance that a point on the transformed frame deviates from its corresponding point on the target frame. This value was calculated for all frames, and the average of these values was taken for each dataset.
 
 The bar chart in Figure \ref{fig:avgofavg} presents this result: 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{bar_alignment}
-	\caption{Mean alignment error per point across all frames for each dataset in the unloaded condition.}
+	\caption{Mean alignment error per point across all frames for each tibia dataset.}
 	\label{fig:avgofavg}
 \end{figure}
 
@@ -582,17 +582,13 @@ Bin (10.0, 20.0]: T-statistic = 2.651870913157143, P-value = 0.01530390795872607
 \section{Discussion}
 
 \subsection{Edge tracking and segmentation}
-The accuracy of segmentation in this study is fundamentally tied to the precision of edge tracking, as the segment boundary is defined by the detected edges. Thus, the fidelity of the segmentation process is directly influenced by the accuracy of edge detection. The edge tracking accuracy, in turn, hinges on two key factors: the assumption of single-plane motion and the quality of the image data.
+The accuracy of segmentation in this study is fundamentally tied to the precision of edge tracking, as the segment boundary is defined by the detected edges. A significant factor that compromises edge tracking accuracy is the through-plane motion of the bones, leading to inaccurate transformations. The algorithm is specifically designed to manage only rigid transformations within a single plane; therefore, any deviations introduced by through-plane motion significantly impair edge detection and, consequently, segmentation accuracy.
 
-Firstly, the assumption of single-plane motion with rotation and translation is crucial. If there is any through-plane motion, the resulting transformations will be inaccurate since the algorithm is designed to handle only rigid transformations within a single plane. Deviations from this assumption will inevitably lead to errors in edge detection
+Through-plane motion is particularly problematic for the tibia compared to the femur, primarily due to medial/lateral rotation as illustrated in Figure \ref{fig:sixdegrees}, which details the six degrees of freedom of the tibia's movement relative to the femur. This specific type of rotation is a significant cause of through-plane motion errors during edge tracking, as the device setup—although restrictive—allows some degree of rotational freedom. Despite the lower leg being secured at the ankle with Velcro straps and the knee cradled in a wedge positioner to limit movement predominantly to one plane, complete immobilization is not achievable. This limitation is especially pronounced in subjects with smaller bones, where even additional padding at the wedge positioner was insufficient to prevent all undesired motion. While localizers are employed prior to the scans in both extended and flexed positions to ensure that the slice moves only within a predetermined single plane, certain rotations cannot be fully corrected by simply angling the localizer and may still be evident in the final images.
 
-Secondly, the quality of the cine MRI images plays a significant role. Inconsistent movements during the imaging process can cause blurring, which the reconstruction algorithm cannot fully mitigate. Blurred images lead to less precise edge detection by the Canny algorithm, thereby affecting the accuracy of the segmentation.
+The performance of the edge tracking algorithm is illustrated by the bar chart in Figure \ref{fig:avgofavg}, which shows the mean alignment error per point across seven different datasets in millimeters. Datasets 2,4,5 and 7 show the lowest mean alignment error around 0.3 mm, with Dataset 5 having the lowest error of 0.283 mm and standard deviation of 0.063 mm. In contrast, Dataset 3 exhibits the highest mean alignment error at about 0.465 mm and also shows the largest variability with a standard deviation of 0.184 mm. This variability and higher error could suggest specific challenges in edge detection for this dataset, potentially due to factors such as through-plane motion or variations in image quality. The low standard deviation for 7, at 0.059 mm with a mean alignment error of 0.291 mm, further suggest that the edge tracking performance in this dataset was not only accurate but also consistently reliable across different frames.
 
-The performance of the edge tracking algorithm is illustrated by the bar chart in Figure \ref{fig:avgofavg}, which shows the mean alignment error per point across seven different datasets. The mean alignment errors range from approximately 0.3 mm to 0.5 mm, with datasets 2,4,5 and 7 demonstrating the smallest errors around 0.3 mm. In contrast, dataset 3 shows the highest mean alignment error, slightly lower than 0.5 mm, and also exhibits the largest variability, as indicated by the error bars. This variability suggests that the algorithm's performance might be less consistent for certain datasets.
-
-Despite this, the overall accuracy of the edge tracking algorithm is notable. The observed mean alignment errors, even at their highest, are relatively small, with the largest mean error being around 0.5 mm.
-
-To illustrate the reliability of the edge tracking algorithm, the results are compared with those of Rathnayaka et al. (2012), who quantified the accuracy of MRI-generated 3D models of long bones, reporting an average error of 0.23 mm \parencite{rathnayaka_quantification_2012}. Although the mean alignment errors in this study are slightly higher, the methodology—measuring the mean alignment error by calculating the average point-to-point distance between corresponding points in the transformed and target frames—is conceptually similar. This comparison indicates that the precision of the algorithm is within a reasonable range, supporting its reliability for segmentation purposes.
+To illustrate the reliability of the edge tracking algorithm, the results obtained here are compared with those of Rathnayaka et al. (2012), who quantified the accuracy of MRI-generated 3D models of long bones, reporting an average error of 0.23 mm \parencite{rathnayaka_quantification_2012}. Although the specifics of the two studies differ, the reported values offer a perspective on the range of errors encountered in MRI-based segmentation measurements. 
 
 \section{Conclusion}
 
