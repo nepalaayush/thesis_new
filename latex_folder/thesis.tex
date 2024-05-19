@@ -245,7 +245,28 @@ Dynamic MRI scans were conducted on five healthy individuals, two females and th
 Once the subject was positioned supine in the scanner, the thigh was secured on a wedge positioner, and the lower leg was attached to an ankle rest, just above the malleoli, using Velcro straps to minimize lateral movement. The knee to be examined is aligned with the device’s axis of rotation, while the other leg rests alongside the MRI scanner's bore.  Knee motion is guided by a belt and sprocket assembly running alongside the lower leg, connected to a gearbox activated by the leg support as the participant flexes and extends the knee. Once the subject was positioned at the scanner's isocenter, their leg naturally assumed a flexed posture due to the design of the device. In this configuration, the leg is cradled by the device arm which is positioned below the level of the knee, ensuring that the leg remains flexed without the volunteer exerting any force.
 
 
-The volunteer engaged in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, with the leg being flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition with weights added to the distal end of the device, the process is repeated without the added resistance to compare both states. The scan duration is around two and a half minutes, amounting to 20 full flexion-extension-flexion cycles. 
+The volunteer engaged in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, with the leg being flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition with weights added to the distal end of the device, the process is repeated without the added resistance to compare both states. The scan duration is around two and a half minutes, amounting to 20 full flexion-extension-flexion cycles. The range of motion for each dataset is noted in table Blank. 
+
+\begin{table}[H]
+	\centering
+	\label{tab:range_of_motion}
+	\caption{Range of Motion for Different Datasets}
+	\begin{tabular}{cc}
+		\toprule
+		Dataset & Range of Motion (°) \\
+		\midrule
+		1 & 30 \\
+		2 & 38 \\
+		3 & 36 \\
+		4 & 30 \\
+		5 & 36 \\
+		6 & 36 \\
+		7 & 46 \\
+		\bottomrule
+	\end{tabular}
+	
+	
+\end{table}
 
 \subsubsection{Sequence Parameters and Reconstruction}
 Table \ref{tab:mri_seq_params}, lists the MRI sequence parameters along with their respective units.
@@ -513,12 +534,13 @@ To calculate a proxy for the distance between the bones, anatomical landmarks we
 	\label{fig:twopoints}
 \end{figure}
 
-The euclidean distance between these two points was measured across time by using equation blank: 
+The euclidean distance between these two points was measured across time by using equation \ref{eq:distance}. The first frame at -100\% flexion is considered as the baseline, with the distance set to 0 mm. All subsequent distances are relative to this baseline, enabling an analysis of changes across the cycle. 
 \begin{equation}
 	d = \sqrt{(y_2 - y_1)^2 + (x_2 - x_1)^2}
 	\label{eq:distance}
 \end{equation} 
 
+Negative values imply the distance has decreased with respect to the baseline (first frame). 
 
 \section{Results}
 \label{sec:yetanother}
@@ -578,7 +600,7 @@ The Euclidean distance between two points on the tibia and femur segments was me
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{results_distance_stickman}
-	\caption{Plot showing the variation of euclidean distance between two points with respect to different time points in the motion cycle. The shaded region represents one standard deviation uncertainty.}
+	\caption{Plot showing the variation of euclidean distance between two points with across time in the motion cycle. All distances are relative to the baseline measurement at -100\% flexion, set at 0 mm. The shaded region represents one standard deviation uncertainty.}
 	\label{fig:resultsdistancestickman}
 \end{figure}
 
@@ -617,11 +639,33 @@ This observed deviation can be explained by the nature of the angle measurements
 
 Interestingly, despite the observed angles suggesting a slight hyperextension, there was no significant difference in the angles between the loaded and unloaded conditions. This indicates that the loading condition did not significantly affect the alignment of the femur and tibia as measured by the angle between their long axes.
 
+\subsection{Distance calculation}
+
+Figure \ref{fig:resultsdistancestickman} shows the variation in the Euclidean distance between anatomical landmarks on the femur and tibia throughout the flexion-extension cycle. Initially, this distance decreases as the knee moves from a flexed to an extended position. In the second half of the cycle, the distance increases as the knee returns to the flexed position.
+
+Significant differences were observed in the bins (0.0, 10.0] and (10.0, 20.0] with P-values of 0.022 and 0.015 under loaded conditions. This suggests that external loading affects the spatial relationship between the femur and tibia, but only during the flexion phase. 
+
+This effect may be due to the different types of muscle contractions during flexion and extension. The quadriceps, which cover most of the anterior and sides of the femur, contract either concentrically (shortening under tension) or eccentrically (lengthening under tension). During extension, the quadriceps contract concentrically to lift the leg against gravity. During flexion, they control the rate of knee bending under gravity \parencite{dalley_moores_2023}.
+
+Since eccentric contractions generate higher force as compared to concentric contractions, they can be more susceptible to external loads \parencite{nuzzo_eccentricconcentric_2023}. This suggests that the influence of external loading is dependent on the type of muscle contraction. During extension, concentric contractions of the quadriceps provide a more stable form of contraction, and thus, the impact of external loading is not significant. In contrast, during flexion, the eccentric contractions are more susceptible to changes due to external loading. A previous study also observed load-dependent variations in tibiofemoral kinematics, which supports this finding \parencite{westphal_load-dependent_2013}.
+
+Furthermore, the effect of external loading is primarily seen in the initial phase of flexion, particularly within the first few degrees of the flexion phase. This observation aligns with the findings of Fuchs et al. \parencite{fuchs_-vivo_2022}, who noted minimal torsional movement in the knee at this range of motion. Fuchs et al. chose 20 degrees of flexion as the 'extended' portion due to the anatomical constraints that limit torsional movement below this degree of flexion. This lack of torsional movement could explain why external loading significantly affects the femur-tibia spatial relationship only in the first few degrees of flexion observed in our study. As the knee begins to flex from a fully extended position, it experiences different biomechanical conditions compared to other phases of the cycle, making it more susceptible to external loads. Beyond this initial phase, the knee joint stabilizes, reducing the impact of external loading on the distance between femoral and tibial landmarks.
 
 
 
 \section{Conclusion}
+This study aimed to evaluate the biomechanical parameters of the knee joint during flexion-extension cycles under loaded and unloaded conditions using dynamic MRI scans. By implementing an edge tracking and segmentation algorithm, the study successfully semi-automated the extraction of these parameters from 2D cine images, providing a foundation for further analysis and potential clinical applications.
 
+The edge tracking algorithm demonstrated reliable performance, with mean alignment errors per point comparable to established methods. This accuracy is crucial for ensuring precise segmentation of the tibia and femur, thereby enabling accurate measurements of biomechanical parameters. The method's reliability supports its use in effectively analyzing knee joint mechanics.
+
+The analysis of biomechanical parameters revealed significant insights into knee joint behavior under different conditions. The Euclidean distance between anatomical landmarks on the femur and tibia showed significant differences in the early phase of flexion under loaded conditions, suggesting that external loading primarily affects the spatial relationship between these bones during eccentric muscle contraction phases. This highlights the complex interplay between muscle contraction types and external loading in influencing knee joint biomechanics.
+
+The methods developed in this study can be used to semi-automate the segmentation of 2D cine images of the knee during flexion-extension motion cycles. This automation facilitates the extraction of biomechanical parameters, which are crucial for assessing joint health. Patients with osteoarthritis (OA) exhibit varying degrees of abnormal tibiofemoral kinematics compared to healthy individuals, as evidenced by research indicating that OA leads to significant changes in knee joint mechanics (e.g., altered joint contact mechanics and increased instability). The baseline measurements obtained from this study can serve as a reference for comparing kinematic differences in OA patients, aiding in the diagnosis and monitoring of the disease.
+
+
+Extending this methodology to 3D imaging is a promising avenue for future research. By eliminating the issue of through-plane motion, 3D imaging can potentially lead to more accurate and comprehensive segmentation of the knee joint, thereby improving the precision of biomechanical parameter extraction. This advancement could significantly enhance the ability to study and understand knee joint mechanics in various conditions, including OA and other musculoskeletal disorders.
+
+In conclusion, this study demonstrates the feasibility and utility of using dynamic MRI scans combined with advanced segmentation algorithms to analyze knee joint biomechanics. The findings provide a solid foundation for further research and clinical applications, with the potential to improve diagnostic and therapeutic approaches for knee joint disorders.
 
 % ----------------------------------------------------------------------------
 % Bibliography
