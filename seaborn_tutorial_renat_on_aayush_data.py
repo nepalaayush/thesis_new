@@ -14,8 +14,8 @@ import numpy as np
 
 sns.set_context("talk")
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/angle_datasets/df_angle_bin_all.pkl', 'rb') as file:
-    df_angle =  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
+    df_point =  pickle.load(file)
 
 #%%
 angle_and_rel_df["Dataset"] = pd.Categorical(angle_and_rel_df["Dataset"].apply(lambda x: x.split(" ")[1]))
@@ -161,6 +161,8 @@ def plot_binned_data(df, bin_width):
     # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
     grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Norm'].mean().reset_index()
     grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+    default_palette = sns.color_palette()
+    custom_palette = {'Loaded': default_palette[1], 'Unloaded': default_palette[0]}
 
     # Plotting the data
     plt.figure(figsize=(10, 6))
@@ -171,17 +173,19 @@ def plot_binned_data(df, bin_width):
         hue='Condition',
         marker="o",  # Adds markers to each data point
         #err_style="bars",  # Shows error bars instead of a band
-        ci='sd'  # Uses standard deviation for the error bars
+        ci='sd',  # Uses standard deviation for the error bars
+        palette = custom_palette
     )
     plt.axhline(y=0, color='gray', linestyle='--')  # Adds a horizontal line at y=0
-    plt.xlabel("Bin Centre of flexion percentage [%]")
+    plt.axvline(x=0, color='gray', linestyle='--')
+    plt.xlabel("Flexion percentage [%]")
     plt.ylabel("Euclidean Distance (mm)")
     plt.title("Variation of distance with respect to flexion-extension cycle")
     plt.savefig('distance_stickman.png', dpi=300)
     plt.show()
 
 # Example usage
-plot_binned_data(master_df_point, 10)
+plot_binned_data(df_point, 10)
 
 #%%
 # Make sure to include 'Condition' in the groupby
