@@ -14,8 +14,8 @@ import numpy as np
 
 sns.set_context("talk")
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
-    df_point =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/modified_angle_df.pkl', 'rb') as file:
+    modified_angle_df =  pickle.load(file)
 
 #%%
 angle_and_rel_df["Dataset"] = pd.Categorical(angle_and_rel_df["Dataset"].apply(lambda x: x.split(" ")[1]))
