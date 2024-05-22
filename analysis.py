@@ -162,6 +162,7 @@ path1 = '/data/projects/ma-nepal-segmentation/data/Schulz^Helena/2024-03-15/63_M
 image1 = path_to_image(path1)
 #%%
 viewer1 = napari.view_image(full_image)
+
 #%%
 # add the reference points and manually segment the reference frame 
 viewer1.add_shapes(reference_frame_first, shape_type='polygon')
@@ -265,10 +266,18 @@ show_stuff(AN_W_tib_info, 'AN_W_tib_info', viewer1)
 show_stuff(AN_W_fem_info, 'AN_W_fem_info', viewer1)
 
 #%%
+image1 = full_image
+
+#%%
+# for getting mosaics 
+
+fem = viewer1.layers['MM_NW_tib_shape']
+viewer1.add_shapes(fem.data, face_color='green', shape_type='polygon')
+#%%
 screenshots = []
 
 axis_index = 0 
-number_of_frames = len(image1)
+number_of_frames = len(full_image)
 
 # Loop through your frames and take screenshots
 for frame_index in range(number_of_frames):
@@ -303,13 +312,15 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     #for i in range(len(screenshots), rows*columns):
      #   fig.delaxes(axes.flatten()[i])
 
-    plt.tight_layout()
+    #plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_JL_W_both_bones_stiched.svg'
+    output_path = 'mosaic_MK_W_both_stiched.svg'
     
-    plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
-
+    #plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
+    plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor(), bbox_inches='tight', pad_inches=0)
+    
+    
     return output_path
 
 mosaic_path = create_mosaic_matplotlib(screenshots, total_frames=len(image1))
