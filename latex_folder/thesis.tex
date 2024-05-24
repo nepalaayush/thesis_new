@@ -52,6 +52,15 @@
 %\thispagestyle{empty}
 \subsection*{Abstract}
 
+The knee joint, a critical component of human movement, frequently endures mechanical loads that can lead to degenerative conditions such as osteoarthritis (OA). OA, prevalent globally and particularly affecting the knee, demands early diagnosis for effective intervention. Magnetic resonance imaging (MRI) has proven effective in detecting soft tissue changes, but traditional MRI studies often miss early-stage OA indicators as they are conducted under non-weight-bearing conditions, unlike the actual physiological state during daily activities.
+
+This thesis leverages recent advancements in MRI technology to analyze the knee joint under mechanical loading, using high-resolution CINE MRI imaging. This approach enables the investigation of dynamic interactions between the femur and tibia during flexion-extension cycles, providing detailed insights into knee mechanics. A major challenge in this process is the accurate segmentation of anatomical structures, critical for reliable biomechanical measurements. To address this, a semi-automated segmentation pipeline was developed, streamlining the process and improving consistency across sequential images.
+
+Following segmentation, the study quantified biomechanical parameters, such as the angle between the long axes of the femur and tibia and the distance between anatomical landmarks, under various loading conditions. The results showed significant variations in distance measurements during the early phase of flexion, highlighting the knee's sensitivity to external loading. However, no significant differences were found in the angular measurements, suggesting stability in bone alignment under load.
+
+This research demonstrates the potential of semi-automated segmentation for efficient and precise analysis of dynamic knee MRI scans, offering significant advantages for clinical and research applications. Despite the promising findings, the study's reliance on single 2D slices limits the comprehensive assessment of knee kinematics. Future work should extend this methodology to 3D analyses and explore its application to patellofemoral kinematics, providing a more holistic understanding of knee mechanics.
+
+In conclusion, this thesis presents a robust method for analyzing knee joint biomechanics using advanced MRI techniques, paving the way for enhanced diagnostic and research capabilities in orthopedics.
 
 \clearpage
 \subsection*{Acknowledgements}
@@ -142,14 +151,14 @@ It comprises three primary articulations:two femorotibial articulations (see Fig
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.3]{right_knee_labeled}
-	\caption{Anterior (flexed,top) and posterior (extended, bottom) view of the right knee with their articular surfaces labeled. [Edited] \parencite[p.519]{netter_519_2023}}
+	\caption{Anterior (top, showing the knee in flexion) and posterior (bottom, showing the knee in extension) views of the right knee, with labeled articular surfaces of the medial and lateral condyles. [Edited] \parencite[p.519]{netter_519_2023}}
 	\label{fig:rightkneeplate519}
 \end{figure}
 
 \begin{figure} [H]
 	\centering
 	\includegraphics[scale=0.3]{patellar_surface}
-	\caption[patellar surface]{Right joint opened, knee slightly in flexion, with the patellar articulation labelled. [Edited] \parencite[p.517]{netter_519_2023}}
+	\caption{Right knee joint opened, with the knee in a slightly flexed position, exposing the articular surface of the patella.[Edited] \parencite[p.517]{netter_519_2023}}
 	\label{fig:patellarsurface}
 \end{figure}
 
@@ -158,7 +167,7 @@ This design allows the knee to manage a wide array of movements and bear signifi
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{six_degrees}
-	\caption{The knee joint motion in three dimensions, described using six independent variables (degrees of freedom) \parencite[p.~1412]{standring_grays_2021}.}
+	\caption{The knee joint motion in three dimensions, described using six degrees of freedom: anterior/posterior translation, medial/lateral shift, compression/distraction, abduction/adduction, flexion/extension, and medial/lateral rotation. The arrows indicate the direction of each movement. \parencite[p.~1412]{standring_grays_2021}.}
 	\label{fig:sixdegrees}
 \end{figure}
 
@@ -185,7 +194,7 @@ The MR-compatible knee loading device employed in this study is illustrated in F
 \begin{figure} [H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{sensor_img}
-	\caption{The MR330 controller (left) and MR338 optical fiber position sensor system (right), showcasing the connection from the controller to the sensor via duplex LC multimode fiber optic cabling.}
+	\caption{The MR330 controller (left) and MR338 optical fiber position sensor system (right), connected via duplex LC multimode fiber optic cabling, with a maximum distance of up to 300 meters. The setup illustrates the separation between the outside MRI area and the MRI-safe area.}
 	\label{fig:sensorimg}
 \end{figure}
 
@@ -195,7 +204,7 @@ As shown in Figure \ref{fig:sensorimg} , the MR330 controller interfaces with th
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.2]{coils}
-	\caption{Noras Variety 16 channel flex coils}
+	\caption{Noras Variety 16 channel flex coils, designed for MRI applications. The image shows the flex coil with a central square exterior featuring Velcro for secure strapping, highlighting its flexible design}
 	\label{fig:coils}
 \end{figure}
 
@@ -220,7 +229,8 @@ As the name suggests, radial golden-angle acquisition specifically modifies how 
  \begin{figure}[H]
  	\centering
  	\includegraphics[width=0.7\linewidth]{radial}
- 	\caption{Generic radial k-space sampling \parencite[p.306]{brown_magnetic_2014}}
+ 	\caption{Generic radial k-space sampling diagram. The image shows concentric circles representing constant k-space radii, with $k_x$ and $k_y$ axes indicating spatial frequencies. The lines labeled '1st line' and '2nd line' demonstrate different radial sampling lines, each separated by an angle $\Delta \theta$. The equation $\Delta k_{\theta} = k_{\text{max}} \Delta \theta$ illustrates that the change in the k-space coordinates along a specific angular direction ($\Delta k_{\theta}$) is proportional to the maximum k-space radius ($k_{\text{max}}$), which determines the highest spatial frequency sampled, and the angular step size ($\Delta \theta$).
+ 		 \parencite[p.306]{brown_magnetic_2014}}
  	\label{fig:radial}
  \end{figure}
  
@@ -229,7 +239,7 @@ As the name suggests, radial golden-angle acquisition specifically modifies how 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{golden_angle_figure}
-	\caption{Radial k-space sampling strategies. (a) Fixed angular increment, showing potential for uneven k-space coverage. (b) Golden-angle sampling, ensuring uniform distribution across k-space \parencite{winkelmann_optimal_2007}.}
+	\caption{Radial k-space sampling strategies. (a) Fixed angular increment ($\phi = 180^\circ / 10$), showing potential for uneven k-space coverage. (b) Golden-angle sampling ($\phi_{GR} = 111.25^\circ$), ensuring uniform distribution across k-space as the number of projections ($P$) increases \parencite{winkelmann_optimal_2007}.}
 	\label{fig:goldenanglefigure}
 \end{figure}
 
@@ -238,7 +248,7 @@ Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditio
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\linewidth, height=7.3cm]{kspace_arrow}
-	\caption{\textbf{Example of k-space and reconstructed image}. Left: K-space data from a specific angle during the knee flexion cycle. Right: Corresponding reconstructed MRI image, illustrating the detailed visualization achievable through golden-angle sampling.}
+	\caption{\textbf{Example of k-space and reconstructed image}. Left: K-space data collected using golden-angle sampling from a specific time point during the knee flexion cycle. Right: Corresponding reconstructed MRI image, illustrating the detailed visualization achievable through golden-angle sampling.}
 	\label{fig:kspacearrow}
 \end{figure}
   
@@ -391,7 +401,7 @@ Figure \ref{fig:labelimg} shows the output from the labelling algorithm, where e
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{label_selected}
-	\caption{Output from the labeling algorithm with the representative edges for femur (top) and tibia(bottom) pointed out.}
+	\caption{Output from the labeling algorithm with the representative edges for femur (top) and tibia(bottom) highlighted. Distinct colors represent a different label identified by the labeling algorithm.}
 	\label{fig:labelimg}
 \end{figure}
  
@@ -653,16 +663,18 @@ The analysis of the angle between the long axes of the tibia and femur segments 
 
 To provide specific data points, at a bin center of -5 (representing the range from -10 to 0, inclusive), the mean angle for the unloaded condition was 184.18° with a standard deviation of 4.04°, while for the loaded condition, the mean angle was 184.07° with a standard deviation of 3.99°. These measurements indicate that both conditions exhibit angles close to 185°, suggesting a slight hyperextension or at least a deviation from a perfectly straight alignment.
 
-This observed deviation can be explained by the nature of the angle measurements and the biomechanics of the knee joint. The angles calculated in this study are best represented by the shaft axes of the femur and tibia. As demonstrated by a study \parencite{dai_comparing_2021} which measured the knee flexion angle using CT and MRI, a range of values was reported between -12.5° and 29.9°, where negative values indicate hyperextension. Since these values are obtained from static scans, where the leg is in an extended position inside the scanner, it can be assumed that at full extension, angles >180° as measured in this study are to be expected. Their scheme for defining the angles closely match to those done in this study, as given in Figure \ref{fig:daiimage}. 
+This observed deviation can be explained by the nature of the angle measurements and the biomechanics of the knee joint. The angles calculated in this study are best represented by the shaft axes of the femur and tibia. As demonstrated by a study \parencite{dai_comparing_2021} which measured the knee flexion angle using CT and MRI, a range of values was reported between -12.5° and 29.9°, where negative values indicate hyperextension. Since these values are obtained from static scans, where the leg is in an extended position inside the scanner, it can be assumed that at full extension, angles greater than 180° as measured in this study are to be expected. Their scheme for defining the angles closely match to those done in this study, as given in Figure \ref{fig:daiimage}. 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{dai_image}
-	\caption{Femur and Tibia shaft axes defined in CT and T1-weighted MRI scans in the sagital view. \parencite{dai_comparing_2021}}
+	\caption{Femur (a) and tibia (b) shaft axes defined in CT and T1-weighted MRI scans in the sagital view. \parencite{dai_comparing_2021}}
 	\label{fig:daiimage}
 \end{figure}
 
 Interestingly, despite the observed angles suggesting a slight hyperextension, there was no significant difference in the angles between the loaded and unloaded conditions. This indicates that the loading condition did not significantly affect the alignment of the femur and tibia as measured by the angle between their long axes in the sagital plane. 
+
+
 
 \subsection{Distance calculation}
 
@@ -709,7 +721,24 @@ In conclusion, the semi-automated segmentation process evaluated in this study o
 \cleardoublepage
 \begin{appendix}
 \section{Appendix}
-If needed for supplementary material, such as detailed description of data collection, tables, or figures.
+
+The non aggregated results for Figures \ref{fig:anglegraphstickman} and \ref{fig:resultsdistancestickman} are shown below: 
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.42]{angle_non_agg}
+	\caption{Non aggregated results for the angle between the long axis of the bone segments. Loaded and unloaded measurements are shown in their respective columns.}
+	\label{fig:anglenonagg}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.42]{norm_non_agg}
+	\caption{Non aggregated results for the euclidean distance between anatomical landmarks on the femur and tibia. Loaded and Unloaded conditions are shown in their respective columns.}
+	\label{fig:normnonagg}
+\end{figure}
+
+
+
 
 \end{appendix}
 
