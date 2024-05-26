@@ -26,7 +26,7 @@
 % ----------------------------------------------------------------------------
 % Details for the titlepage
 % ----------------------------------------------------------------------------
-\thesisTitle{Development of Analysis Techniques for dynamic magnetic resonance imaging}
+\thesisTitle{Development of Analysis Techniques for Dynamic Magnetic Resonance Imaging of the Knee}
 \thesisType{Master Thesis} % 'Master Thesis' or 'Seminar Paper'
 \thesisAuthor{Aayush Nepal}
 \thesisMail{aayush.nepal@uni-jena.de}
@@ -34,8 +34,7 @@
 \thesisTutora{Prof. Dr. rer. nat. med. habil. Jürgen Reichenbach}
 \thesisTutorb{Dr. rer. nat. Martin Krämer}
 \thesisMatrikel{198683}
-\thesisAddress{Schützenggase 2\\[.5ex]
-								99423 Weimar}
+%\thesisAddress{}
 \thesisDate{\today}
 % In case of external supervisor
 \thesisCompany{}
@@ -92,17 +91,17 @@ In conclusion, this thesis presents a robust method for analyzing knee joint bio
 \addcontentsline{toc}{section}{List of Acronyms}
 \section*{List of Acronyms}
 \begin{tabular}{@{}ll}
-OA & Osteoarthritis\\
-MRI & Magnetic Resonance Imaging \\
-GRE & Gradient Echo \\
-TE & Time to Echo \\
-FLASH & Fast Low Angle Shot \\
 ADMM & Alternating Direction Method of Multipliers \\
-TGV & Total Generalized Variation \\
-FoV & Field of View \\
-PCA & Principal Component Analysis \\
 Cov & Covariance matrix \\ 
-SHM & Screw Home Mechanism
+FLASH & Fast Low Angle Shot \\
+FoV & Field of View \\
+GRE & Gradient Echo \\
+MRI & Magnetic Resonance Imaging \\
+OA & Osteoarthritis\\
+PCA & Principal Component Analysis \\
+SHM & Screw Home Mechanism \\
+TE & Time to Echo \\
+TGV & Total Generalized Variation 
 
 \end{tabular}
 
@@ -120,33 +119,35 @@ SHM & Screw Home Mechanism
 
 \section{Introduction}
 
-The knee joint, a crucial structure in human movement, consists of various tissues with distinct structural and mechanical properties, including articular cartilage and meniscus. These components are regularly subjected to compressive mechanical loads, making them susceptible to degenerative conditions such as osteoarthritis (OA). OA affects a significant portion of the global population and primarily targets the knee joint, leading to functional impairments and increased healthcare costs. As society ages, the prevalence and impact of OA are expected to rise, posing significant public health challenges \parencite{yelin_burden_2016}. Early diagnosis of OA is crucial for timely intervention, and magnetic resonance imaging (MRI) has emerged as a promising non-invasive technique due to its excellent soft tissue contrast and high spatial resolution \parencite{kijowski_osteoarthritis_2020} . 
+The knee joint, a crucial structure in human movement, consists of various tissues with distinct structural and mechanical properties, including articular cartilage and meniscus. These components are regularly subjected to compressive mechanical loads, making them susceptible to degenerative conditions such as osteoarthritis (OA). OA affects a significant portion of the global population and the knee joint is among its common targets, leading to functional impairments and increased healthcare costs. \parencite{WHO} A comprehensive survey across 15 European countries and Israel found that knee pain was the third most commonly reported type of chronic pain, underscoring the significant public health concern it represents \parencite{breivik_survey_2006}. Furthermore, OA was identified as the most common cause of this pain. This situation has not improved over time. In Germany, for instance, a recent retrospective study found that the number of patients with OA is steadily rising \parencite{obermuller_epidemiology_2024}. As society ages, the prevalence and impact of OA are expected to rise, posing significant public health challenges. \parencite{yelin_burden_2016}. Knee-related issues are prevalent and impactful due to the inherent complexity of the knee joint itself. As a hub of various anatomical structures working in unison, the knee supports a range of movements and bears significant loads, making it susceptible to a variety of injuries and conditions. Early diagnosis of OA is crucial for timely intervention, and understanding the anatomy of the knee is the first step in tackling this problem. Magnetic resonance imaging (MRI) has emerged as a promising non-invasive technique for early diagnosis of OA due to its excellent soft tissue contrast and high spatial resolution \parencite{kijowski_osteoarthritis_2020}. 
 
-Traditionally, MRI studies of the knee joint have been performed with the joint at rest or in non-weight-bearing conditions, which do not accurately reflect the physiological state of the knee during daily activities. \parencite{blankevoort_envelope_1988} This limitation can result in missed detections of early-stage OA or minor lesions that manifest only under mechanical loading. Moreover, the mechanical properties of musculoskeletal tissues may vary significantly before any notable morphological changes are detectable by MRI.
+Traditionally, MRI studies aimed at assessing the structure and function of the knee joint have been performed with the joint at rest or in non-weight-bearing conditions, which, however, do not accurately reflect the physiological state of the knee during daily activities \parencite{blankevoort_envelope_1988}. For instance, research has shown that bone marrow lesions, which are associated with osteoarthritis progression, are significantly related to mechanical loading during activities like walking, highlighting the limitations of non-weight-bearing MRIs in detecting early-stage OA \parencite{bennell_bone_2010}. Additionally, dynamic MRI studies have demonstrated that knee kinematics during continuous movement reveal significant differences compared to static positions, providing crucial information that static scans may miss \parencite{dentremont_dynamicbased_2013}.
 
-Recent advancements in MRI technology have enabled the study of knee joints under mechanical loading conditions, which better mimic the actual physiological environment. MRI-compatible loading devices allow for the controlled application of mechanical loads during imaging, facilitating the investigation of tissue deformation and morphological changes in response to stress \parencite{shimozaki_extrusion_2023} \parencite{conconi_-vivo_2023} \parencite{jogi_device_2022}. Various MRI measures, including tissue deformation from magnitude images, phase information, and quantitative MRI, have been employed to assess these changes. 
+Recent advancements in MRI technology have enabled the study of knee joints under mechanical loading conditions, better mimicking the actual physiological environment by allowing both controlled application of loads and dynamic movement during imaging \parencite{brisson_repeatability_2024} \parencite{conconi_-vivo_2023} \parencite{jogi_device_2022}. MRI-compatible loading devices facilitate the investigation of how tissues deform and how their morphology changes in response to stress and movement.  Various MRI measures, including tissue deformation from magnitude images, phase information, and quantitative MRI, have been employed to assess these changes. 
 
-Making use of these advanced imaging techniques, this thesis investigates the biomechanical analysis of the knee joint using high-resolution CINE MRI imaging, focusing on the dynamic interactions between the femur and tibia during flexion-extension cycles under various loading conditions. With these detailed images of knee movements, this research presents unique opportunities for extracting meaningful insights into in vivo knee dynamics that can contribute to orthopedic research and clinical practice.
+Building on these recent advancements in MRI technology, this thesis utilizes high-resolution dynamic MRI to develop a method for analyzing the relative movements between the femur and tibia during flexion-extension cycles under various loading conditions.  This method is then applied to track specific kinematic parameters at various points in the movement cycles, providing a basis for validating the method and conducting detailed biomechanical analyses.
 
-However, the primary challenge in utilizing these detailed images lies in the accurate segmentation of key anatomical structures. This segmentation is crucial, as it significantly influences the reliability of biomechanical measurements derived from the MRI data. Traditional manual segmentation methods, while straightforward, are time-consuming and prone to inconsistencies, especially when dealing with multiple frames across time. To address these issues, this thesis proposes the development of a semi-automated segmentation pipeline. This new methodology aims to streamline the segmentation process, reducing the time and effort involved while enhancing accuracy and consistency across sequential images.
+To achieve reliable kinematic analyses, the initial step involves accurately segmenting key anatomical structures from the dynamic MRI sequences. This segmentation is crucial, as it significantly influences the reliability of biomechanical measurements derived from the MRI data. Traditionally, segmentation of musculoskeletal tissues has been performed manually in which a user delineates the boundaries of each joint structure on each MR image slice that is extremely time-consuming with its efficiency and repeatability influenced by the level of user expertise. \parencite{mcwalter_use_2005}. This problem is exacerbated when dealing with multiple frames in a dynamic sequence. On the other hand, modern techniques like Convolutional Neural Networks (CNNs) and U-Nets are being widely used to automate the segmentation process \parencite{liu_deep_2018}. Unfortunately, these methods typically require large annotated datasets for training, which are not available for the type of dynamic frames in this project. To address these issues, this thesis proposes the development of a semi-automated pipeline to segment the tibia and femur from the dynamic MRI data, specifically from single-slice 2D images in sagittal view captured throughout the knee's motion cycle under both loaded and unloaded conditions. This new methodology aims to streamline the segmentation process, reducing the time and effort involved while enhancing accuracy and consistency across sequential images.
 
-Following the successful segmentation of the femur and tibia, the subsequent analysis involves quantifying two distinct biomechanical parameters: the angle between the long axes of the segments and the distance between specific anatomical landmarks on these bones. These measurements are calculated from single-slice 2D images in sagital view captured throughout the knee's motion cycle under both loaded and unloaded conditions. The purpose of this quantification is to explore potential differences in the kinematics of the knee joint under varying load and to provide an indirect assessment of knee stability and functionality. 
+Following the successful segmentation of the bones, the subsequent analysis involves quantifying two distinct biomechanical parameters: the angle between the long axes of the tibia and femur segments and the distance between specific anatomical landmarks on these bones. These parameters were chosen because they naturally capture the relative motion and spatial relationships between the femur and tibia, which are essential for understanding knee joint mechanics. The purpose of this quantification is to investigate how these parameters change throughout the motion cycle and how they vary under loaded and unloaded conditions. Conducting this study on healthy volunteers aims to establish normative trends that can serve as benchmarks for future comparisons with patient data, potentially aiding in the assessment of knee joint stability and functionality. 
 
 \section{Fundamentals}
 \label{sec:intro}
 
 
 \subsection{The Knee Joint }
-The knee joint, a pivotal structure in the human body, plays an essential role in locomotion. Additionally, it functions to control the center of body mass and posture in the activities of daily living by facilitating a wide range of movements. As such, the knee's health and integrity are vital for overall quality of life, influencing everything from basic mobility to participation in complex sports. A comprehensive survey across 15 European countries and Israel found that knee pain was the third most commonly reported type of chronic pain. This underscores the significant public health concern it represents \parencite{breivik_survey_2006}. Furthermore, OA was identified as the most common cause of this pain. 
 
-This situation has not improved over time. In Germany for instance, a recent retrospective study has found that the number of patients with OA is steadily rising \parencite{obermuller_epidemiology_2024}. 
-Knee-related issues are prevalent and impactful due to the inherent complexity of the knee joint itself. As a hub of various anatomical structures working in unison, the knee supports a range of movements and bears significant loads, making it susceptible to a variety of injuries and conditions.
-Understanding the anatomy of the knee is the first step in tackling this problem. 
+The knee joint is the largest and the most superficial synovial joint in the body \parencite{dalley_moores_2023}. The anatomy of the knee joint includes several important structures such as bones, cartilage, and ligaments. These components work together to provide stability and flexibility to the joint. Figure \ref{fig:kniearthrosekniegelenk-anatomieenjpg} illustrates the anatomy of the right knee joint, highlighting these key structures.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{kniearthrose_kniegelenk-anatomie_enjpg}
+	\caption{Anatomy of the right knee joint showing bones, cartilage, and ligaments. Left: front view; Right: side view. Key structures include the femur (thigh bone), tibia (shinbone), fibula (calf bone), patella (kneecap), articular cartilage, meniscus, and various ligaments such as the cruciate ligaments, lateral collateral ligament, and medial collateral ligament. \parencite{informedhealth2021}}
+	\label{fig:kniearthrosekniegelenk-anatomieenjpg}
+\end{figure}
 
-\textbf{Anatomy and Function}
-
-The knee joint is the largest and the most superficial synovial joint in the body. \parencite{dalley_moores_2023}. 
-It comprises three primary articulations:two femorotibial articulations (see Figure \ref{fig:rightkneeplate519}) and one femoropatellar articulation. These articulations, illustrated in Figure \ref{fig:rightkneeplate519} and \ref{fig:patellarsurface}, are defined by their complexity and incongruence, features that are crucial for the joint's biomechanical performance. 
+ 
+It consists of three compartments that form a dynamic, specialized hinge joint \parencite[p.1395]{standring_grays_2021}. These compartments are the medial compartment, the lateral compartment, and the patellofemoral compartment.
+Each compartment contains primary articulations that contribute to the joint's biomechanical performance. Specifically, the knee comprises two femorotibial articulations—one in the medial compartment and one in the lateral compartment (see Figure \ref{fig:rightkneeplate519})—and one femoropatellar articulation in the patellofemoral compartment (see Figure \ref{fig:patellarsurface}).  These articulations, illustrated in  are defined by their complexity and incongruence. 
  
 \begin{figure}[H]
 	\centering
@@ -162,7 +163,7 @@ It comprises three primary articulations:two femorotibial articulations (see Fig
 	\label{fig:patellarsurface}
 \end{figure}
 
-This design allows the knee to manage a wide array of movements and bear significant loads. Figure \ref{fig:sixdegrees} illustrates the knee's capacity for multidimensional movement, highlighting the joint's sophisticated structural design that enables this versatility. However, this inherent design also renders the knee vulnerable to a range of forces \parencite{standring_grays_2021}.
+This design allows the knee to manage a wide array of movements and bear significant loads. Figure \ref{fig:sixdegrees} illustrates the knee's capacity for multidimensional movement, highlighting the joint's sophisticated structural design that enables this versatility. However, this inherent design also renders the knee vulnerable to a range of forces, including compressive forces acting on bone and cartilage, tensile stresses in periarticular ligaments, and substantial muscular forces required to maintain balance during weight-bearing activities. \parencite{standring_grays_2021} For instance, during symmetrical stance on both feet, each knee supports approximately 43 \% of the body's weight, necessitating precise muscular coordination to maintain equilibrium \parencite{maquet2012biomechanics}.
 
 \begin{figure}[H]
 	\centering
@@ -171,10 +172,10 @@ This design allows the knee to manage a wide array of movements and bear signifi
 	\label{fig:sixdegrees}
 \end{figure}
 
-Such mechanical forces, influenced by activities and body mass index (BMI), are significant causes of OA and represent one of the most modifiable risk factors \parencite{heidari_knee_2011}. Furthermore, abnormal joint loading is considered a key mechanical driver of osteochondral changes thought to contribute to the initiation and progression of knee OA \parencite{coburn_immediate_2023}.
+Such mechanical forces, influenced by activities and body mass index (BMI), are significant causes of OA and represent one of the most modifiable risk factors \parencite{heidari_knee_2011}. Both static and dynamic forces play critical roles in the pathophysiology of OA. Static forces, such as those experienced while standing, contribute significantly to mechanical stress on the knee joint, exacerbating the risk of OA \parencite{egloff_biomechanics_2012}. Additionally, abnormal joint loading during movement is a key mechanical driver of osteochondral changes that contribute to the initiation and progression of knee OA \parencite{coburn_immediate_2023}.
 
 
-The relationship between biomechanical stresses and knee health highlights the need for diagnostic tools that fulfill two key criteria: they must capture the knee's dynamic behavior during motion and assess the joint under varying loads. Dynamic magnetic resonance imaging (MRI) excels in meeting these requirements as one of the most advanced imaging modalities.
+The relationship between biomechanical stresses and knee health highlights the need for diagnostic tools that fulfill two key criteria: they must capture the knee's dynamic behavior during motion and assess the joint under varying loads. Dynamic MRI is emerging as a notable imaging modality that meets these criteria \parencite{conconi_-vivo_2023}. 
 
 
 \subsection{Dynamic MRI}
@@ -186,11 +187,11 @@ CINE, derived from 'cinematography,' refers to creating a movie-like sequence of
 
 \subsubsection{Gating} 
 
-This synchronization, known as gating, aligns image acquisition with specific, repeatable points in the knee's movement cycle. By ensuring each captured image corresponds accurately to a consistent phase of motion, it minimizes the discrepancies that can arise from cycle-to-cycle variations, enhancing the reliability of bio-mechanical analyses. Retrospective gating, one of the two main types alongside prospective gating, provides consistent image quality. This makes it a suitable choice for applications like CINE imaging \parencite[p. 102]{edelman_clinical_1996}. In retrospective gating, the data is acquired continuously throughout the motion cycle. The data is then reordered post-acquisition into a coherent sequence that shows the knee at different positions along the motion cycle. This necessitates external information that captures the precise moment and position of the knee throughout its range of movement beyond just the raw data acquired during the MRI scan. A previously reported novel knee loading device is employed to address this, which comes with an optical sensor attachment that provides this vital information that includes the exact timing and degree of knee flexion and extension, which is essential for accurately synchronizing the imaging frames with specific phases of the knee’s motion cycle \parencite{brisson_novel_2022}. 
+This synchronization, known as gating, aligns image acquisition with specific, repeatable points in the knee's movement cycle. By ensuring each captured image corresponds accurately to a consistent phase of motion, it minimizes the discrepancies that can arise from cycle-to-cycle variations, enhancing the reliability of bio-mechanical analyses. There are two main types of gating: retrospective and prospective. In prospective gating, image acquisition is triggered at specific points in the motion cycle in real-time. In retrospective gating, the data is acquired continuously throughout the motion cycle \parencite{edelman_clinical_1996}. The data is then reordered post-acquisition into a coherent sequence that captures the knee at different positions along the motion cycle. This necessitates external information that captures the precise moment and position of the knee throughout its range of movement beyond just the raw data acquired during the MRI scan. A MR-safe knee loading device is employed to address this, which comes with an optical sensor attachment that provides this vital information that includes the exact timing and degree of knee flexion and extension, which is essential for accurately synchronizing the imaging frames with specific phases of the knee’s motion cycle \parencite{brisson_novel_2022}. 
 
 \subsubsection{Knee loading device }
 
-The MR-compatible knee loading device employed in this study is illustrated in Figure \ref{fig:kneedevice}. This device allowed for a range of motion of approximately 25 to 45 degrees (subject-dependent), enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates and sandbags, providing a physiological load of 10 to 12 kilograms. These weights are positioned at the distal end of the device, directly influencing the mechanics of knee extension. As the subject extends the knee, they must overcome not only the natural resistance of their body weight but also the additional external load imposed by these weights. Central to this device's functionality is an optical fiber position sensor (MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  measures the ab­solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree \parencite{rickenbach_optical_2013}. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. 
+The MR-compatible knee loading device employed in this study is illustrated in Figure \ref{fig:kneedevice}. This device allowed for a range of motion of approximately 25 to 45 degrees (subject-dependent), enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates and sandbags, providing a physiological load of 10 to 12 kilograms. These weights are positioned at the end of the device near the subject's lower limb. As the subject extends the knee, they must overcome not only the natural resistance of their body weight but also the additional external load imposed by these weights. Similarly, as the subject flexes the knee from the extended position, they have to lower the leg in a controlled manner. Central to this device's functionality is an optical fiber position sensor (MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  measures the ab­solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree \parencite{rickenbach_optical_2013}. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. 
 \begin{figure} [H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{sensor_img}

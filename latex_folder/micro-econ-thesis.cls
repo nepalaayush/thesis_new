@@ -120,8 +120,8 @@
 			\@thesisAuthor \\
 			\texttt{\@thesisMail}\\
 			Student ID: \@thesisMatrikel \\
-      Address:\\
-			\@thesisAddress
+%      Address:\\
+%			\@thesisAddress
 			\par
     }
 		\end{minipage}
