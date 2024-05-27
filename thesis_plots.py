@@ -7,8 +7,8 @@ Created on Wed May 22 12:13:55 2024
 """
 
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 
 import pickle
 import pandas as pd
@@ -67,6 +67,88 @@ def plot_binned_angle_data(df, bin_width):
     
 # Example usage
 plot_binned_angle_data(modified_angle_df, 10)
+
+
+#%%
+
+def plot_binned_data(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that include the full range from -100 to 100
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percent Flexed' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Norm'].mean().reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+    default_palette = sns.color_palette()
+    custom_palette = {'Loaded': default_palette[1], 'Unloaded': default_palette[0]}
+
+    # Plotting the data
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(
+        data=grouped,
+        x='Bin_Center',
+        y='Relative Norm',
+        hue='Condition',
+        marker="o",  # Adds markers to each data point
+        #err_style="bars",  # Shows error bars instead of a band
+        ci='sd',  # Uses standard deviation for the error bars
+        palette = custom_palette
+    )
+    plt.axhline(y=0, color='gray', linestyle='--')  # Adds a horizontal line at y=0
+    plt.axvline(x=0, color='gray', linestyle='--')
+    plt.xlabel("Flexion percentage [%]")
+    plt.ylabel("Euclidean Distance (mm)")
+    plt.title("Variation of distance with respect to flexion-extension cycle")
+    plt.savefig('distance_stickman.png', dpi=300)
+    plt.show()
+
+# Example usage
+plot_binned_data(mk_df_point, 10)
+#%%
+mk_df_point  =master_df_point[master_df_point['Dataset'].isin([1, 4])]
+#%%
+# trying to compare the same thing , the distance, but now, showing the dataset on different days. 
+def plot_distance_days(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that include the full range from -100 to 100
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percent Flexed' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Norm'].mean().reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+    default_palette = sns.color_palette()
+    custom_palette = {'Loaded': default_palette[1], 'Unloaded': default_palette[0]}
+
+    # Create a FacetGrid to facet by 'Condition'
+    g = sns.FacetGrid(grouped, col='Condition', hue='Dataset', palette=default_palette, height=6, aspect=1.5)
+    g.map(sns.lineplot, 'Bin_Center', 'Relative Norm', marker="o", ci='sd').add_legend()
+
+    # Add horizontal and vertical lines
+    for ax in g.axes.flat:
+        ax.axhline(y=0, color='gray', linestyle='--')
+        ax.axvline(x=0, color='gray', linestyle='--')
+
+    g.set_axis_labels("Flexion percentage [%]", "Euclidean Distance (mm)")
+    g.set_titles(col_template="{col_name} Condition")
+    plt.subplots_adjust(top=0.85)
+    g.fig.suptitle("Variation of distance with respect to flexion-extension cycle", fontsize=16)
+    plt.savefig('distance_stickman.png', dpi=300)
+    plt.show()
+
+# Example usage
+plot_distance_days(master_df_point[master_df_point['Dataset'].isin([3, 5])], 10)
 
 #%%
 # lets split the data and plot side by side without aggregation 

@@ -12,7 +12,7 @@
 \usepackage[utf8]{inputenc} % depends on the font encoding that you are using
 
 % For formatting of your bibliography, please use the following package with options 
-\usepackage[style=authoryear]{biblatex}
+\usepackage[style=authoryear, maxcitenames=3, mincitenames=2]{biblatex}
 \usepackage{gensymb}
 \usepackage{amsmath}
 \usepackage{booktabs}
@@ -191,7 +191,7 @@ This synchronization, known as gating, aligns image acquisition with specific, r
 
 \subsubsection{Knee loading device }
 
-The MR-compatible knee loading device employed in this study is illustrated in Figure \ref{fig:kneedevice}. This device allowed for a range of motion of approximately 25 to 45 degrees (subject-dependent), enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates and sandbags, providing a physiological load of 10 to 12 kilograms. These weights are positioned at the end of the device near the subject's lower limb. As the subject extends the knee, they must overcome not only the natural resistance of their body weight but also the additional external load imposed by these weights. Similarly, as the subject flexes the knee from the extended position, they have to lower the leg in a controlled manner. Central to this device's functionality is an optical fiber position sensor (MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  measures the ab­solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree \parencite{rickenbach_optical_2013}. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. 
+The MR-compatible knee loading device employed in this study is illustrated in Figure \ref{fig:kneedevice}. This device allowed for a range of motion of approximately 25 to 45 degrees (subject-dependent), enabling subjects to perform knee flexion and extension cycles under both loaded and unloaded conditions. For loading, the device was equipped with compartments for weight plates and sandbags, providing a physiological load of 10 to 12 kilograms. These weights are positioned at the end of the device near the subject's lower limb. As the subject extends the leg, they must overcome not only the natural resistance of their body weight but also the additional external load imposed by these weights. Similarly, as the subject flexes the leg from the extended position, they have to lower the leg in a controlled manner. Central to this device's functionality is an optical fiber position sensor (MR338-Y10C10, Micronor, 155 Camarillo, CA, USA), which precisely  measures the ab­solute angle from 0{\degree}\,to 360\degree \, with a resolution of 0.025\degree \parencite{rickenbach_optical_2013}. This measurement capability is critical for synchronizing the knee's movement with MRI data reconstruction. 
 \begin{figure} [H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{sensor_img}
@@ -200,7 +200,18 @@ The MR-compatible knee loading device employed in this study is illustrated in F
 \end{figure}
 
 
-As shown in Figure \ref{fig:sensorimg} , the MR330 controller interfaces with the MRI-safe MR338 position sensor to facilitate precise measurement within the MRI environment, accommodating up to 300 meters of fiber optic cabling. The controller is connected to a acquisition computer placed outside the scanner while the sensor is attached to the device within. To enhance signal acquisition and the clarity of imaging, two flexible coils (Noras, Variety) as shown in figure \ref{fig:coils} were positioned at key anatomical locations: one at the distal femur and another at the proximal tibia, as specified in the MRI protocol. 
+As shown in Figure \ref{fig:sensorimg} , the MR330 controller interfaces with the MRI-safe MR338 position sensor to facilitate precise measurement within the MRI environment, accommodating up to 300 meters of fiber optic cabling. The controller is connected to a acquisition computer placed outside the scanner while the sensor is attached to the device within. The MR338 rotary encoder continuously monitors the knee's rotation angle using optical signals, which are converted into electrical signals by the MR330 controller. These electrical signals are then sent to the RedLab 1208LS, a USB-based data acquisition module designed for measuring and controlling analog and digital signals (refer to Figure \ref{fig:redlab}). The MRI scanner outputs trigger signals for each sequence repetition, which are also captured by the RedLab 1208FS-Plus. Both the knee rotation signals and the trigger signals are simultaneously sampled by the RedLab 1208FS-Plus and then transmitted to the acquisition computer via USB. The acquisition computer converts these signals into binary data, which is later used for reconstructing the synchronized knee motion and MRI imaging data.  
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.1]{redlab}
+	\caption{The redlab I/O module.}
+	\label{fig:redlab}
+\end{figure}
+
+
+
+
+To enhance signal acquisition and the clarity of imaging, two flexible coils (Noras, Variety) as shown in Figure \ref{fig:coils} were positioned at key anatomical locations: one at the distal femur and another at the proximal tibia, as specified in the MRI protocol. 
 
 \begin{figure}[H]
 	\centering
@@ -213,14 +224,14 @@ As shown in Figure \ref{fig:sensorimg} , the MR330 controller interfaces with th
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\linewidth]{knee_device}
-	\caption{A 3D rendering of the knee motion/loading device (left) and two photographs of the device in a Siemens Magnetom Prisma Fit MRI scanner (right). The top right image (rear view) demonstrates how the distal part of the device sits atop the rails within the scanner bore, which are normally used to guide and support the patient table. The bottom right image (front, oblique view) demonstrates an individual positioned in the device with a flexible coil around the index knee, the thigh secured between the proximal pillow blocks and the ankle fastened to the leg support, as well as the coil plug setup \parencite{brisson_novel_2022}. }
+	\caption{"A 3D rendering of the knee motion/loading device (left) and two photographs of the device in a Siemens Magnetom Prisma Fit MRI scanner (right). The top right image (rear view) demonstrates how the distal part of the device sits atop the rails within the scanner bore, which are normally used to guide and support the patient table. The bottom right image (front, oblique view) demonstrates an individual positioned in the device with a flexible coil around the index knee, the thigh secured between the proximal pillow blocks and the ankle fastened to the leg support, as well as the coil plug setup" \parencite{brisson_novel_2022}. }
 	\label{fig:kneedevice}
 \end{figure}
  
 
 
   
-To further enhance the quality and precision of our imaging, and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo FLASH sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
+To further enhance the quality and precision of imaging, and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo Fast Low-Angle Shot (FLASH) sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
 
 \subsubsection{Radial golden-angle acquisition}
 
@@ -235,7 +246,7 @@ As the name suggests, radial golden-angle acquisition specifically modifies how 
  	\label{fig:radial}
  \end{figure}
  
- The 'golden-angle' strategy, which we employ, optimizes this approach by spacing the radial lines at an angle of approximately 111.25 degrees. This specific angle helps in evenly covering the k-space without overlapping, ensuring that each new image frame provides unique information, thus enhancing image quality and temporal resolution. 
+ The 'golden-angle' strategy, which is employed, optimizes this approach by spacing the radial lines at an angle of approximately 111.25 degrees. This specific angle helps in covering the k-space without overlap, ensuring that each new image frame provides unique information, thus enhancing image quality and temporal resolution. 
  
 \begin{figure}[H]
 	\centering
@@ -245,11 +256,11 @@ As the name suggests, radial golden-angle acquisition specifically modifies how 
 \end{figure}
 
  
-Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditional fixed increment and the golden-angle methods in k-space sampling. It highlights how each approach affects the distribution of sampling lines across k-space. In the figure, part (a) shows radial sampling using a fixed angular increment. This traditional method can lead to gaps or overlaps in data collection, depending on the number of radial profiles used. Part (b) demonstrates the golden-angle method, where each new radial line is placed at an increment of approximately 111.25 degrees. This approach allows for a more uniform distribution of sampling lines across the k-space, enhancing image quality by preventing gaps and reducing redundancy in data collection. Figure \ref{fig:kspacearrow}  shows the k-space of a specific frame during the knee flexion cycle and the corresponding reconstructed MRI image.
+Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditional fixed increment and the golden-angle methods in k-space sampling. It highlights how each approach affects the distribution of sampling lines across k-space. In the figure, part (a) shows radial sampling using a fixed angular increment. This traditional method can lead to gaps or overlaps in data collection, depending on the number of radial profiles used. Part (b) demonstrates the golden-angle method, where each new radial line is placed at an increment of approximately 111.25 degrees. This approach allows for a more uniform distribution of sampling lines across k-space, enhancing image quality by preventing gaps and reducing redundancy in data collection. Figure \ref{fig:kspacearrow}  shows the k-space of a specific frame during the knee flexion cycle and the corresponding reconstructed MRI image.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\linewidth, height=7.3cm]{kspace_arrow}
-	\caption{\textbf{Example of k-space and reconstructed image}. Left: K-space data collected using golden-angle sampling from a specific time point during the knee flexion cycle. Right: Corresponding reconstructed MRI image, illustrating the detailed visualization achievable through golden-angle sampling.}
+	\caption{Example of k-space and reconstructed image. Left: K-space data collected using golden-angle sampling from a specific time point during the knee flexion cycle. Right: Corresponding reconstructed MRI image, illustrating the detailed visualization achievable through golden-angle sampling.}
 	\label{fig:kspacearrow}
 \end{figure}
   
@@ -275,13 +286,13 @@ FLASH is a type of spoiled GRE. It is a naming scheme that spells Fast Low-Angle
 \subsection{Data Collection Methods}
 
 \subsubsection{Procedure Details}
-Dynamic MRI scans were conducted on five healthy individuals, two females and three males, ranging in age from 28 to 39 years and weighing between 55 to 90 kilograms, utilizing a 3 T Siemens Prisma fit scanner. These volunteers were free from any known musculoskeletal disorders and provided their written consent, adhering to the ethical standards approved by the institutional review board. For all of these subjects, the left leg was scanned. In total, 7 unique datasets were acquired for analysis with two subjects measured twice on separate days to check for protocol stability. 
+Dynamic MRI scans were conducted on five healthy individuals, two females and three males, ranging in age from 28 to 39 years and weighing between 55 to 90 kilograms, utilizing a 3 T Siemens Prisma fit scanner. These volunteers were free from any known musculoskeletal disorders and provided their written consent, adhering to the ethical standards approved by the institutional review board. For all of these subjects, the left leg was scanned. In total, 7 unique datasets were acquired. 
 
 
 Once the subject was positioned supine in the scanner, the thigh was secured on a wedge positioner, and the lower leg was attached to an ankle rest, just above the malleoli, using Velcro straps to minimize lateral movement. The knee to be examined is aligned with the device’s axis of rotation, while the other leg rests alongside the MRI scanner's bore.  Knee motion is guided by a belt and sprocket assembly running alongside the lower leg, connected to a gearbox activated by the leg support as the participant flexes and extends the knee. Once the subject was positioned at the scanner's isocenter, their leg naturally assumed a flexed posture due to the design of the device. In this configuration, the leg is cradled by the device arm which is positioned below the level of the knee, ensuring that the leg remains flexed without the volunteer exerting any force.
 
 
-The volunteer engaged in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, with the leg being flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition with weights added to the distal end of the device, the process is repeated without the added resistance to compare both states. The scan duration is around two and a half minutes, amounting to 20 full flexion-extension-flexion cycles. The range of motion for each dataset is noted in table Blank. 
+The volunteer engaged in a controlled exercise, following a metronome set at 60 beats per minute. This pace dictates a four-beat flexion to extension cycle, with the leg being flexed at the first beat and fully extended by the fourth. This equals to 8 beats per cycle, or 7.5 cycles every minute. Initially conducted under a loaded condition, the process is repeated without the added resistance to compare both states. The scan duration is 160 seconds, amounting to 20 full flexion-extension-flexion cycles. The range of motion for each dataset is noted in table \ref{tab:range_of_motion}. 
 
 \begin{table}[H]
 	\centering
