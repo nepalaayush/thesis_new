@@ -7,8 +7,8 @@ Created on Wed May 22 12:13:55 2024
 """
 
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 
 import pickle
 import pandas as pd
@@ -197,7 +197,7 @@ import copy
 figure, plot = matplotlib.pyplot.subplots(figsize=(6,4), tight_layout=True)
 # this creates an empty sequence diagram 
 diagram = mrsd.Diagram(
-    plot, ["RF", "$G_{slice}$", "$G_{phase}$", "$G_{readout}$", "Signal"])
+    plot, ["RF", "$G_{SS}$", "$G_{PE}$", "$G_{FE}$", "Signal"])
 
 
 pulse = mrsd.RFPulse(2, 1, center=0) # duration of 2, magnitude of 1 (always between -1 and 1) and center of 0
@@ -205,7 +205,7 @@ slice_selection = mrsd.Gradient(pulse.duration, 0.5, ramp=0.1, center=pulse.cent
 
 # once we create these two events, we add it to their respective channels : 
 diagram.add("RF", pulse)
-diagram.add("$G_{slice}$", slice_selection)
+diagram.add("$G_{SS}$", slice_selection)
 
 # this is to add objects to the diagram directly 
 '''
@@ -232,7 +232,7 @@ readout = mrsd.Gradient(d_readout, 1, ramp=0.1, center=adc.center)
 
 diagram.add("Signal", adc)
 diagram.add("Signal", echo)
-diagram.add("$G_{readout}$", readout)
+diagram.add("$G_{FE}$", readout)
 
 # there are convenience functions to do this at once. but for now, this is wokring just fine. create diagram, create event variables and just add them.. 
 # what is not working is the resolution 
@@ -242,7 +242,7 @@ diagram.add("$G_{readout}$", readout)
 d_encoding = 1
 
 phase_encoding = mrsd.MultiGradient(d_encoding, 1, 0.1, end=readout.begin)
-diagram.add("$G_{phase}$", phase_encoding)
+diagram.add("$G_{PE}$", phase_encoding)
 
 
 #matplotlib.pyplot.savefig('pulse_diagram_test.png', dpi=300)
@@ -252,10 +252,10 @@ diagram.add("$G_{phase}$", phase_encoding)
 
 # prephasing lobe of the readout gradient 
 readout_prephasing = readout.adapt(d_encoding, -0.5, 0.1, end=readout.begin) # start at the phase encoding, end at the readout begin , negative half amp with a ramp of 0.1 
-diagram.add("$G_{readout}$", readout_prephasing)
+diagram.add("$G_{FE}$", readout_prephasing)
 
 slice_rewinding = slice_selection.adapt(pulse.end, -0.5,0.1, center=phase_encoding.begin)
-diagram.add("$G_{slice}$", slice_rewinding)
+diagram.add("$G_{SS}$", slice_rewinding)
 
 
 # now that the unit is completed in its fullest sense, we can now annotate and make copies 
@@ -264,23 +264,23 @@ TR = 10
 diagram.interval(0,TE, -1.5, 'TE') # apparantly we can go beyond -1, i guess for these cases. it makes sense when we look at the -2.5 
 diagram.interval(0, TR, -2.5, "TR")
 
-diagram.annotate("RF", 0.2, 1, r"$\alpha = 8°$") # im guessing 0.2 is slightly after 0, so its the time point, and 1 would be the mag
+diagram.annotate("RF", 0.2, 1, r"$\alpha^\circ$") # im guessing 0.2 is slightly after 0, so its the time point, and 1 would be the mag
 
 #diagram.annotate("$G_{phase}$", phase_encoding.end, 0.5, r"$\uparrow$") # direction of phase encoding. leaving it off for now 
 
 # now to create copies of the rf and gslice to show the start of next rep, by copying and moving them 
 diagram.add("RF", copy.copy(pulse).move(TR))
-diagram.add("$G_{slice}$", copy.copy(slice_selection).move(TR))
+diagram.add("$G_{SS}$", copy.copy(slice_selection).move(TR))
 
-diagram.annotate("RF", TR+0.2, 1, r"$\alpha$")
+diagram.annotate("RF", TR+0.2, 1, r"$\alpha^\circ$")
 
 
 slice_spoiler = slice_selection.adapt(1, 1,  ramp=0.1, end=7) # just a dumb trial and error i got this to look ok. 
-diagram.add("$G_{slice}$", slice_spoiler)
+diagram.add("$G_{SS}$", slice_spoiler)
 
 
-diagram.annotate("$G_{slice}$", 6, 1.2, "$_{spoiler}$")
+#diagram.annotate("$G_{slice}$", 6, 1.2, "$_{spoiler}$")
 
-diagram.annotate("$G_{slice}$", slice_rewinding.begin, -0.9, "$_{rewinder}$")
+#diagram.annotate("$G_{slice}$", slice_rewinding.begin, -0.9, "$_{rewinder}$")
 
 plt.savefig("flash_seq.png", dpi=300)
