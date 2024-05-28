@@ -18,6 +18,8 @@
 \usepackage{booktabs}
 
 \usepackage{chngcntr}
+\usepackage{caption}
+
 \counterwithout{table}{section}
 
 \addbibresource{bibliography.bib} % add a bib-reference file
@@ -231,12 +233,55 @@ To enhance signal acquisition and the clarity of imaging, two flexible coils (No
 
 
   
-To further enhance the quality and precision of imaging, and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo Fast Low-Angle Shot (FLASH) sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
+To further enhance the quality and precision of the imaging, and to maximize the potential for precise image reconstruction, a previously reported radial golden-angle gradient-echo Fast Low-Angle Shot (FLASH) sequence was used, which is more robust against motion artifacts than Cartesian sequences \parencite{aleksiev_high-resolution_2022}. The following sections will detail the key components of this technique — radial golden-angle acquisition and the gradient-echo FLASH sequence.
+
+\subsubsection{Gradient Echo FLASH sequence}
+
+\textbf{Basics}
+
+At its core, MRI is an imaging technique based on the interaction of nuclear spins with an external magnetic field \textbf{($B_0$}). The primary nucleus used in MRI is the proton in hydrogen, which precesses around the direction of this external field.  When placed in the magnetic field, these protons align with or against the direction of \textbf{$B_0$}, creating a net magnetization vector \textbf{$M_z$} along the field direction. Imaging the human body relies on manipulating and detecting the bulk precession of these hydrogen spins in water, fat, and other organic molecules. \parencite{brown_magnetic_2014}. This manipulation is achieved through various sequences of magnetic field gradients, radiofrequency pulses, and timing sequences. 
+
+
+One such commonly used sequence is the gradient echo (GRE) sequence. Like any other sequence, the process begins with the application of a radiofrequency (RF) pulse. This RF pulse is an oscillating magnetic field applied at the Larmor frequency, which is the natural precession frequency of the hydrogen protons in the magnetic field. This frequency $\omega_0$ is given by the Larmor equation:
+\begin{equation}
+	\omega_0 = \gamma B_0
+	\label{eq:larmor}
+\end{equation}
+where $\gamma$ is the gyromagnetic ratio and $B_0$ is the external magnetic field.
+When the frequency of the RF pulse matches the Larmor frequency, it resonates with the protons, causing the net magnetization vector (\textbf{$M_z$}) to tip from the longitudinal axis into the transverse plane, creating transverse magnetization (\textbf{$M_{xy}$}). This is where the term "resonance" in Magnetic Resonance Imaging originates. 
+
+\textbf{$M_{xy}$} generates the detectable MRI signal by inducing an oscillating voltage in the receiver coils, which is known as free induction decay (FID). However, to form a meaningful image, it is essential to encode spatial information within this signal. This spatial encoding is achieved through the use of gradient magnetic fields applied in various directions. These gradients alter the precession frequencies of the protons based on their spatial positions, allowing the MRI system to map the location of the signals within the body.  
+
+\textbf{The three gradient fields}
+
+The first gradient field applied is the slice-selecting gradient ($G_{SS}$). It is applied in the direction of \textbf{($B_0$}), simultaneously with the application of the RF pulse. 
+This gradient varies the magnetic field strength along the z-axis, causing the protons to precess at different frequencies according to equation \ref{eq:larmor}. As a result, only the protons at a specific location along the z-axis, where their Larmor frequency matches the RF pulse frequency, will resonate and be tipped into the transverse plane, thereby selecting a specific slice for imaging. Immediately after the RF pulse and $G_{SS}$, a rephasing gradient with opposite polarity in the slice-selecting direction is applied. The purpose of this rephasing lobe is to correct for any dephasing caused by the initial  $G_{SS}$. When the initial gradient is applied, protons within the selected slice experience slightly different magnetic field strengths, causing them to dephase. The rephasing gradient lobe reverses this effect by applying a gradient of the same magnitude but opposite polarity, bringing the spins back into phase within the selected slice. This ensures that \textbf{$M_{xy}$} is coherent, maximizing the strength of the detectable signal.
+
+Once the slice is selected, along two perpendicular directions in the transverse plane must be performed. The process begins with frequency encoding. Another gradient field, lets say in the x-direction, called the frequency encoding gradient (\textbf{$G_{FE}$}) , is applied simultaneously during signal acquisition. When this gradient is applied, protons experience different precession frequencies based on their spatial location along the x-axis. The sampled signal will be a superposition of these frequencies, which can be resolved by performing an inverse Fourier transform (FFT) to reconstruct the spatial information along the x-direction. Before the main \textbf{$G_{FE}$} is applied during acquisition, a gradient of opposite polarity, known as the prephasing gradient, is briefly applied. This prephasing gradient slightly dephases the spins, establishing a known initial phase relationship. When the main frequency encoding gradient is subsequently applied, it causes the spins to rephase, forming an echo signal at a specific time. This rephasing process generates the "gradient echo," which is the reason for naming this sequence as it is. The prephasing gradient is typically shorter and is followed by the longer main frequency encoding gradient, ensuring that the spins are coherently rephased at the start of signal acquisition, maximizing the strength of the detected signal.
+
+Next, phase encoding is performed to spatially encode information along the second perpendicular (y) direction. The phase encoding gradient \textbf{($G_{PE}$)} is briefly turned on and then off before $G_{FE}$ is applied. During the time $G_{PE}$ is on, the spins start precessing at different frequencies based on their spatial location along the y-axis, causing them to dephase. When $G_{PE}$ is turned off, the spins return to precessing at the Larmor frequency, but the phase differences induced by the gradient remain. 
+
+After this initial encoding, the same sequence is repeated multiple times. Each repetition is identical except for the magnitude of the phase encoding gradient $G_{PE}$, which is varied systematically. By altering the strength of $G_{PE}$ in each repetition, different phase shifts are induced, corresponding to different spatial locations along the y-axis. This process effectively samples the spatial information across the entire y-direction. The collected data from these repetitions fill what is known as k-space, a matrix that represents the spatial frequency domain of the image. Each line in k-space corresponds to a different phase encoding step. Once k-space is fully sampled, an inverse Fourier transform (FFT) is performed to convert the frequency-domain data into a spatial-domain image. This combination of frequency encoding and phase encoding allows for the reconstruction of a two-dimensional image of the selected slice.
+
+\textbf{FLASH}
+
+The refocusing gradient used in gradient-echo pulse sequences allows for significantly shorter echo times (TE), facilitating faster imaging \parencite[p.94]{westbrook_mri_2019}. However, certain applications, such as dynamic MRI of moving body parts like the leg, demand even quicker acquisition times. To meet these demands, the Fast Low Angle Shot (FLASH) GRE sequence was developed \parencite{haase_flash_1986}. FLASH employs low flip angle RF pulses, which reduce the time needed for the longitudinal magnetization to recover, thereby shortening the repetition time (TR). 
+
+Another important aspect of FLASH sequences is the management of residual transverse magnetization. In gradient echo sequences, after a series of RF pulses, the system reaches a condition known as the steady state. In this state, the magnitude of $M_z$ remains consistent at the end of each TR. However, there can also be residual $M_{xy}$ at the start of each repetition cycle. If this residual transverse magnetization is not managed, it can interfere with the signal and degrade image quality. To address this, FLASH sequences incorporate a strong spoiler gradient in the slice-selecting direction. This gradient deliberately dephases the residual transverse magnetization, ensuring that it does not contribute to the signal in subsequent cycles. By effectively "spoiling" the transverse magnetization, the sequence starts fresh with each repetition, reducing artifacts and enhancing image clarity.
+
+A typical FLASH sequence diagram is shown in Figure \ref{fig:gresimplified}, illustrating the application of low flip angle RF pulses, frequency encoding gradients, and the spoiler gradient.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{flash_seq}
+	\caption{FLASH sequence diagram. The diagram illustrates the key components of the FLASH sequence: RF Pulse ($\alpha^\circ$), Slice-Selecting Gradient ($G_{SS}$), Phase Encoding Gradient ($G_{PE}$), Frequency Encoding Gradient ($G_{FE}$), Signal, and Spoiler Gradient, echo time (TE) and repetition time (TR)}
+	\label{fig:gresimplified}
+\end{figure}
 
 \subsubsection{Radial golden-angle acquisition}
 
 
-As the name suggests, radial golden-angle acquisition specifically modifies how k-space is sampled. Unlike traditional static MRI, which typically employs Cartesian sampling, this method utilizes radial sampling. Here, the data points are collected along radial lines spreading out from the center of k-space, resembling spokes on a wheel. Figure \ref{fig:radial} depicts a generic radial sampling scheme. The separation between any two adjacent circles defines the separation $\Delta k_r$ in the radial sampling direction, whereas, the angular separation between any two successive angular lines in k-space (such as between the two example lines shown in the figure) defines $\Delta \theta$. The two quantities $\Delta k_r$ and $\Delta \theta$ are constrained by the Nyquist sampling criterion. \parencite{brown_magnetic_2014} 
+As the name suggests, radial golden-angle acquisition specifically modifies how k-space is sampled. Unlike traditional static MRI, which typically employs Cartesian line by line sampling, this method utilizes radial sampling. Here, the data points are collected along radial lines spreading out from the center of k-space, resembling spokes on a wheel. Figure \ref{fig:radial} depicts a generic radial sampling scheme. The separation between any two adjacent circles defines the separation $\Delta k_r$ in the radial sampling direction, whereas, the angular separation between any two successive angular lines in k-space (such as between the two example lines shown in the figure) defines $\Delta \theta$. The two quantities $\Delta k_r$ and $\Delta \theta$ are constrained by the Nyquist sampling criterion. \parencite{brown_magnetic_2014} 
   
  \begin{figure}[H]
  	\centering
@@ -246,7 +291,7 @@ As the name suggests, radial golden-angle acquisition specifically modifies how 
  	\label{fig:radial}
  \end{figure}
  
- The 'golden-angle' strategy, which is employed, optimizes this approach by spacing the radial lines at an angle of approximately 111.25 degrees. This specific angle helps in covering the k-space without overlap, ensuring that each new image frame provides unique information, thus enhancing image quality and temporal resolution. 
+ The 'golden-angle' strategy, which was used in this work, optimizes this approach by spacing the radial lines at an angle of approximately 111.25 degrees. This specific angle helps in continuously covering the k-space without overlapping lines, ensuring that each new image frame provides unique information, thus enhancing image quality and temporal resolution. 
  
 \begin{figure}[H]
 	\centering
@@ -256,29 +301,15 @@ As the name suggests, radial golden-angle acquisition specifically modifies how 
 \end{figure}
 
  
-Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditional fixed increment and the golden-angle methods in k-space sampling. It highlights how each approach affects the distribution of sampling lines across k-space. In the figure, part (a) shows radial sampling using a fixed angular increment. This traditional method can lead to gaps or overlaps in data collection, depending on the number of radial profiles used. Part (b) demonstrates the golden-angle method, where each new radial line is placed at an increment of approximately 111.25 degrees. This approach allows for a more uniform distribution of sampling lines across k-space, enhancing image quality by preventing gaps and reducing redundancy in data collection. Figure \ref{fig:kspacearrow}  shows the k-space of a specific frame during the knee flexion cycle and the corresponding reconstructed MRI image.
+Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditional fixed increment and the golden-angle methods in k-space sampling. It highlights how each approach affects the distribution of sampling lines across k-space. In the figure, part (a) shows radial sampling using a fixed angular increment. This traditional method can lead to gaps or overlaps in data collection, depending on the number of radial profiles used. Part (b) demonstrates the golden-angle method, where each new radial line is placed at an increment of approximately 111.25 degrees. This approach allows for a more uniform distribution of sampling lines across k-space, enhancing image quality by preventing gaps and reducing redundancy in data collection. Figure \ref{fig:kspacearrow} is an example of the k-space data acquired during a specific frame of the knee flexion cycle along with  the reconstructed MRI image in real space obtained by applying an inverse 2D Fast Fourier Transform (2D IFFT) to the k-space data.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.9\linewidth, height=7.3cm]{kspace_arrow}
-	\caption{Example of k-space and reconstructed image. Left: K-space data collected using golden-angle sampling from a specific time point during the knee flexion cycle. Right: Corresponding reconstructed MRI image, illustrating the detailed visualization achievable through golden-angle sampling.}
+	\includegraphics[scale=0.3]{kspace_arrow_2}
+	\caption{Left: Exemplary k-space data acquired during a specific frame of the knee flexion cycle. Right: Reconstructed MRI image in real space obtained by applying an inverse 2D Fast Fourier Transform (2D IFFT) to the k-space data}
 	\label{fig:kspacearrow}
 \end{figure}
   
-\subsubsection{Gradient Echo FLASH sequence}
 
-Gradient echo (GRE) imaging sequences are prime candidates for dynamic MRI because it is a fast scanning process. There are two major factors that contribute to its speed. First, unlike the spin echo, we do not need to wait for a long time for the longitudinal magnetization component $M_z$ to sufficiently recover for another repetition. This is because in a GRE sequence, a smaller flip angle can be used. Secondly, the time to echo (TE) is shorter in GRE sequences. In gradient-echo pulse sequences, an RF pulse cannot rephase transverse magnetization to create an echo. The low flip angles used in gradient-echo pulse sequences result in a large component of magnetization remaining in the longitudinal plane after the RF excitation pulse is switched off. The 180° RF pulse would therefore largely invert this magnetization into the -z direction (the direction that is opposite to $B_0$) rather than rephase the transverse magnetization. Therefore, in gradient-echo pulse sequences, a gradient is used to rephase transverse magnetization instead, which allows for faster imaging by significantly reducing the time to echo (TE) \parencite[p.94]{westbrook_mri_2019}.
-
-The scheme of GRE sequence is depicted in Figure \ref{fig:gresimplified}. The notation is as follows: $\alpha^o$: flip angle (less than $90^o$), RF: radio frequency pulse, SS: slice selecting gradient, PE: phase encoding, FE: frequency encoding, TE: echo time and TR: repetition time. Note that in the frequency encoding direction, a negative dephasing lobe is followed by a positive gradient that brings the spins back into phase to generate the signal.    
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.7\linewidth]{flash_seq}
-	\caption{FLASH sequence diagram}
-	\label{fig:gresimplified}
-\end{figure}
-
-After a series of rf pulses are applied, we reach a condition in gradient echo sequences called the \textbf{steady state.} In this state, the magnitude of the longitudinal magnetization component $M_z$ is the same at the end of every TR. Similarly, we can also have a residual transverse magnetization $M_{xy}$ at the start of every repetition cycle. If we deliberately dephase this residual transverse magnetization, the sequence is described as incoherent or spoiled gradient echo sequences.
-
-FLASH is a type of spoiled GRE. It is a naming scheme that spells Fast Low-Angle Shot. \parencite{haase_flash_1986} The introduction of the FLASH technique in the 1980s, known for its rapid acquisition capabilities, marked a significant advancement in MRI technology. It allowed for clearer imaging of dynamic processes and reduced artifacts associated with movement. The original paper on FLASH highlights the technique's potential for "recording NMR movies" to visualize physiological changes, a capability now fully integrated into contemporary MRI practices.
 
 \section{Methodology}
 \label{sec:second}
