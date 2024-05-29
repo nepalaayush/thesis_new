@@ -1,0 +1,257 @@
+reco script 
+
+def _load_gating_signal(gating, channels = 3, sensorformat='ddd'):
+    import pymri 
+    import struct
+    import pandas as pd
+
+    if logging.DEBUG >= pymri.log.level:
+        import matplotlib.pyplot as plt
+    
+    data_bin = open(gating, "rb").read()
+    channels = 3
+    num_el = int(len(data_bin)/channels)
+    data_sensor = []
+    if sensorformat == 'fff':  # old float data
+        bytes = 4
+        columns=['channel_1','channel_3','channel_2'] # last two channels are swapped
+        rescale = False
+    else: # new double data
+        bytes = 8
+        columns=['channel_1','channel_2','channel_3']
+        rescale = True
+    for i in range(num_el):
+        try:
+            data_sensor.append(struct.unpack(sensorformat, data_bin[(i*channels*bytes):((i+1)*channels*bytes)]))
+        except:
+            pass
+
+    # convert to data frame
+    df = pd.DataFrame(data_sensor, columns=columns)
+    if rescale:
+        df["channel_3"] = df["channel_3"] / 20 * 360 # scale to angles in [deg]
+        df["channel_3"] = -df["channel_3"]
+
+    # plot signal
+    if logging.DEBUG >= pymri.log.level:
+        fig, ax = plt.subplots(nrows=1,ncols=1,figsize=(14,5))
+        ax.plot(df["channel_3"] - df["channel_3"][0], label='Sensor data')
+        ax.plot(df["channel_2"] * 7, label='Sequence trigger')
+        ax.legend()
+        ax.minorticks_on()
+        ax.grid(True, which='major', linestyle='-')
+        ax.grid(True, which='minor', linestyle='--', alpha=0.4)
+        n = df["channel_2"].shape[0]
+        ax.set_xlim([n/2 - n*0.05,n/2 + n*0.05]) # display 5% of data
+        #ax.set_ylim([-5, 60])
+        plt.show()
+
+    return df
+
+def reco(data, 
+         gating, 
+         offsetstart=0, 
+         offsetend=0, 
+         anglewindow=2, 
+         direction='pos', 
+         angleincrement=1, 
+         zerofilling=1.0, 
+         engine='grid', 
+         engineargs=None, 
+         fovfactor=2.0, 
+         sensorformat='ddd',
+         repstart=None,
+         repend=None,
+         nogatingnorm=False):
+    import pymri    
+    import pymri.reconstruction
+    import numpy as np
+    import pandas as pd
+
+    if logging.DEBUG >= pymri.log.level:
+        import matplotlib.pyplot as plt
+
+    if repstart == None:
+        repstart = 0
+    if repend == None:
+        repend = data.sizes['repetition']
+
+    # load gating data
+    if type(gating) == str:
+        df = _load_gating_signal(gating, channels = 3, sensorformat = sensorformat)
+    else:
+        df = gating
+
+    # find all indices where a new sequence repetition begins   
+    if sensorformat=="fff":
+        rep_idx = np.nonzero(np.array(df["channel_2"].diff()>4))[0]
+    else:
+        rep_idx = np.nonzero(np.array(df["channel_2"].diff().abs()>4))[0]
+    rep_idx = np.append(rep_idx, rep_idx[-1] + int(np.mean(np.diff(rep_idx))))
+    if logging.INFO >= pymri.log.level:
+        pymri.log.info(f"Number of detected triggers: {len(np.array(df.index)[rep_idx])}")
+        pymri.log.info(f"Average time between triggers: {np.mean(np.diff(np.array(df.index)[rep_idx]))} +/- {np.std(np.diff(np.array(df.index)[rep_idx]))}")
+
+    # reshape input
+    num_repetitions = data.sizes['repetition']
+    data = data.stack(spoke=('repetition', 'line')) # long list of readouts
+
+    # get reconstruction parameters
+    os = 2
+    matrix_size = data.header['matrix_size'][0]
+    cycles = np.array([float(c) for c in data.header['_info']['Cycles'].split(' ') if len(c) > 0])   
+    num_spokes_per_rep = len(cycles) / num_repetitions
+    if len(cycles) < data.sizes['spoke']:
+        cycles = np.tile(cycles, len(rep_idx) - 1)
+
+    # interpolate sensor indices for all readouts
+    read_sensor_idx = []
+    read_sensor_idx.extend(np.linspace(rep_idx[0], rep_idx[-1]-1, len(cycles)))
+    read_sensor_idx = np.round(read_sensor_idx).astype(int)
+    read_idx = np.arange(len(read_sensor_idx))
+
+    # get and smooth sensor signal and calculate slope
+    sensor = pd.Series(np.unwrap(df["channel_3"], period=10)).rolling(100, center=True).mean().to_numpy()
+    sensor = -(sensor - (not nogatingnorm) * np.nanmax(sensor))
+    slope = pd.Series(sensor).rolling(50, center=True).mean()
+    slope = np.diff(slope)
+
+    # reduce to readout grid
+    sensor = sensor[read_sensor_idx]
+    slope = slope[read_sensor_idx]
+
+    # reconstruct all frames
+    pymri.log.info(f'Using window width of {anglewindow} deg')
+    out = []
+    reco_angles = []
+    reco_spokes = []
+    reco_slopes_mean = []
+    reco_slopes_std = []
+    for ida, angle in enumerate(range(int(np.ceil(np.min(sensor))) + offsetstart, int(np.floor(np.max(sensor))) - offsetend, angleincrement)):
+        aw_idx = np.nonzero((sensor > angle - anglewindow/2) & (sensor < angle + anglewindow/2)) # window by angle 
+        if direction == 'pos':
+            direction_idx = np.intersect1d(np.nonzero(slope > 0)[0], read_idx) # only take data with positive slope
+        elif direction == 'neg':
+            direction_idx = np.intersect1d(np.nonzero(slope < 0)[0], read_idx) # only take data with negative slope
+        else:
+            direction_idx = read_idx # do not gate by slope
+        reco_idx = np.intersect1d(direction_idx, aw_idx)
+        reco_slopes_mean.append(np.mean(slope[reco_idx]))
+        reco_slopes_std.append(np.std(slope[reco_idx]))
+
+        # plot signal
+        if logging.DEBUG >= pymri.log.level and ida == 2:
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(14,5))
+            ax.plot(read_idx, sensor, label='Sensor data', color='tab:blue')
+            ax.plot(read_idx[direction_idx], sensor[direction_idx],'.', label='Direction bin', color='tab:orange', markersize=2)
+            ax.plot(reco_idx, sensor[reco_idx],'.', label='Used for frame', color='tab:green')
+            ax.plot([read_idx[0], read_idx[-1]], [angle - anglewindow / 2, angle - anglewindow / 2], '--', color='black', label='Angle bin')
+            ax.plot([read_idx[0], read_idx[-1]], [angle + anglewindow / 2, angle + anglewindow / 2], '--', color='black')
+            ax.legend()
+            ax.minorticks_on()
+            ax.grid(True, which='major', linestyle='-')
+            ax.grid(True, which='minor', linestyle='--', alpha=0.4)
+            n = np.max(read_idx) - np.min(read_idx)
+            ax.set_xlim([n/2 - n*0.05,n/2 + n*0.05]) # display 5% of data
+            plt.show()
+        
+        reco_idx = read_idx[reco_idx]
+        reco_idx = [r for r in reco_idx if (r >= (repstart * num_spokes_per_rep)) & (r <= (repend * num_spokes_per_rep)) ]
+        cycles_reco = cycles[reco_idx]
+        data_reco = data.copy().isel(spoke=reco_idx)
+        pymri.log.info(f"{ida:02d}: Reconstructing Frame using {len(reco_idx)} spokes for angle {angle} deg. Avg slope: {reco_slopes_mean[-1] * 1000:.2f}°/s +/- {reco_slopes_std[-1] * 1000:.2f}°/s")
+
+        # trajectory
+        grad_int = np.linspace(-data_reco.sizes['read'] / os / 2, data_reco.sizes['read'] / os / 2, data_reco.sizes['read'])
+        traj = pymri.reconstruction.trajectory.traj_radial_2d(cycles_reco, grad_int)
+        traj = traj / (matrix_size) # normalize
+        traj = traj / zerofilling # apply zero filling
+
+        # actual reconstruction
+        if 'riesling' in engine:
+            import riesling
+            import tempfile
+
+            # riesling conversion
+            traj_riesling = np.moveaxis(np.reshape(traj, (data_reco.sizes['read'], data_reco.sizes['spoke'], 2)), 0, 1)
+            mat = np.array([matrix_size * 1.5, matrix_size * 1.5, 1])
+            info = {
+                'matrix': mat,
+                'voxel_size': np.array(data.header['fov']) / mat,
+                'direction': np.array([[1,0,0],[0,1,0],[0,0,1]]),
+                'origin': [0,0,0],
+                'tr': data.header['repetition_time'],
+                'trajectory': traj_riesling
+            }
+            data_riesling = np.expand_dims(np.expand_dims(data_reco.transpose('channel', 'read', 'spoke').data, axis=3), axis=4)
+            data_riesling = xr.DataArray(data_riesling, dims=['channel', 'sample', 'trace', 'volume', 'slab'], attrs = info)
+
+            fov = np.array(data.header['fov']) * zerofilling
+            fov[2] = np.array(data.header['fov'])[2]
+            if 'nufft' in engine:
+                if engineargs==None:
+                    nufft_args = f"--fov={fov[0]},{fov[1]},{fov[2]}"
+                else:
+                    nufft_args = engineargs
+
+                img = pymri.io.riesling.run_riesling(data_riesling, 'nufft', params=nufft_args)
+                img = img.abs().power(2).sum(dim='channel').sqrt()
+            elif 'lsmr' in engine:                
+                if engineargs==None:
+                    lsmr_args = f"--sense-fov={fov[0]},{fov[1]},{fov[2]} --fov={fov[0]},{fov[1]},{fov[2]} -i 5"
+                else:
+                    lsmr_args = engineargs
+                img = pymri.io.riesling.run_riesling(data_riesling, 'lsmr', params=lsmr_args)
+                img = img.abs()
+            elif 'admm' in engine: 
+                if engineargs==None:
+                    admm_args = f"--sense-fov={fov[0]},{fov[1]},{fov[2]} --fov={fov[0]},{fov[1]},{fov[2]} --tgv=5e-3 --max-outer-its=10"
+                else:
+                    admm_args = engineargs
+                img = pymri.io.riesling.run_riesling(data_riesling, 'admm', params=admm_args)
+                img = img.abs()
+        else: # assume gridding
+            # grid and reconstruct data
+            data_reco = data_reco.drop_vars(data_reco.coords)
+            weights = pymri.reconstruction.gridding.sdc(traj, np.round(matrix_size * zerofilling))
+            kspace = pymri.reconstruction.gridding.grid(
+                data_reco.stack(point=('read','spoke')).transpose('point',...), 
+                traj, 
+                weights, 
+                np.round(matrix_size * zerofilling)
+            )
+            img = kspace.ifft(dim=('read', 'line')).abs().power(2).sum(dim='channel').sqrt().trim(fovfactor, dim=('read','line'))
+        out.append(img)
+        reco_angles.append(angle)
+        reco_spokes.append(len(reco_idx))
+    out = pymri.MRIArray.concat(out, dim='repetition', unique_header=True)
+    out.attrs['reco_angles'] = reco_angles
+    out.attrs['reco_reco'] = reco_spokes
+    out.attrs['reco_slopes_mean'] = reco_slopes_mean
+    out.attrs['reco_slopes_std'] = reco_slopes_std
+    return out
+    
+def add_args(group):
+    group.add_argument('-g', '--gating', help = 'file with gating signal')
+    group.add_argument('-ngn', '--nogatingnorm', help = 'Do not normalize gating signal to maximum', default=False, action="store_true")
+    group.add_argument('-e', '--engine', help = 'reconstruction engine to use', choices = {'grid', 'riesling-nufft', 'riesling-lsmr', 'riesling-admm'}, default='grid')
+    group.add_argument('-ea', '--engineargs', help = 'additional arguments for reconstruction engine', type=str)
+    group.add_argument('-os', '--offsetstart', help = 'Offset to start angle', default=0, type=int)
+    group.add_argument('-oe', '--offsetend', help = 'Offset to end angle', default=0, type=int)
+    group.add_argument('-rs', '--repstart', help = 'Start repetition', default=None, type=int)
+    group.add_argument('-re', '--repend', help = 'End repetition', default=None, type=int)
+    group.add_argument('-zf', '--zerofilling', help = 'Zero filling factor', default=1, type=float)
+    group.add_argument('-cf', '--fovfactor', help = 'FoV cut factor', default=2, type=float)
+    group.add_argument('-aw', '--anglewindow', help = 'Angle window width', default=2, type=float)
+    group.add_argument('-ai', '--angleincrement', help = 'Angle increment between frames', default=1, type=int)
+    group.add_argument('-d', '--direction', help = 'Use spokes where gating slope is positive, negative or do not gate by slope', choices = {'pos','neg','any'}, default='any')
+    group.add_argument('-sf', '--sensorformat', help = 'sensor file format to use (ddd=double, fff=float)', choices = {'ddd','fff'}, default='ddd')
+
+def check_args(args):
+    valid = True
+    
+    if args.gating == None:
+        print("Error: No gating signal file specified")
+        valid = False
+
+    return valid
