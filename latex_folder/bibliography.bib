@@ -604,11 +604,10 @@ Conclusion: A novel multipurpose device for guided, physiologically relevant kne
 
 
 @article{curtis_primer_2022,
-	title = {Primer and {Historical} {Review} on {Rapid} {Cardiac} {\textless}span style="font-variant:small-caps;"{\textgreater}{CINE} {MRI}{\textless}/span{\textgreater}},
+	title = {Primer and Historical Review on Rapid Cardiac CINE},
 	volume = {55},
 	issn = {1053-1807, 1522-2586},
-	shorttitle = {Primer and {Historical} {Review} on {Rapid} {Cardiac} {\textless}span style="font-variant},
-	url = {https://onlinelibrary.wiley.com/doi/10.1002/jmri.27436},
+	url = {},
 	doi = {10.1002/jmri.27436},
 	abstract = {Acceleration is an important consideration when imaging moving organs such as the heart. Not only does acceleration enable motion‐free scans but, more importantly, it lies at the heart of capturing the dynamics of cardiac motion. For over three decades, various ingenious approaches have been devised and implemented for rapid CINE MRI suitable for dynamic cardiac imaging. Virtually all techniques relied on acquiring less data to reduce acquisition times. Parallel imaging was among the first of these innovations, using multiple receiver coils and mathematical algorithms for reconstruction; acceleration factors of 2 to 3 were readily achieved in clinical practice. However, in the context of imaging dynamic events, further decreases in scan time beyond those provided by parallel imaging were possible by exploiting temporal coherencies. This recognition ushered in the era of
 	k‐t
@@ -619,7 +618,7 @@ Conclusion: A novel multipurpose device for guided, physiologically relevant kne
 	acceleration methods, however, the accuracy of reconstruction was not always guaranteed. To address this gap, MR physicists and mathematicians applied compressed sensing theory to ensure reconstruction accuracy. Reconstruction was, indeed, more robust, but it required optimizing regularization parameters and long reconstruction times. To solve the limitations of all previous methods, researchers have turned to artificial intelligence and deep neural networks for the better part of the past decade, with recent results showing rapid, robust reconstruction. This review provides a comprehensive overview of key developments in the history of CINE MRI acceleration, and offers a unique and intuitive explanation behind the techniques and underlying mathematics.Level of Evidence: 5Technical Efficacy Stage: 1},
 	language = {en},
 	number = {2},
-	urldate = {2024-04-09},
+	urldate = {},
 	journal = {Journal of Magnetic Resonance Imaging},
 	author = {Curtis, Aaron D. and Cheng, Hai‐Ling M.},
 	month = feb,
@@ -648,6 +647,60 @@ Conclusion: A novel multipurpose device for guided, physiologically relevant kne
 	file = {Full Text:C\:\\Users\\Aayush\\Zotero\\storage\\J6TP7PXU\\Menchón-Lara et al. - 2019 - Reconstruction techniques for cardiac cine MRI.pdf:application/pdf},
 }
 
+@article{dillencourt_general_1992,
+	title = {A general approach to connected-component labeling for arbitrary image representations},
+	volume = {39},
+	issn = {0004-5411, 1557-735X},
+	url = {},
+	doi = {10.1145/128749.128750},
+	abstract = {An improved and general approach to connected-component labeling of images is presented. The algorithm presented in this paper processes images in
+	predetermined order
+	, which means that the processing order depends only on the image representation scheme and not on specific properties of the image. The algorithm handles a wide variety of image representation schemes (rasters, run lengths, quadrees, bintrees, etc.). How to adapt the standard {UNION}-{FIND} algorithm to permit reuse of temporary labels is shown. This is done using a technique called
+	age balancing
+	, in which, when two labels are merged, the older label becomes the father of the younger label. This technique can be made to coexist with the more conventional rule of
+	weight 
+	balancing
+	, in which the label with more descendants becomes the father of the label with fewer descendants. Various image scanning orders are examined and classified. It is also shown that when the algorithm is specialized to a pixel array scanned in raster order, the total processing time is linear in the number of pixels. The linear-time processing time follows from a special property of the {UNION}-{FIND} algorithm, which may be of independent interest. This property states that under certain restrictions on the input, {UNION}-{FIND} runs in time linear in the number of {FIND} and {UNION} operations. Under these restrictions, linear-time performance can be achieved without resorting to the more complicated  Gabow-Tarjan algorithm for disjoint set union.},
+	pages = {253--280},
+	number = {2},
+	journaltitle = {Journal of the {ACM}},
+	shortjournal = {J. {ACM}},
+	author = {Dillencourt, Michael B. and Samet, Hanan and Tamminen, Markku},
+	urldate = {},
+	date = {1992-04},
+	langid = {english},
+	file = {Submitted Version:C\:\\Users\\Aayush\\Zotero\\storage\\36LPT54Y\\Dillencourt et al. - 1992 - A general approach to connected-component labeling.pdf:application/pdf},
+}
+
+@article{block_undersampled_2007,
+	title = {Undersampled radial {MRI} with multiple coils. Iterative image reconstruction using a total variation constraint},
+	volume = {57},
+	issn = {0740-3194, 1522-2594},
+	url = {https://onlinelibrary.wiley.com/doi/10.1002/mrm.21236},
+	doi = {10.1002/mrm.21236},
+	abstract = {Abstract
+	The reconstruction of artifact‐free images from radially encoded {MRI} acquisitions poses a difficult task for undersampled data sets, that is for a much lower number of spokes in k‐space than data samples per spoke. Here, we developed an iterative reconstruction method for undersampled radial {MRI} which (i) is based on a nonlinear optimization, (ii) allows for the incorporation of prior knowledge with use of penalty functions, and (iii) deals with data from multiple coils. The procedure arises as a two‐step mechanism which first estimates the coil profiles and then renders a final image that complies with the actual observations. Prior knowledge is introduced by penalizing edges in coil profiles and by a total variation constraint for the final image. The latter condition leads to an effective suppression of undersampling (streaking) artifacts and further adds a certain degree of denoising. Apart from simulations, experimental results for a radial spin‐echo {MRI} sequence are presented for phantoms and human brain in vivo at 2.9 T using 24, 48, and 96 spokes with 256 data samples. In comparison to conventional reconstructions (regridding) the proposed method yielded visually improved image quality in all cases. Magn Reson Med 57:1086–1098, 2007. © 2007 Wiley‐Liss, Inc.},
+	pages = {1086--1098},
+	number = {6},
+	journaltitle = {Magnetic Resonance in Medicine},
+	shortjournal = {Magnetic Resonance in Med},
+	author = {Block, Kai Tobias and Uecker, Martin and Frahm, Jens},
+	urldate = {2024-05-29},
+	date = {2007-06},
+	langid = {english},
+	file = {Full Text:C\:\\Users\\Aayush\\Zotero\\storage\\IDPM73XM\\Block et al. - 2007 - Undersampled radial MRI with multiple coils. Itera.pdf:application/pdf},
+}
+
+
+@inproceedings{Hinneburg2000neare-5849,
+	year={2000},
+	title={What is the nearest neighbor in high dimensional spaces?},
+	booktitle={Proc. of the 26th Internat. Conference on Very Large Databases, Cairo, Egypt, 2000},
+	pages={506--515},
+	author={Hinneburg, Alexander and Aggarwal, Charu C. and Keim, Daniel A.}
+}
+
+
 @book{brown_magnetic_2014,
 	location = {Hoboken, New Jersey},
 	edition = {Second edition},
@@ -668,12 +721,12 @@ Conclusion: A novel multipurpose device for guided, physiologically relevant kne
 	volume = {26},
 	copyright = {https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/IEEE.html},
 	issn = {0278-0062},
-	url = {http://ieeexplore.ieee.org/document/4039540/},
+	url = {},
 	doi = {10.1109/TMI.2006.885337},
 	abstract = {In dynamic magnetic resonance imaging (MRI) studies, the motion kinetics or the contrast variability are often hard to predict, hampering an appropriate choice of the image update rate or the temporal resolution. A constant azimuthal proﬁle spacing (111.246 ), based on the Golden Ratio, is investigated as optimal for image reconstruction from an arbitrary number of proﬁles in radial MRI. The proﬁle order is evaluated and compared with a uniform proﬁle distribution in terms of signal-to-noise ratio (SNR) and artifact level. The favorable characteristics of such a proﬁle order are exempliﬁed in two applications on healthy volunteers. First, an advanced sliding window reconstruction scheme is applied to dynamic cardiac imaging, with a reconstruction window that can be ﬂexibly adjusted according to the extent of cardiac motion that is acceptable. Second, a contrast-enhancing -space ﬁlter is presented that permits reconstructing an arbitrary number of images at arbitrary time points from one raw data set. The ﬁlter was utilized to depict the T1-relaxation in the brain after a single inversion prepulse. While a uniform proﬁle distribution with a constant angle increment is optimal for a ﬁxed and predetermined number of proﬁles, a proﬁle distribution based on the Golden Ratio proved to be an appropriate solution for an arbitrary number of proﬁles.},
 	language = {en},
 	number = {1},
-	urldate = {2024-04-18},
+	urldate = {},
 	journal = {IEEE Transactions on Medical Imaging},
 	author = {Winkelmann, Stefanie and Schaeffter, Tobias and Koehler, Thomas and Eggers, Holger and Doessel, Olaf},
 	month = jan,
@@ -769,6 +822,42 @@ Conclusion: A novel multipurpose device for guided, physiologically relevant kne
 }
 
 
+@article{tgv,
+	author = {Bredies, Kristian and Kunisch, Karl and Pock, Thomas},
+	title = {Total Generalized Variation},
+	journal = {SIAM Journal on Imaging Sciences},
+	volume = {3},
+	number = {3},
+	pages = {492-526},
+	year = {2010},
+	doi = {10.1137/090769521},
+	
+	URL = {},
+	eprint = {}
+	,
+	abstract = { The novel concept of total generalized variation of a function u is introduced, and some of its essential properties are proved. Differently from the bounded variation seminorm, the new concept involves higher-order derivatives of u. Numerical examples illustrate the high quality of this functional as a regularization term for mathematical imaging problems. In particular this functional selectively regularizes on different regularity levels and, as a side effect, does not lead to a staircasing effect. }
+}
+
+
+@article{heath_robust_1997,
+	title = {A robust visual method for assessing the relative performance of edge-detection algorithms},
+	volume = {19},
+	rights = {https://ieeexplore.ieee.org/Xplorehelp/downloads/license-information/{IEEE}.html},
+	issn = {0162-8828, 2160-9292},
+	url = {http://ieeexplore.ieee.org/document/643893/},
+	doi = {10.1109/34.643893},
+	pages = {1338--1359},
+	number = {12},
+	journaltitle = {{IEEE} Transactions on Pattern Analysis and Machine Intelligence},
+	shortjournal = {{IEEE} Trans. Pattern Anal. Mach. Intell.},
+	author = {Heath, M.D. and Sarkar, S. and Sanocki, T. and Bowyer, K.W.},
+	urldate = {2024-05-29},
+	date = {1997-12},
+}
+
+
+
+
 
 @article{samet_efficient_1988,
 	title = {Efficient component labeling of images of arbitrary dimension represented by linear bintrees},
@@ -808,23 +897,37 @@ Conclusion: A novel multipurpose device for guided, physiologically relevant kne
 	title = {A Simplex Method for Function Minimization},
 	volume = {7},
 	issn = {0010-4620, 1460-2067},
-	url = {https://academic.oup.com/comjnl/article-lookup/doi/10.1093/comjnl/7.4.308},
+	url = {},
 	doi = {10.1093/comjnl/7.4.308},
 	pages = {308--313},
 	number = {4},
 	journaltitle = {The Computer Journal},
 	shortjournal = {The Computer Journal},
 	author = {Nelder, J. A. and Mead, R.},
-	urldate = {2024-05-16},
+	urldate = {},
 	date = {1965-01-01},
 	langid = {english},
 }
+
+@book{jolliffe_principal_2004,
+	location = {New York Berlin Heidelberg},
+	edition = {2. ed., [Nachdr.]},
+	title = {Principal component analysis},
+	isbn = {978-0-387-95442-4},
+	series = {Springer series in statistics},
+	pagetotal = {487},
+	publisher = {Springer},
+	author = {Jolliffe, Ian T.},
+	date = {2004},
+	annotation = {Literaturverz. S. [415] - 457},
+}
+
 
 @article{dai_comparing_2021,
 	title = {Comparing the {Tibial} {Tuberosity}–{Trochlear} {Groove} {Distance} {Between} {CT} and {MRI} in {Skeletally} {Immature} {Patients} {With} and {Without} {Patellar} {Instability}},
 	volume = {9},
 	issn = {2325-9671, 2325-9671},
-	url = {http://journals.sagepub.com/doi/10.1177/2325967120973665},
+	url = {},
 	doi = {10.1177/2325967120973665},
 	abstract = {Background:
 	The tibial tubercle–trochlear groove (TT-TG) distance was originally described for computed tomography (CT), but it has been measured on magnetic resonance imaging (MRI) in patients with patellar instability (PI). Whether the TT-TG measured on CT versus MRI can be considered equivalent in skeletally immature children remains unclear.
@@ -850,7 +953,7 @@ Conclusion: A novel multipurpose device for guided, physiologically relevant kne
 	For skeletally immature patients, the TT-TG distance could be evaluated on MRI, regardless of whether cartilage or bony landmarks were used. Its value could not be interchanged with CT according to our results; however, further research on this topic is needed.},
 	language = {en},
 	number = {1},
-	urldate = {2024-05-17},
+	urldate = {},
 	journal = {Orthopaedic Journal of Sports Medicine},
 	author = {Dai, Zhen-Zhen and Sha, Lin and Zhang, Zi-Ming and Liang, Zhen-Peng and Li, Hao and Li, Hai},
 	month = jan,
