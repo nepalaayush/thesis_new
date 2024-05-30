@@ -165,10 +165,10 @@ final_label_3d = (final_label_3d == 3)
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
-final_label = viewer.layers['final_label_3d'].data  # or final_label_3d
+final_label = viewer.layers['US_W_final_label_tib'].data  # or final_label_3d
 #Step 11: once the final edge has been found, convert it to a list of arrays.
 #%% 
-#tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
+tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
 #  just finding the frame with the least number of points
 find_array_with_min_n(tib_coords)
 #%%
@@ -196,19 +196,20 @@ transformation_matrices_first, giant_list_first, cost_values_first = combined_co
 viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='transformed_frame_W_stiched')
 #%%
 ''' below is the cost value dataframe creation and plotting routine  ''' 
-with open('cost_df_NW_fem.pkl', 'wb') as file:
-    pickle.dump(cost_df_NW_fem, file)
+with open('master_df_cost.pkl', 'wb') as file:
+    pickle.dump(combined_df, file)
     
 #%%
 import pandas as pd
 def create_cost_value(array):
     tib_coords = boolean_to_coords(array)
-    reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='femur')
+    reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='tibia')
     tib_coords[0] = reference_frame_first
     transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(tib_coords)
     return cost_values_first
 
-array_names = ['MK_NW_final_label_fem_stiched', 'MM_NW_final_label_fem', 'AN_NW_final_label_fem_s',  'MK_NW_final_label_fem_s', 'AN_NW_final_label_fem','HS_NW_final_label_fem', 'JL_NW_final_label_fem' ]
+array_names = ['MK_W_final_label_tib_stiched_other', 'MM_W_final_label_tib', 'AN_W_final_label_tib_3',  
+               'MK_W_final_label_tib_s', 'AN_W_final_label_tib_5','final_label_HS_W_tib', 'JL_W_final_label_tib' ]
 
 def create_dataframe(array_names):
     # Create an empty DataFrame
@@ -234,18 +235,39 @@ def create_dataframe(array_names):
     return all_data
 
 
-cost_df_NW_fem = create_dataframe(array_names)
+cost_df_W_tib = create_dataframe(array_names)
 #%%
-unique_labels = cost_df_NW_fem['Dataset'].unique()
+unique_labels = cost_df_W_tib['Dataset'].unique()
 
 # Create a dictionary mapping each unique label to an integer
 label_to_int = {label: idx + 1 for idx, label in enumerate(unique_labels)}
 
 # Replace the string labels in the DataFrame with integers
-cost_df_NW_fem['Dataset'] = cost_df_NW_fem['Dataset'].replace(label_to_int)
+cost_df_W_tib['Dataset'] = cost_df_W_tib['Dataset'].replace(label_to_int)
 
 #%%
-cost_df_NW_fem['Average Cost'] = cost_df_NW_fem['Total Cost'] / 80 
+cost_df_W_tib['Average Cost'] = cost_df_W_tib['Total Cost'] / 80 
+
+#%%
+# master df for all the cost values 
+
+# Adding 'Condition' and 'Bone' columns based on the DataFrame names
+cost_df_W_fem['Condition'] = 'Loaded'
+cost_df_W_fem['Bone'] = 'Femur'
+
+cost_df_W_tib['Condition'] = 'Loaded'
+cost_df_W_tib['Bone'] = 'Tibia'
+
+cost_nw_fem_all['Condition'] = 'Unloaded'
+cost_nw_fem_all['Bone'] = 'Femur'
+
+cost_nw_tib_all['Condition'] = 'Unloaded'
+cost_nw_tib_all['Bone'] = 'Tibia'
+
+# Concatenate all dataframes into one
+combined_df = pd.concat([cost_df_W_fem, cost_df_W_tib, cost_nw_fem_all, cost_nw_tib_all], ignore_index=True)
+
+
 #%%
 # Correct the DataFrame filtering to include frames from 1 to 29
 filtered_df = cost_df_50[(cost_df_50['Frame'] > 0) & (cost_df_50['Frame'] < 31)]
@@ -322,11 +344,11 @@ def plot_cost_bar(cost_df):
     plt.title('Mean alignment error per point for all datasets')
     plt.xlabel('Dataset')
     plt.ylabel('Mean Alignment Error [mm]')
-    plt.savefig('bar_alignment_NW_fem.png', dpi=300)
+    #plt.savefig('bar_alignment_NW_fem.png', dpi=300)
     # Display the plot
     plt.show()
 
-plot_cost_bar(cost_df_NW_fem)
+plot_cost_bar(cost_nw_tib_all[cost_nw_tib_all['Dataset'].isin([2,4,5,6,7])])
 #%%
 # this is for df_W 
 '''    Dataset      mean       std   mean_mm    std_mm

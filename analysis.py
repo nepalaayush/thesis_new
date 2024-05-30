@@ -281,8 +281,8 @@ number_of_frames = len(full_image)
 
 # Loop through your frames and take screenshots
 for frame_index in range(number_of_frames):
-    viewer1.dims.set_point(axis_index, frame_index)  # Navigate to the frame
-    screenshot = viewer1.screenshot()  # Take screenshot
+    viewer.dims.set_point(axis_index, frame_index)  # Navigate to the frame
+    screenshot = viewer.screenshot()  # Take screenshot
     screenshots.append(screenshot)
 #%%
 def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsize=(14,12)):
@@ -315,7 +315,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     #plt.tight_layout()
 
     # Save the mosaic image to a file
-    output_path = 'mosaic_MK_W_both_stiched.svg'
+    output_path = 'mosaic_AN_W_d5_fem_edge.svg'
     
     #plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor())
     plt.savefig(output_path, format='svg', facecolor=fig.get_facecolor(), bbox_inches='tight', pad_inches=0)
@@ -323,7 +323,7 @@ def create_mosaic_matplotlib(screenshots,total_frames, rows=2, columns=3, figsiz
     
     return output_path
 
-mosaic_path = create_mosaic_matplotlib(screenshots, total_frames=len(image1))
+mosaic_path = create_mosaic_matplotlib(screenshots, total_frames=len(full_image))
 
 #%%
 ''' the code below attempts to take the screenshot of each frame and then save each file individually to later on create a giif.  '''

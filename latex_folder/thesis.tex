@@ -317,7 +317,7 @@ Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditio
 \subsection{Data Collection Methods}
 
 \subsubsection{Procedure Details}
-Dynamic MRI scans were conducted on five healthy individuals, two females and three males, ranging in age from 28 to 39 years and weighing between 55 to 90 kilograms, utilizing a 3 T Siemens Prisma scanner. These volunteers were free from any known musculoskeletal disorders and provided their written consent, adhering to the ethical standards approved by the institutional review board. For all of these subjects, the left leg was scanned. In total, 7 datasets were acquired. 
+Dynamic MRI scans were conducted on five healthy individuals, two females and three males, ranging in age from 28 to 39 years and weighing between 55 to 90 kilograms, utilizing a 3 T Siemens Prisma scanner. These volunteers were free from any known musculoskeletal disorders and provided their written consent, adhering to the ethical standards approved by the institutional review board. For all of these subjects, the left leg was scanned. 
 
 
 Once the subject was positioned supine in the scanner, the thigh was secured on a wedge positioner, and the lower leg was attached to an ankle rest, just above the malleoli, using Velcro straps to minimize lateral movement. The knee to be examined is aligned with the device’s axis of rotation, while the other leg rests alongside the MRI scanner's bore.  Knee motion is guided by a belt and sprocket assembly running alongside the lower leg, connected to a gearbox activated by the leg support as the participant flexes and extends the knee. Once the subject was positioned at the scanner's isocenter, their leg naturally assumed a flexed posture due to the design of the device. In this configuration, the leg is cradled by the device arm which is positioned below the level of the knee, ensuring that the leg remains flexed without the volunteer exerting any force.
@@ -334,13 +334,11 @@ The volunteer engaged in a controlled exercise, following a metronome set at 60 
 		\toprule
 		Dataset & Range of Motion (°) \\
 		\midrule
-		1 & 30 \\
-		2 & 38 \\
+		1 & 38 \\
+		2 & 30 \\
 		3 & 36 \\
-		4 & 30 \\
-		5 & 36 \\
-		6 & 36 \\
-		7 & 46 \\
+		4 & 36 \\
+		5 & 46 \\
 		\bottomrule
 	\end{tabular}
 	
@@ -643,44 +641,70 @@ The euclidean distance between the femur landmark ($y_2, x_2$) and the tibia lan
 \end{equation} 
 
 
+\textbf{Normalizing the x-axis for analysis and graphical purposes}
+
+Even though the number of frames is consistent between the loaded and unloaded conditions for a given dataset, the total number of frames reconstructed varies across different datasets due to the varying ranges of motion achieved by the subjects inside the scanner during the experiment. 
+
+The variation in frame count necessitated the normalization of the time axis across all datasets to ensure consistent analysis and comparison. The nature of the exercise is such that each dataset inherently begins at a maximally flexed position—where the leg touches the bore of the scanner—and extends to maximum, where the leg is parallel to the scanner bore, before flexing back to the original position. This movement cycle, from -100\% for maximal flexion, through 0\% at full extension, and back to +100\% for maximal flexion, was consistent across all datasets. To facilitate the comparison and aggregation of biomechanical parameters, the normalized time axis was divided into bins of 10 degrees. Data were aggregated within each bin across all datasets, and the center of each bin was selected as the plotting point for graphical representation
+
+For statistical analysis, a two-sample independent t-test was performed for each bin using the \texttt{stats} module from the  SciPy library. This analysis was aimed at testing the null hypothesis that any observed differences in parameters under loaded and unloaded conditions could be attributed to random chance. 
+
+
 \section{Results}
 \label{sec:yetanother}
 
 \subsection{Edge tracking and segmentation}
 
-To evaluate the accuracy of edge tracking achieved through cost function minimization, the deviation of overlap between points on the transformed frame and the target frame was measured. The cost function output, which indicates the overlap accuracy, calculates the minimum distance from each point on the transformed frame to the points on the target frame and sums these minimum distances for all points in the transformed frame.
+To evaluate the accuracy of edge tracking achieved through cost function minimization, the deviation of the overlap between points on the transformed frame and the target frame was measured. 
 
-The mean alignment error per point was then derived by dividing the cost function output by the total number of points in the transformed frame. This value quantifies the average distance that a point on the transformed frame deviates from its corresponding point on the target frame. This value was calculated for all frames, and the average of these values was taken for each dataset.
+The mean alignment error per point was derived by dividing the cost function output by the total number of points in the transformed frame. This value quantifies the average distance that a point on the transformed frame deviated from its corresponding point on the target frame. This value was calculated for all frames, and the average across all points and frames was taken for each dataset.
 
-The bar chart in Figure \ref{fig:avgofavg} presents this result: 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{bar_alignment}
-	\caption{Mean alignment error per point across all frames for each tibia dataset.}
-	\label{fig:avgofavg}
+	\includegraphics[width=0.7\linewidth]{bar_no_1_3_Femur_both.png}
+	\caption{This bar chart illustrates the mean alignment error per point for edge tracking in tibia datasets under loaded(orange) and unloaded(blue) conditions. Error bars represent the standard error of the mean (SEM) for each condition within each dataset.}
+	\label{fig:barfemur}
 \end{figure}
-
-
-The result of the segmentation for one of the datasets is given in figure \ref{fig:fullsegmented}. 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{full_segmented}
-	\caption{A mosaic showing the segmented tibia and femur shapes(green) where each tile is a particular time point. The leg is fully flexed at Frame 0}
-	\label{fig:fullsegmented}
+	\includegraphics[width=0.7\linewidth]{bar_no_1_3_Tibia_both.png}
+	\caption{ The same bar chart as Figure \ref{fig:barfemur} but for the Tibia datasets}
+	\label{fig:bartibia}
 \end{figure}
+
+A lower value of the y-axis in these bar charts indicates better accuracy of the edge tracking algorithm. Error bars reflect the standard error of the mean (SEM) for each condition within each dataset, demonstrating the precision of the mean alignment error estimates. It was calculated using the following formula: 
+\begin{equation}
+	\text{SEM} = \frac{\sigma}{\sqrt{n}}
+	\label{eq:sem}
+\end{equation}    
+
+where $\sigma$ is the standard deviation of alignment error within each dataset and $n$ is the number of frames for that given dataset. For the femur datasets, The highest mean alignment error observed was 0.478 mm ± 0.044 mm, indicating that dataset 3 under load had the least precision in edge tracking. Conversely, the lowest mean alignment error was 0.238 mm ± 0.009 mm, suggesting that dataset 1 without load had the best edge tracking accuracy. On average, the mean alignment error for the 'Loaded' condition was 0.373 mm ± 0.019 mm, while for the 'Unloaded' condition, it was 0.331 mm ± 0.018 mm.
+
+Similarly, for the tibia datasets, the highest mean alignment error observed was 0.510 mm ± 0.021 mm, implying that dataset 5 under load had the least precision in edge tracking for the tibia . Conversely, the lowest mean alignment error recorded was 0.269 mm ± 0.013 mm, suggesting that the edge tracking in tibia worked best for dataset 2 also under load. On average, the mean alignment error for the 'Loaded' condition was 0.381 mm ± 0.018 mm, while for the 'Unloaded' condition, it was 0.317 mm ± 0.015 mm.  
+
+To illustrate how this alignment error translates to actual performance of the segmentation, the worst performing dataset, which is the Loaded case for the femur for dataset 5 is shown in Figure \ref{fig:d5wfem}: 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{d5_W_fem}
+	\caption{Mosaic showing the result of automatic segmentation of the femur (shown in green) for dataset 3 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 31 represent the knee at maximally flexed positions, at the start and end of the full cycle. The number in between are the intermediary frames.}
+	\label{fig:d5wfem}
+\end{figure}
+
+As for the tibia dataset, the worst performing dataset is illustrated similarly in Figure \ref{fig:d7wtib}. 
+
+\begin{figure} [H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{d7_W_tib}
+	\caption{Mosaic showing the result of automatic segmentation of the tibia (shown in green) for dataset 5 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 45 represent the knee at maximally flexed positions, at the start and end of the full cycle respectively. The frame numbers in between are the intermediary frames between.}
+	\label{fig:d7wtib}
+\end{figure}
+ 
+The results above demonstrate that even by hand-picking the datasets with the highest magnitude of mean alignment error per point, visually, this error is not perceivable.   
 
 \subsection{Biomechanical parameter extraction}
-The changes in the angle between the long axes of the tibia and femur segments, as well as the distance between these segments, were measured throughout the flexion-extension cycle for both the loaded and unloaded conditions.
-
-To enable consistent comparisons across different datasets, the number of frames from each motion cycle was normalized by grouping the data into 'bins'. This binning process ensured that all datasets spanned the same range, allowing for the averaging and plotting of values within these bins.
-
-The x-axis of the graphs represents the percentage of the flexion-extension cycle, defined by the bin centers. The cycle starts at -100 \% (maximal flexion), progresses to 0 \% (full extension), and returns to 100 \% (maximal flexion). This labeling captures the complete motion cycle, from full flexion to full extension and back to full flexion, allowing a clear visualization of the entire range of motion. The x-axis ticks correspond to the centers of these bins, with each bin having a width of 10 percentage units. 
-
-The y-axis of the graphs represents the average value of the biomechanical parameter (either angle or distance) within each bin, aggregated across all datasets. 
-
-For statistical analysis, a two-sample independent t-test was performed using the \texttt{stats} module from the  SciPy library to compare the loaded and unloaded conditions. The test was applied to the data within each bin to determine if there were significant differences between the two conditions.
 
 \textbf{Angle calculation}
 
@@ -688,71 +712,115 @@ Figure \ref{fig:anglegraphstickman} displays the result of calculating the angle
  
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{angle_graph_stickman_modified}
-	\caption{Plot of angle between long axes of bone segments between tibia and femur versus the flexion percentage.The x-axis ticks represent the centers of bins, each with a width of 10 percentage units. The shaded regions represent one standard deviation uncertainty. Angles greater than 180° imply hyperextension.}
+	\includegraphics[width=0.7\linewidth]{angle_no_13_stick}
+	\caption{Average angle between the long axes of the bone segments with respect to time during the motion cycle under loaded and unloaded condition.The x-axis ticks represent the centers of bins, each with a width of 10 percentage units. The shaded regions represent one standard deviation uncertainty across all the datasets. Angles greater than 180° imply hyperextension. Both loaded and unloaded conditions exhibit a similar pattern: : the angle increases as the knee extends, peaking slightly beyond 180° at maximum extension, before decreasing symmetrically as the motion approaches 100\% flexion}
 	\label{fig:anglegraphstickman}
 \end{figure}
 
-No significant differences were observed between the loaded and unloaded conditions for any of the bins.
+No significant differences were observed between the loaded and unloaded conditions for any of the bins, as given in table \ref{tab:p_values_combined}. 
 
 \textbf{Distance calculation }
 
 The Euclidean distance between two points on the tibia and femur segments was measured throughout the flexion-extension cycle for both loaded and unloaded conditions. The aggregated results are shown in Figure \ref{fig:resultsdistancestickman}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{results_distance_stickman}
-	\caption{Plot showing the variation of euclidean distance between two points with across time in the motion cycle. All distances are relative to the baseline measurement at -100\% flexion, set at 0 mm. The shaded region represents one standard deviation uncertainty.}
+	\includegraphics[width=0.7\linewidth]{distance_no_13_stick}
+	\caption{Plot showing the variation of euclidean distance between the anatomical landmarks on the femur and tibia with respect to time in the motion cycle. All distances are relative to the baseline measurement at -100\% flexion, set at 0 mm. The shaded region represents one standard deviation uncertainty across all datasets for each condition. In both loaded and unloaded conditions, the distance decreases during the extension half of the cycle, indicating that the segments are coming closer together, and then increases during the flexion half, suggesting the segments are moving further apart.}
 	\label{fig:resultsdistancestickman}
 \end{figure}
 
-Statistical analysis revealed significant differences between loaded and unloaded conditions in the following bins: (0.0, 10.0] with a P-value of 0.022, and (10.0, 20.0] with a P-value of 0.015. No significant differences were observed for the remaining bins.
-
+The null hypothesis was rejected for only the movement range between 0-10\% flexion. No significant differences were observed for the remaining bins, as noted in table \ref{tab:p_values_combined}. 
+\begin{table}[ht]
+	\centering
+	\caption{Comparison of P-Values Across Flexion Percentage Ranges for Different Measurements}
+	\label{tab:p_values_combined}
+	\begin{tabular}{@{}ccc@{}}
+		\toprule
+		Flexion Percentage Range & p-value (Distance) & p-value (Angle) \\ \midrule
+		-100\% to -90\%          & 0.809296           & 0.885318        \\
+		-90\% to -80\%           & 0.517572           & 0.761937        \\
+		-80\% to -70\%           & 0.328881           & 0.808018        \\
+		-70\% to -60\%           & 0.914312           & 0.781170        \\
+		-60\% to -50\%           & 0.753409           & 0.831299        \\
+		-50\% to -40\%           & 0.534964           & 0.825085        \\
+		-40\% to -30\%           & 0.562114           & 0.846503        \\
+		-30\% to -20\%           & 0.915085           & 0.807860        \\
+		-20\% to -10\%           & 0.838208           & 0.800712        \\
+		-10\% to 0\%             & 0.516313           & 0.972785        \\
+		0\% to 10\%              & \textbf{0.016285}  & 0.703263        \\
+		10\% to 20\%             & 0.128703           & 0.918431        \\
+		20\% to 30\%             & 0.616932           & 0.969120        \\
+		30\% to 40\%             & 0.595359           & 0.927834        \\
+		40\% to 50\%             & 0.737214           & 0.863420        \\
+		50\% to 60\%             & 0.575637           & 0.899413        \\
+		60\% to 70\%             & 0.304771           & 0.882743        \\
+		70\% to 80\%             & 0.625759           & 0.912815        \\
+		80\% to 90\%             & 0.976853           & 0.897951        \\
+		90\% to 100\%            & 0.574221           & 0.942043        \\ \bottomrule
+	\end{tabular}
+	\begin{minipage}[t]{\linewidth} % Adjusting the width if necessary
+		\bigskip
+		\textbf{Note:} This table presents the p-values obtained from independent t-tests comparing the mean Euclidean distances and angles between loaded and unloaded conditions across predefined flexion percentage ranges. Each range represents an interval of 10\% in the flexion-extension cycle, with averages taken across all datasets. Significant p-values (p \textless 0.05) are highlighted in bold.
+	\end{minipage}
+\end{table}
 \section{Discussion}
 
 The accuracy and reliability of the measurements obtained from the dynamic MRI scans are influenced by several factors that need to be considered to ensure meaningful results. One significant factor is the overall bulk movement of the leg during the scan. If the femur is not properly fixated, the entire leg might shift, leading to inaccurate measurements. Ensuring that the thigh is securely positioned on the device with the thigh strap is critical for minimizing this movement. Additionally, improper fixation can allow the upper leg to lift or shift laterally, further compromising the accuracy of the measurements. This overall instability can be exacerbated by the entire leg shifting longitudinally within the scanner, causing misalignment and poor-quality output.
 
 Another important factor is muscle exhaustion. At the start of the exercise, volunteers might overexert themselves, leading to fatigue as the exercise progresses. This can cause variations in the range of motion and affect the position of the leg, resulting in inconsistent data. While the controlled exercise pace, guided by a metronome, aims to standardize the movement, individual differences in endurance can still introduce variability.
 
-By addressing these factors, we can enhance the reliability of the measurements obtained from the dynamic MRI scans. With these considerations in mind, the following sections discuss the specific results of edge tracking and segmentation, angle measurement, and distance calculation in detail.
+With these considerations in mind, the following sections discuss the specific results of edge tracking and segmentation, angle measurement, and distance calculation in detail.
 
 \subsection{Edge tracking and segmentation}
-The accuracy of segmentation in this study is fundamentally tied to the precision of edge tracking, as the segment boundary is defined by the detected edges. A significant factor that compromises edge tracking accuracy is the through-plane motion of the bones, leading to inaccurate transformations. The algorithm is specifically designed to manage only rigid transformations within a single plane; therefore, any deviations introduced by through-plane motion significantly impair edge detection and, consequently, segmentation accuracy.
+The accuracy of segmentation in this study is fundamentally tied to the precision of the introduced edge tracking, as the segment boundary is defined by the detected edges. A significant factor that compromises edge tracking accuracy is through-plane motion of the bones, leading to inaccurate transformations. The algorithm is specifically designed to manage only rigid transformations within a single plane; therefore, any deviations introduced by through-plane motion significantly impair edge detection and, consequently, segmentation accuracy.
 
-Through-plane motion is particularly problematic for the tibia compared to the femur, primarily due to medial/lateral rotation as illustrated in Figure \ref{fig:sixdegrees}, which details the six degrees of freedom of the tibia's movement relative to the femur. This specific type of rotation is a significant cause of through-plane motion errors during edge tracking, as the device setup—although restrictive—allows some degree of rotational freedom. Despite the lower leg being secured at the ankle with Velcro straps and the knee cradled in a wedge positioner to limit movement predominantly to one plane, complete immobilization is not achievable. This limitation is especially pronounced in subjects with smaller bones, where even additional padding at the wedge positioner was insufficient to prevent all undesired motion. While localizers are employed prior to the scans in both extended and flexed positions to ensure that the slice moves only within a predetermined single plane, certain rotations cannot be fully corrected by simply angling the localizer and may still be evident in the final images.
+Through-plane motion is particularly problematic for the tibia compared to the femur, primarily due it having more degrees of freedom, as illustrated in Figure \ref{fig:sixdegrees}, which details the six degrees of freedom of the tibia's movement relative to the femur. Despite the lower leg being secured at the ankle with Velcro straps and the knee cradled in a wedge positioner to limit movement predominantly to one plane, complete immobilization is not achievable. This limitation is especially pronounced in subjects with smaller bones, where even additional padding at the wedge positioner was insufficient to prevent all undesired motion. While localizers are employed prior to the scans in both extended and flexed positions to ensure that the slice moves only within a predetermined single plane, certain rotations cannot be fully corrected by simply angling the localizer and may still be evident in the final images. 
 
-The performance of the edge tracking algorithm is illustrated by the bar chart in Figure \ref{fig:avgofavg}, which shows the mean alignment error per point across seven different datasets in millimeters. Datasets 2,4,5 and 7 show the lowest mean alignment error around 0.3 mm, with Dataset 5 having the lowest error of 0.283 mm and standard deviation of 0.063 mm. In contrast, Dataset 3 exhibits the highest mean alignment error at about 0.465 mm and also shows the largest variability with a standard deviation of 0.184 mm. This variability and higher error could suggest specific challenges in edge detection for this dataset, potentially due to factors such as through-plane motion or variations in image quality. The low standard deviation for 7, at 0.059 mm with a mean alignment error of 0.291 mm, further suggest that the edge tracking performance in this dataset was not only accurate but also consistently reliable across different frames.
+Figure \ref{fig:edgebad} showcases this problem faced by the edge tracking algorithm: 
 
-To illustrate the reliability of the edge tracking algorithm, the results obtained here are compared with those of Rathnayaka et al.(2012), who quantified the accuracy of MRI-generated 3D models of long bones, reporting an average error of 0.23 mm \parencite{rathnayaka_quantification_2012}. Although the specifics of the two studies differ, the reported values offer a perspective on the range of errors encountered in MRI-based segmentation measurements. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\linewidth]{edge_bad_circle}
+	\caption{Three frames at -100\%, 0\%, and 100\% flexion are displayed, showcasing the binary edge of the tibia boundary (in white) alongside reference coordinates (in blue) during the edge tracking process. The images reveal that the algorithm struggles to accurately track the transformation between subsequent frames, especially evident in the misalignment of blue points near the proximal tibia in the middle frame (highlighted with a yellow circle). However, alignment improves significantly in the final frame as the knee returns to its original position. This variability is likely due to the leg's movement in and out of the scanning plane}
+	\label{fig:edgebad}
+\end{figure}
+
+
+Instances where significant deviations between transformed and target frames were observed like that shown above, led to the exclusion of the entire dataset from the analysis. This action was necessary because analyses based on misaligned data from any subject, whether during loaded or unloaded conditions, could result in misleading conclusions. Therefore, datasets were discarded to ensure the reliability and accuracy of the study's findings.
+
+The datasets included in the analysis  demonstrated satisfactory segmentation, as could be discerned with the naked eye. Edge tracking performance was consistently robust across both loaded and unloaded conditions as well as between different bones (femur and tibia). The similar trends in mean alignment errors for both conditions suggest that the edge tracking algorithm was equally effective regardless of the mechanical loading on the joints. Specifically, the mean alignment error for the femur in the unloaded condition was 0.331 mm ± 0.018 mm, compared to 0.373 mm ± 0.019 mm in the loaded condition. Similarly, for the tibia, the unloaded condition showed a mean alignment error of 0.317 mm ± 0.015 mm, while the loaded condition was slightly higher at 0.381 mm ± 0.018 mm. Additionally, the fact that even the datasets with the highest magnitude of mean alignment error (0.510 mm for the tibia under load) did not visually exhibit significant segmentation flaws reinforces the notion that the algorithm can tolerate a certain degree of error without compromising the overall quality of the segmentation.
+
+To provide a context for these values, it is noted that similar metrics have been reported in MRI-based measurements. For example, Rathnayaka et al. (2012) recorded an average alignment error per point of 0.23 mm in their study on the accuracy of MRI-generated 3D models of long bones \parencite{rathnayaka_quantification_2012}. 
+
 
 \subsection{Angle calculation}
-The analysis of the angle between the long axes of the tibia and femur segments across the flexion-extension cycle reveals distinct trends under both loaded and unloaded conditions. As illustrated in Figure \ref{fig:anglegraphstickman}, there is a clear pattern where the angle increases from approximately 160° at maximal flexion (-100\%) to around 184° at full extension (0\%), and then decreases back to 160° as the knee returns to maximal flexion (100\%). This behavior aligns with the expected biomechanics of the knee joint, where the alignment of the femur and tibia is closest at full extension and diverges during flexion.
 
-To provide specific data points, at a bin center of -5 (representing the range from -10 to 0, inclusive), the mean angle for the unloaded condition was 184.18° with a standard deviation of 4.04°, while for the loaded condition, the mean angle was 184.07° with a standard deviation of 3.99°. These measurements indicate that both conditions exhibit angles close to 185°, suggesting a slight hyperextension or at least a deviation from a perfectly straight alignment.
+The change in the angle between the long axes of the bones at different points during the motion cycle is consistent with the expected biomechanics of the knee joint. The alignment of the femur and tibia is closest at full extension and diverges during flexion. The curve shape observed in Figure \ref{fig:anglegraphstickman} aligns with findings from similar studies \parencite{jeon_detection_2019}.
 
-This observed deviation can be explained by the nature of the angle measurements and the biomechanics of the knee joint. The angles calculated in this study are best represented by the shaft axes of the femur and tibia. As demonstrated by a study \parencite{dai_comparing_2021} which measured the knee flexion angle using CT and MRI, a range of values was reported between -12.5° and 29.9°, where negative values indicate hyperextension. Since these values are obtained from static scans, where the leg is in an extended position inside the scanner, it can be assumed that at full extension, angles greater than 180° as measured in this study are to be expected. Their scheme for defining the angles closely match to those done in this study, as given in Figure \ref{fig:daiimage}. 
+At full extension, the angles between the long axes of the bones are not perfectly parallel. This observation, likely influenced by the sagittal view used for measuring, aligns with findings from static scans where slight hyperextension is often reported \parencite{dai_comparing_2021}. 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{dai_image}
-	\caption{Femur (a) and tibia (b) shaft axes defined in CT and T1-weighted MRI scans in the sagital view. \parencite{dai_comparing_2021}}
+	\caption{Femur (a) and tibia (b) shaft axes defined in static CT and T1-weighted MRI scans in the sagital view \parencite{dai_comparing_2021}. }
 	\label{fig:daiimage}
 \end{figure}
 
-Interestingly, despite the observed angles suggesting a slight hyperextension, there was no significant difference in the angles between the loaded and unloaded conditions. This indicates that the loading condition did not significantly affect the alignment of the femur and tibia as measured by the angle between their long axes in the sagital plane. 
+The null hypothesis was not rejected for any of the bins, as detailed in Table \ref{tab:p_values_combined}. This indicates that the method used in this study to calculate the angle was not affected by mechanical load.
 
 
 
 \subsection{Distance calculation}
 
-Figure \ref{fig:resultsdistancestickman} shows the variation in the Euclidean distance between anatomical landmarks on the femur and tibia throughout the flexion-extension cycle. Initially, this distance decreases as the knee moves from a flexed to an extended position. In the second half of the cycle, the distance increases as the knee returns to the flexed position.
+Figure \ref{fig:resultsdistancestickman} shows the variation in the Euclidean distance between anatomical landmarks on the femur and tibia throughout the extension-flexion cycle.
 
-Significant differences were observed in the bins (0.0, 10.0] and (10.0, 20.0] with P-values of 0.022 and 0.015 under loaded conditions. This suggests that external loading affects the spatial relationship between the femur and tibia, but only during the beginning of the flexion phase. 
+Significant differences were observed in the flexion percentage range between 0\% to 10\% with a P-value of 0.016. This would imply that external mechanical loading affects the spatial relationship between the femur and tibia, but only during the beginning of the flexion phase. 
 
-This suggests that there is an underlying mechanism influencing the measured distance near terminal extension but not during other phases of motion. A likely candidate for this is the screw home mechanism (SHM). The SHM involves the rotation of the tibia around the femur near terminal extension. It occurs due to the unequal lengths of the condyles. The medial femoral condyle is longer than the length of the lateral condyle, which causes the tibia to rotate externally in the last stages of extension.  \parencite{kim_screw-home_2015} This rotation occurs to lock the knee in a stable, fully extended position. Then, when flexion starts during the second half of the cycle, the tibia rotates internally, which 'unlocks' the knee for further flexion.
+This suggests that there is an underlying mechanism influencing the measured distance near terminal extension but not during other phases of motion. A likely candidate for this is the screw home mechanism (SHM) \parencite{kim_screw-home_2015}.The SHM involves the rotation of the tibia around the femur near terminal extension. It occurs due to the unequal lengths of the condyles. The medial femoral condyle is longer than the length of the lateral condyle, which causes the tibia to rotate externally in the last stages of extension.   This rotation occurs to lock the knee in a stable, fully extended position. Then, when flexion starts during the second half of the cycle, the tibia rotates internally, which 'unlocks' the knee for further flexion.
 
 It has been previously reported that the impact of external loading increases the magnitude of internal rotation of the tibia relative to the femur \parencite{myers_vivo_2012}. Therefore, it seems that this internal rotation is more susceptible to changes in the distance between the defined anatomical landmarks due to external loading compared to external rotation. This susceptibility likely results in the significant differences observed during the initial phase of flexion, as the knee transitions from a fully extended, locked position to a flexed, unlocked state.  
 
-Given these observations, it can be hypothesized that the response to external loading might serve as an indicator of SHM functionality. Notably, it has been demonstrated that SHM loss, characterized by reduced internal tibial rotation, occurs in patients with OA when compared to healthy controls, even without any applied external load \parencite{jeon_alteration_2020}. Additionally, quadriceps weakness has been identified as a significant risk factor for the development of OA \parencite{segal_is_2011}. This suggests that the external loading in our experimental setup, which induces quadriceps activation, could provide valuable diagnostic insights. Understanding the interaction between quadriceps strength and mechanical loading is crucial for detecting early signs of OA and developing targeted therapeutic strategies
+Given these observations, it can be hypothesized that the response to external loading might serve as an indicator of SHM functionality. Notably, it has been demonstrated that SHM loss, characterized by reduced internal tibial rotation, occurs in patients with OA when compared to healthy controls, even without any applied external load \parencite{jeon_alteration_2020}. Additionally, quadriceps weakness has been identified as a significant risk factor for the development of OA \parencite{segal_is_2011}. This suggests that the external loading in this experimental setup, which induces quadriceps activation, could provide valuable diagnostic insights. Understanding the interaction between quadriceps strength and mechanical loading is crucial for detecting early signs of OA and developing targeted therapeutic strategies.
 
 \section{Conclusion}
 
@@ -760,9 +828,9 @@ This study set out to explore the precision and practicality of a semi-automated
 
 \textbf{Key Findings and Implications}
 
-The accuracy of the edge tracking and segmentation process was evaluated using the mean alignment error per point, which quantifies the average distance that a point on the transformed frame deviates from its corresponding point on the target frame. This metric was compared with similar values reported in the literature, revealing that our method provides a comparable level of precision in MRI-based segmentation measurements. Additionally, simple visual inspection also gives credence to the accuracy of the segmentation, further validating the reliability of the process. This semi-automated approach facilitates rapid and efficient analysis of large number of frames, making it highly advantageous for clinical and research applications. Moreover, once the bones are segmented, a wide range of biomechanical analyses can be conducted, providing comprehensive insights into joint mechanics, beyond those that were attemped in this study. 
+The metric used to quantify the accuracy of semi-automatic segmentation has been found comparable to those reported in the literature concerning MRI-based segmentation techniques. Additionally, simple visual inspection also supports the accuracy of the segmentation, further validating the process's reliability. This semi-automated method is particularly advantageous for analyzing dynamic frames over time, making it highly suitable for clinical and research applications where advanced machine learning-based automatic segmentation techniques are not yet available for dynamic CINE images. The approach facilitates rapid and efficient analysis of a large number of frames and requires minimal computational power. Moreover, once the bones are segmented, a wide range of biomechanical analyses can be conducted, providing comprehensive insights into joint mechanics, beyond those attempted in this study.
 
-The analysis of the angle between the long axes of the tibia and femur showed no significant differences between loaded and unloaded conditions. Any deviation from this trend while measuring new subjects could indicate potential pathological issues.
+The analysis of the angle between the long axes of the tibia and femur showed no significant differences between loaded and unloaded conditions. Any deviation from this trend while measuring patients with underlying conditions with OA could indicate potential pathological issues.
 
 The distance measurement between anatomical landmarks on the tibia and femur revealed significant differences between loaded and unloaded condition during the early phase of the flexion. This variation can be attributed to the screw-home mechanism, emphasizing the sensitivity of the knee joint's biomechanics to external loading. These findings underscore the importance of considering external loading in biomechanical analyses and suggest that the method could be a valuable tool for potential diagnosis and research.
 
@@ -772,7 +840,7 @@ The distance measurement between anatomical landmarks on the tibia and femur rev
 
 Despite its promising results, this study's methodology is limited by its reliance on a single 2D slice. This approach overlooks the tibia's six degrees of freedom relative to the femur, potentially omitting critical aspects of knee kinematics. Future work should aim to extend this methodology to 3D, which would not only address current method's issues in edge tracking, but also allow for a complete assessment of knee joint kinematics, providing a more holistic understanding of its movements and interactions.
 
-Additionally, the semi-automated segmentation method demonstrated here can be adapted to analyze patellofemoral kinematics. The patella shows well-defined edges in the images, making it a suitable candidate for this processing pipeline. Given the patella's significant role in knee mechanics, this extension would provide valuable insights and complement the current analysis of tibiofemoral interactions.
+Additionally, the semi-automated segmentation method demonstrated here can be adapted to analyze patellofemoral kinematics. The patella shows well-defined edges in the images, making it a suitable candidate for this processing pipeline. Given the patella's significant role in knee mechanics \parencite{powers_evidence-based_2017}, this extension would provide valuable insights and complement the current analysis of tibiofemoral interactions.
 
 In conclusion, the semi-automated segmentation process evaluated in this study offers a robust and efficient method for analyzing dynamic MRI scans of the knee. By enabling accurate tracking of biomechanical parameters and accommodating various analyses, it presents a valuable tool for both clinical diagnostics and biomechanical research. While current limitations highlight the need for 3D analysis to fully capture knee kinematics, the potential applications of this method are vast, paving the way for more comprehensive and insightful studies of knee joint mechanics.
 % ----------------------------------------------------------------------------
@@ -784,29 +852,29 @@ In conclusion, the semi-automated segmentation process evaluated in this study o
 \printbibliography
 
 % --------------------------
-\cleardoublepage
-\begin{appendix}
-\section{Appendix}
-
-The non aggregated results for Figures \ref{fig:anglegraphstickman} and \ref{fig:resultsdistancestickman} are shown below: 
-\begin{figure}[H]
-	\centering
-	\includegraphics[scale=0.42]{angle_non_agg}
-	\caption{Non aggregated results for the angle between the long axis of the bone segments. Loaded and unloaded measurements are shown in their respective columns.}
-	\label{fig:anglenonagg}
-\end{figure}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[scale=0.42]{norm_non_agg}
-	\caption{Non aggregated results for the euclidean distance between anatomical landmarks on the femur and tibia. Loaded and Unloaded conditions are shown in their respective columns.}
-	\label{fig:normnonagg}
-\end{figure}
-
-
-
-
-\end{appendix}
+%\cleardoublepage
+%\begin{appendix}
+%\section{Appendix}
+%%
+%%The non aggregated results for Figures \ref{fig:anglegraphstickman} and \ref{fig:resultsdistancestickman} are shown below: 
+%%\begin{figure}[H]
+%%	\centering
+%%	\includegraphics[scale=0.42]{angle_non_agg}
+%%	\caption{Non aggregated results for the angle between the long axis of the bone segments. Loaded and unloaded measurements are shown in their respective columns.}
+%%	\label{fig:anglenonagg}
+%%\end{figure}
+%%
+%%\begin{figure}[H]
+%%	\centering
+%%	\includegraphics[scale=0.42]{norm_non_agg}
+%%	\caption{Non aggregated results for the euclidean distance between anatomical landmarks on the femur and tibia. Loaded and Unloaded conditions are shown in their respective columns.}
+%%	\label{fig:normnonagg}
+%%\end{figure}
+%
+%
+%
+%
+%\end{appendix}
 
 % ----------------------------------------------------------------------------
 % Statutory declaration
