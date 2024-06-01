@@ -25,56 +25,12 @@ with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_cost.pkl'
 
 #%%
 voxel_size = 0.48484848484848486
-
-def plot_cost_bar(cost_df):
-    # Calculate the mean and standard deviation of the 'Average Cost' for each dataset
-    stats = cost_df.groupby('Dataset')['Average Cost'].agg(['mean', 'std']).reset_index()
-    stats['mean_mm'] = stats['mean'] * voxel_size
-    stats['std_mm'] = stats['std'] * voxel_size
-    
-    plt.figure(figsize=(10, 6), dpi=300)  # Set figure size and dpi for high resolution
-    sns.barplot(
-        data=stats, 
-        x='Dataset', 
-        y='mean_mm', 
-        palette='viridis',  # Using the 'viridis' color palette
-        ci=None  # Disable seaborn's built-in confidence intervals
-    )
-    
-    # Adding error bars
-    plt.errorbar(
-        x=range(len(stats)), 
-        y=stats['mean_mm'], 
-        yerr=stats['std_mm'], 
-        fmt='none', 
-        c='black', 
-        capsize=5  # Adding caps to the error bars
-    )
-    
-    # Adding title and labels
-    plt.title('Mean alignment error per point for all datasets')
-    plt.xlabel('Dataset')
-    plt.ylabel('Mean Alignment Error [mm]')
-    
-    
-    # Set custom labels for the x-axis
-    custom_labels = [1, 2, 3, 4, 5]  # The new labels you want to show
-    plt.xticks(ticks=range(len(stats)), labels=custom_labels)  # Applying new labels to the x-axis
-    #plt.savefig('bar_no_13_tib_W.png', dpi=300)
-    # Display the plot
-    plt.show()
-
-plot_cost_bar(cost_df_W_tib[cost_df_W_tib['Dataset'].isin([2,4,5,6,7])])
-
-
 #%%
 def plot_bone_data(df, bone, voxel_size):
     
     copy_df = df.copy()
     # Multiply 'Average Cost' by 'voxel_size'
     copy_df['Average Cost'] = copy_df['Average Cost'] * voxel_size
-
-    # Create a copy of the DataFrame
     
 
     # Group by Dataset, Condition, and Bones and calculate statistics
@@ -150,7 +106,38 @@ def plot_bone_data(df, bone, voxel_size):
     #plt.savefig(f'bar_no_1_3_{bone}_both.png', dpi=300)
     plt.show()
     
-plot_bone_data(master_df_cost[master_df_cost['Dataset'].isin([2,4,5,6,7])], 'Tibia', voxel_size)
+plot_bone_data(master_df_cost[master_df_cost['Dataset'].isin([2,4,5,6,7])], 'Femur', voxel_size)
+
+#%%
+
+# trying to do some stats here: 
+    
+from scipy.stats import ttest_rel
+
+def calculate_averages_and_test(df, bone, conditions=('Loaded', 'Unloaded')):
+    # Filter by bone
+    df = df[df['Bone'] == bone]
+    
+    # Compute mean of 'Average Cost' for each 'Dataset' and 'Condition'
+    mean_costs = df.groupby(['Dataset', 'Condition'])['Average Cost'].mean().reset_index()
+    
+    # Pivot the data
+    pivoted_means = mean_costs.pivot(index='Dataset', columns='Condition', values='Average Cost')
+    
+    # Drop any rows with missing values to ensure each dataset has both conditions
+    pivoted_means.dropna(inplace=True)
+    
+    # Check if there are enough datasets to perform the test
+    if pivoted_means.shape[0] >= 2:
+        # Perform a paired t-test
+        t_stat, p_value = ttest_rel(pivoted_means[conditions[0]], pivoted_means[conditions[1]])
+        print(f"Paired t-test results -- T-statistic: {t_stat}, P-value: {p_value}")
+    else:
+        print("Not enough data to perform a paired t-test.")
+
+# Example usage, assuming 'master_df_cost' is defined and contains the necessary structure.
+
+calculate_averages_and_test(master_df_cost, 'Tibia')    
 #%%
 def plot_binned_angle_data(df, bin_width):
     # Make a copy of the DataFrame to ensure the original remains unchanged
