@@ -11,8 +11,7 @@
 \usepackage{float}
 \usepackage[utf8]{inputenc} % depends on the font encoding that you are using
 
-% For formatting of your bibliography, please use the following package with options 
-\usepackage[style=authoryear, maxcitenames=3, mincitenames=2]{biblatex}
+
 \usepackage{gensymb}
 \usepackage{amsmath}
 \usepackage{booktabs}
@@ -22,7 +21,14 @@
 
 \counterwithout{table}{section}
 
+
+% For formatting of your bibliography, please use the following package with options 
+\usepackage[style=authoryear-icomp, maxcitenames=1, maxbibnames=5, backend=biber, uniquelist=false ]{biblatex}
 \addbibresource{bibliography.bib} % add a bib-reference file
+
+\AtEveryBibitem{\clearfield{day}}
+
+
 
 \begin{document}
 % ----------------------------------------------------------------------------
@@ -53,13 +59,13 @@
 %\thispagestyle{empty}
 \subsection*{Abstract}
 
-The knee joint, a critical component of human movement, frequently endures mechanical loads that can lead to degenerative conditions such as osteoarthritis (OA). OA, prevalent globally and particularly affecting the knee, demands early diagnosis for effective intervention. Magnetic resonance imaging (MRI) has proven effective in detecting soft tissue changes, but traditional MRI studies often miss early-stage OA indicators as they are conducted under non-weight-bearing conditions, unlike the actual physiological state during daily activities.
+The knee joint, a critical component of human movement, frequently endures mechanical loads that can lead to degenerative conditions such as osteoarthritis (OA). OA, prevalent globally and particularly affecting the knee, requires early diagnosis for effective intervention. Magnetic resonance imaging (MRI) has proven effective in detecting soft tissue changes, but traditional MRI studies often miss early-stage OA indicators as traditional static MRI measurements are conducted under non-weight-bearing conditions, unlike the actual physiological state during daily activities.
 
-This thesis leverages recent advancements in MRI technology to analyze the knee joint under mechanical loading, using high-resolution CINE MRI imaging. This approach enables the investigation of dynamic interactions between the femur and tibia during flexion-extension cycles, providing detailed insights into knee mechanics. A major challenge in this process is the accurate segmentation of anatomical structures, critical for reliable biomechanical measurements. To address this, a semi-automated segmentation pipeline was developed, streamlining the process and improving consistency across sequential images.
+This thesis leverages recent advancements in MRI technology to analyze the knee joint under mechanical loading, using high-resolution CINE MRI imaging. This approach enables the investigation of dynamic interactions between the femur and tibia during flexion-extension cycles, providing detailed insights into knee mechanics. A major challenge in this process is the accurate segmentation of anatomical structures, across multiple time frames, critical for reliable biomechanical measurements. To address this, a semi-automated segmentation pipeline was developed, streamlining the process and improving consistency across sequential images.
 
-Following segmentation, the study quantified biomechanical parameters, such as the angle between the long axes of the femur and tibia and the distance between anatomical landmarks, under various loading conditions. The results showed significant variations in distance measurements during the early phase of flexion, highlighting the knee's sensitivity to external loading. However, no significant differences were found in the angular measurements, suggesting stability in bone alignment under load.
+Following segmentation, this thesis quantified biomechanical parameters, such as the angle between the long axes of the femur and tibia and the distance between anatomical landmarks, under various loading conditions. The results showed significant variations in distance measurements during the early phase of flexion, highlighting the knee's sensitivity to external loading. However, no significant differences were found in the angular measurements, suggesting stability in bone alignment under load.
 
-This research demonstrates the potential of semi-automated segmentation for efficient and precise analysis of dynamic knee MRI scans, offering significant advantages for clinical and research applications. Despite the promising findings, the study's reliance on single 2D slices limits the comprehensive assessment of knee kinematics. Future work should extend this methodology to 3D analyses and explore its application to patellofemoral kinematics, providing a more holistic understanding of knee mechanics.
+This research demonstrates the potential of semi-automated segmentation for efficient and precise analysis of dynamic knee MRI scans, offering potential advantages for clinical and research applications. Despite the promising findings, the study's reliance on single 2D slices limits the comprehensive assessment of knee kinematics. Future work should extend this methodology to 3D analyses and explore its application to patellofemoral kinematics, providing a more holistic understanding of knee mechanics.
 
 In conclusion, this thesis presents a robust method for analyzing knee joint biomechanics using advanced MRI techniques, paving the way for enhanced diagnostic and research capabilities in orthopedics.
 
@@ -104,6 +110,7 @@ GRE & Gradient Echo \\
 MRI & Magnetic Resonance Imaging \\
 OA & Osteoarthritis\\
 PCA & Principal Component Analysis \\
+SEM & Standard Error of the Mean \\
 SHM & Screw Home Mechanism \\
 TE & Time to Echo \\
 TGV & Total Generalized Variation \\
@@ -129,11 +136,11 @@ The knee joint, a crucial structure in human movement, consists of various tissu
 
 Traditionally, MRI studies aimed at assessing the structure and function of the knee joint have been performed with the joint at rest or in non-weight-bearing conditions, which, however, do not accurately reflect the physiological state of the knee during daily activities \parencite{blankevoort_envelope_1988}. For instance, research has shown that bone marrow lesions, which are associated with osteoarthritis progression, are significantly related to mechanical loading during activities like walking, highlighting the limitations of non-weight-bearing MRIs in detecting early-stage OA \parencite{bennell_bone_2010}. Additionally, dynamic MRI studies have demonstrated that knee kinematics during continuous movement reveal significant differences compared to static positions, providing crucial information that static scans may miss \parencite{dentremont_dynamicbased_2013}.
 
-Recent advancements in MRI technology have enabled the study of knee joints under mechanical loading conditions, better mimicking the actual physiological environment by allowing both controlled application of loads and dynamic movement during imaging \parencite{brisson_repeatability_2024} \parencite{conconi_-vivo_2023} \parencite{jogi_device_2022}. MRI-compatible loading devices facilitate the investigation of how tissues deform and how their morphology changes in response to stress and movement.  Various MRI measures, including tissue deformation from magnitude images, phase information, and quantitative MRI, have been employed to assess these changes. 
+Recent advancements in MRI technology have enabled the study of knee joints under mechanical loading conditions, better mimicking the actual physiological environment by allowing both controlled application of loads and dynamic movement during imaging \autocite{brisson_repeatability_2024} \parencite{conconi_-vivo_2023} \parencite{jogi_device_2022}. MRI-compatible loading devices facilitate the investigation of how tissues deform and how their morphology changes in response to stress and movement.  Various MRI measures, including tissue deformation from magnitude images, phase information, and quantitative MRI, have been employed to assess these changes. 
 
 Building on these recent advancements in MRI technology, this thesis utilizes high-resolution dynamic MRI to develop a method for analyzing the relative movements between the femur and tibia during flexion-extension cycles under various loading conditions.  This method is then applied to track specific kinematic parameters at various points in the movement cycles, providing a basis for validating the method and conducting detailed biomechanical analyses.
 
-To achieve reliable kinematic analyses, the initial step involves accurately segmenting key anatomical structures from the dynamic MRI sequences. This segmentation is crucial, as it significantly influences the reliability of biomechanical measurements derived from the MRI data. Traditionally, segmentation of musculoskeletal tissues has been performed manually in which a user delineates the boundaries of each joint structure on each MR image slice that is extremely time-consuming with its efficiency and repeatability influenced by the level of user expertise \parencite{mcwalter_use_2005}. This problem is exacerbated when dealing with multiple frames in a dynamic sequence. On the other hand, modern techniques like Convolutional Neural Networks and U-Nets are being widely used to automate the segmentation process \parencite{liu_deep_2018}. Unfortunately, these methods typically require large annotated datasets for training, which are not available for the type of dynamic frames in this project. To address these issues, this thesis proposes the development of a semi-automated pipeline to segment the tibia and femur from the dynamic MRI data, specifically from single-slice 2D images in sagittal view captured throughout the knee's motion cycle under both loaded and unloaded conditions. This new methodology aims to streamline the segmentation process, reducing the time and effort involved while enhancing accuracy and consistency across sequential images.
+To achieve reliable kinematic analyses, the initial step involves accurately segmenting key anatomical structures from the dynamic MRI sequences. This segmentation is crucial, as it significantly influences the reliability of biomechanical measurements derived from the MRI data. Traditionally, segmentation of musculoskeletal tissues has been performed manually in which a user delineates the boundaries of each joint structure on each MR image slice that is extremely time-consuming with its efficiency and repeatability influenced by the level of user expertise \parencite{mcwalter_use_2005}. This problem is exacerbated when dealing with multiple frames in a dynamic sequence. On the other hand, modern techniques like Convolutional Neural Networks and U-Nets are being widely used to automate the segmentation process \parencite{liu_deep_2018}. Unfortunately, these methods typically require large annotated datasets for training, which are not available for the dynamic knee imaging performed in this project. To address these issues, this thesis proposes the development of a semi-automated pipeline to segment the tibia and femur from the dynamic MRI data, specifically from single-slice 2D images in sagittal view captured throughout the knee's motion cycle under both loaded and unloaded conditions. This new methodology aims to streamline the segmentation process, reducing the time and effort involved across sequential images.
 
 Following the successful segmentation of the bones, the subsequent analysis involves quantifying two distinct biomechanical parameters: the angle between the long axes of the tibia and femur segments and the distance between specific anatomical landmarks on these bones. These parameters were chosen because they naturally capture the relative motion and spatial relationships between the femur and tibia, which are essential for understanding knee joint mechanics. The purpose of this quantification is to investigate how these parameters change throughout the motion cycle and how they vary under loaded and unloaded conditions. Conducting this study on healthy volunteers aims to establish normative trends that can serve as benchmarks for future comparisons with patient data, potentially aiding in the assessment of knee joint stability and functionality. 
 
@@ -208,11 +215,11 @@ Central to this device's functionality is an optical fiber position sensor (MR33
 \end{figure}
 
 
-As shown in Figure \ref{fig:sensorimg} , the MR330 controller interfaces with the MRI-safe MR338 position sensor to facilitate precise measurement within the MRI environment, accommodating up to 300 meters of fiber optic cabling. The controller is connected to a acquisition computer placed outside the scanner while the sensor is attached to the device within. The MR338 rotary encoder continuously monitors the knee's rotation angle using optical signals, which are converted into electrical signals by the MR330 controller. These electrical signals are then sent to the RedLab 1208LS, a USB-based data acquisition module designed for measuring and controlling analog and digital signals (refer to Figure \ref{fig:redlab}). The MRI scanner outputs trigger signals for each sequence repetition, which are also captured by the RedLab 1208FS-Plus. Both the knee rotation signals and the trigger signals are simultaneously sampled by the RedLab 1208FS-Plus and then transmitted to the acquisition computer via USB. The acquisition computer converts these signals into binary data, which is later used for reconstructing the synchronized knee motion and MRI imaging data.  
+As shown in Figure \ref{fig:sensorimg} , the MR330 controller interfaces with the MRI-safe MR338 position sensor to facilitate precise measurement within the MRI environment, accommodating up to 300 meters of fiber optic cabling. The controller is connected to a acquisition computer placed outside the scanner while the sensor is attached to the device within. The MR338 rotary encoder continuously monitors the knee's rotation angle using optical signals, which are converted into electrical signals by the MR330 controller. These electrical signals are then sent to the RedLab 1208LS (Meihaus Electronic GmbH), a USB-based data acquisition module designed for measuring analog and digital signals (refer to Figure \ref{fig:redlab}). The MRI scanner outputs trigger signals for each sequence repetition as a voltage signal, which are also captured by the RedLab 1208FS-Plus. Both the knee rotation signals and the trigger signals are simultaneously sampled by the RedLab 1208FS-Plus and then transmitted to the acquisition computer via USB. The acquisition computer converts these signals into binary data, which is later used for reconstructing the synchronized knee motion and MRI imaging data.  
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.1]{redlab}
-	\caption{The redlab I/O module.}
+	\caption{The RedLab 1208LS module, a USB data acquisition device by Meihaus Electronic GmbH. This unit, shown with attached USB cable, converts optical to electrical signals for MRI applications}
 	\label{fig:redlab}
 \end{figure}
 
@@ -245,7 +252,7 @@ To further enhance the quality and precision of the imaging, and to maximize the
 
 \textbf{Basics}
 
-At its core, MRI is an imaging technique based on the interaction of nuclear spins with an external magnetic field \textbf{($B_0$}). The primary nucleus used in MRI is the proton in hydrogen, which precesses around the direction of this external field.  When placed in the magnetic field, these protons align with or against the direction of \textbf{$B_0$}, creating a net magnetization vector \textbf{$M_z$} along the field direction. Imaging the human body relies on manipulating and detecting the bulk precession of these hydrogen spins in water, fat, and other organic molecules. \parencite{brown_magnetic_2014}. This manipulation is achieved through various sequences of magnetic field gradients, radiofrequency pulses, and timing sequences. 
+At its core, MRI is an imaging technique based on the interaction of nuclear spins with an external magnetic field \textbf{($B_0$)}. The primary nucleus used in MRI is the proton in hydrogen, which precesses around the direction of this external field.  When placed in the magnetic field, these protons align with or against the direction of \textbf{$B_0$}, creating a net magnetization vector \textbf{$M_z$} along the field direction. Imaging the human body relies on manipulating and detecting the bulk precession of these hydrogen spins in water, fat, and other organic molecules \parencite{brown_magnetic_2014}. This manipulation is achieved through various sequences of magnetic field gradients, radiofrequency pulses, and timing sequences. 
 
 
 One such commonly used sequence is the gradient echo (GRE) sequence. Like any other sequence, the process begins with the application of a radiofrequency (RF) pulse. This RF pulse is an oscillating magnetic field applied at the Larmor frequency, which is the natural precession frequency of the hydrogen protons in the magnetic field. This frequency $\omega_0$ is given by the Larmor equation:
@@ -254,9 +261,9 @@ One such commonly used sequence is the gradient echo (GRE) sequence. Like any ot
 	\label{eq:larmor}
 \end{equation}
 where $\gamma$ is the gyromagnetic ratio and $B_0$ is the external magnetic field.
-When the frequency of the RF pulse matches the Larmor frequency, it resonates with the protons, causing the net magnetization vector (\textbf{$M_z$}) to tip from the longitudinal axis into the transverse plane, creating transverse magnetization (\textbf{$M_{xy}$}). This is where the term "resonance" in Magnetic Resonance Imaging originates. 
+When the frequency of the RF pulse matches the Larmor frequency, it resonates with the protons, causing the net magnetization vector \textbf{$M_z$} to tip from the longitudinal axis into the transverse plane, creating a transverse magnetization \textbf{$M_{xy}$}. This is where the term "resonance" in Magnetic Resonance Imaging originates. 
 
-\textbf{$M_{xy}$} generates the detectable MRI signal by inducing an oscillating voltage in the receiver coils, which is known as free induction decay (FID). However, to form a meaningful image, it is essential to encode spatial information within this signal. This spatial encoding is achieved through the use of gradient magnetic fields applied in various directions. These gradients alter the precession frequencies of the protons based on their spatial positions, allowing the MRI system to map the location of the signals within the body.  
+\textbf{$M_{xy}$} generates the detectable MRI signal by inducing an oscillating voltage in the receiver coils, which is known as free induction decay (FID). However, to form a meaningful image, it is essential to encode spatial information within this signal. This spatial encoding is achieved through the use of gradient magnetic fields applied in various directions. These gradients alter the precession frequencies of the protons based on their spatial positions, allowing the mapping of the location of the signals within the body.  
 
 \textbf{The three gradient fields}
 
@@ -311,7 +318,7 @@ Figure \ref{fig:goldenanglefigure} provides a visual comparison between traditio
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.3]{kspace_arrow_2}
-	\caption{Left: Exemplary k-space data acquired during a specific frame of the knee flexion cycle. Right: Reconstructed MRI image in real space obtained by applying an inverse 2D Fast Fourier Transform (2D IFFT) to the k-space data}
+	\caption{Left: Exemplary magnitude of k-space data acquired during a specific frame of the knee flexion cycle. Right: Reconstructed MRI image in real space obtained by applying an inverse 2D Fast Fourier Transform (2D IFFT) to the k-space data}
 	\label{fig:kspacearrow}
 \end{figure}
   
@@ -387,20 +394,20 @@ The MRI raw data, with dimensions of (352, 276, 16, 100), was processed using a 
 	\item 352: The number of data points per spoke.
 	\item 276: The number of spokes used to sample a k-space dataset.
 	\item 16: The number of receive channels
-	\item 100: The number of repetitions or k-space repetitions acquired over the course of the experiment.
+	\item 100: The number of k-space repetitions acquired over the course of the experiment.
 \end{itemize}
 
-In addition to the raw MRI data, the binary data from the acquisition computer, which includes both the optical sensor readings and MRI scanner trigger signals, was loaded. This binary data was read and parsed to extract the knee rotation angles (in degrees) and the MRI trigger signals in a usable format. By detecting significant changes in the trigger signals, the start of new k-space repetitions are identified. The knee rotation angles are then grouped according to each k-space repetition based on these trigger signals. This resulted in 100 groups, each containing a range of knee rotation angle information for a specific k-space repetition. 
+In addition to the raw MRI data, the binary data from the acquisition computer, which includes both the optical sensor readings and MRI scanner trigger signals, was loaded. This binary data was read and parsed to extract the knee rotation angles (in degrees) and the MRI trigger signals in a usable format. By detecting significant changes in the trigger signals, the start of new k-space repetitions were identified. The knee rotation angles were then grouped according to each k-space repetition based on these trigger signals. This resulted in 100 groups, each containing a range of knee rotation angle information for a specific k-space repetition. 
 
 For each k-space repetition, the spokes were categorized based on the knee rotation angles, divided into 2-degree intervals. This means each reconstructed frame covered a 2-degree segment of knee motion. This process was repeated for the entire range of motion, ensuring a comprehensive coverage.  
 
-Reconstruction was then performed on each newly formed k-space dataset. The number of spokes within each 2-degree angle range varied between 300 and 1000. The direction of leg movement—either from flexion to extension or vice versa—was determined by calculating the slope of the angle data. Images were reconstructed separately for each direction, as the biomechanics differ significantly when moving with or against gravity. 
+Image reconstruction was then performed on each newly formed k-space dataset. The number of spokes within each 2-degree angle range varied between 300 and 1000. The direction of leg movement—either flexion, where the leg moves downward, or extension, where the leg moves upward—was determined by calculating the slope of the angle data. Images were reconstructed separately for each direction, as the biomechanics of moving downward (flexion) versus upward (extension) differ significantly.  
 
-\textbf{The use of rielsing toolbox}
+\textbf{Non cartesian image reconstruction (RIESLING)}
 
-Iterative image reconstruction is a computational method used in various imaging modalities, including MRI, to enhance image quality. Unlike direct reconstruction techniques, iterative methods repeatedly refine the image by comparing the acquired data with a simulated version of the image, making adjustments to minimize the difference between the two. This process allows for better handling of incomplete or noisy data, improving the accuracy and resolution of the final image. Iterative reconstruction is particularly advantageous in non-Cartesian MRI because it can effectively manage the complex data geometry, leading to more precise and detailed images \parencite{block_undersampled_2007}.
+Iterative image reconstruction is a computational method used in various imaging modalities, including MRI, to enhance image quality. Unlike direct reconstruction techniques, iterative methods repeatedly refine the image by comparing the acquired data with an estimated version of the image, making adjustments to minimize the difference between the two. This process allows for better handling of incomplete or noisy data, improving the accuracy and resolution of the final image. Iterative reconstruction is particularly advantageous in non-Cartesian MRI because it can effectively manage the complex data geometry, leading to more precise and detailed images \parencite{block_undersampled_2007}.
 
-To implement these iterative reconstruction methods, the actual image reconstruction was done by using the Riesling reconstruction toolbox \parencite{wood2020riesling}. This toolbox offers a range of advanced algorithms tailored for non-Cartesian MRI reconstruction. In this study, an Alternating Direction Method of Multipliers (ADMM) approach was employed \parencite{MAL-016}, incorporating Total Generalized Variation (TGV) regularization \parencite{tgv}. 
+To implement these iterative reconstruction methods, the actual image reconstruction was done by using the RIESLING (Radial Interstices Enable Speedy Low-Volume imagING)   reconstruction toolbox \parencite{wood2020riesling}. This toolbox offers a range of advanced algorithms tailored for non-Cartesian MRI reconstruction. In this study, an Alternating Direction Method of Multipliers (ADMM) approach was employed \parencite{MAL-016}, incorporating Total Generalized Variation (TGV) regularization \parencite{tgv}. 
 
 ADMM is an iterative optimization algorithm that breaks down complex problems into smaller subproblems to solve them efficiently. It ensures accurate reconstruction by maintaining a balance between the primal (actual solution) and dual (approximate solution) residuals. This balance is particularly important for non-Cartesian MRI reconstruction, given the unique geometry of the data. ADMM allows different regularization techniques, like TGV, to be applied simultaneously during reconstruction . 
 
@@ -422,7 +429,7 @@ squares of the derivatives. The gradient direction is computed using the arctang
 
 Subsequently, the algorithm applies double thresholding, which involves two thresholds: a low and a high. This creates three categories of pixels: strong, weak, and non-edges. Pixels with intensities above the high threshold are marked as strong edge pixels, while those below the low threshold are considered to be non-edges. Pixels between these two thresholds are marked as weak edge pixels. Weak edge pixels are potentially converted into strong edges through a process known as hysteresis, where only those weak edges that are connected to strong edges are confirmed as true edges. In this context, hysteresis refers to the algorithm's reliance on the connectivity history of pixels to decide their edge status, ensuring that only meaningful, connected edges are preserved \parencite{heath_robust_1997}.  
 
-To optimize the edge detection specifically to capture the desired edges of the tibia and femur, different parameters like the standard deviation of gaussian blur (sigma) and the upper and lower thresholds were tested in different combinations. The optimal results were achieved with a low threshold between 0 to 5 and a high threshold between 6 to 10. The sigma value was set at 2. Figure \ref{fig:edgemitimg} displays the output of with these parameters.  
+To optimize the edge detection specifically to capture the desired edges of the tibia and femur, different parameters like the standard deviation of gaussian blur ($\sigma$) and the upper and lower thresholds were tested in different combinations. The optimal results were achieved with a low threshold between 0 to 5 and a high threshold between 6 to 10. and a value of 2 was used for $\sigma$. Figure \ref{fig:edgemitimg} displays the output of the edge detection with these parameters.  
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{edge_new}
@@ -437,27 +444,7 @@ Subsequently, the scikit-image's morphology library was utilized to remove small
 
 For the final selection of the desired edges, a labeling algorithm (`ndimage.label`) from SciPy, an open-source Python library designed for scientific computing (version 1.11.3), was utilized. The purpose of employing this labeling algorithm is to effectively isolate specific structural features, such as distinguishing the interior cortical bone from the exterior, by assigning unique labels to separate closely situated edges detected in the image. This algorithm applies the principle of connected-component labeling, a method used in computer vision to detect connected regions in binary digital images \parencite{dillencourt_general_1992}. Connected-component labeling algorithm scans an image and groups its pixels into components based on pixel connectivity, meaning that all pixels in a connected component share similar pixel values and are adjacent to each other.
 
-The labeling process treats any non-zero values in the input array as part of potential edges and zero values as background. The connectivity of these components is determined by a structuring element, which in this case was a fully connected 3x3x3 matrix. This structuring element ensures that each voxel (3D pixel) is connected to its 26 immediate neighbors (including those connected by faces, edges, and vertices), known as 26-way connectivity:
-
-$$
-\begin{bmatrix}
-	\begin{bmatrix}
-		\text{True} & \text{True} & \text{True} \\
-		\text{True} & \text{True} & \text{True} \\
-		\text{True} & \text{True} & \text{True} \\
-	\end{bmatrix} \\
-	\begin{bmatrix}
-		\text{True} & \text{True} & \text{True} \\
-		\text{True} & \text{True} & \text{True} \\
-		\text{True} & \text{True} & \text{True} \\
-	\end{bmatrix} \\
-	\begin{bmatrix}
-		\text{True} & \text{True} & \text{True} \\
-		\text{True} & \text{True} & \text{True} \\
-		\text{True} & \text{True} & \text{True} \\
-	\end{bmatrix} \\
-\end{bmatrix}
-$$
+The labeling process treats any non-zero values in the input array as part of potential edges and zero values as background. The connectivity of these components is determined by a structuring element, which in this case was a fully connected $3\times3\times3$ matrix. This structuring element ensures that each voxel (3D pixel) is connected to its 26 immediate neighbors (including those connected by faces, edges, and vertices), known as 26-way connectivity.
 
 Each voxel is therefore connected to its 26 immediate neighbors, providing consistent labeling across frames and reducing the need for manual adjustments in the analysis. Alternatives, such as a structuring element with less connectivity, worked fine for a single frame but gave inconsistent labels across the 3D dataset. Using the 26-way connectivity ensured consistent labeling across all frames in the stack of 2D images. 
 
@@ -568,6 +555,18 @@ Given the transformation matrices obtained from edge tracking, any shape drawn o
 
 Using the shapes of these manually drawn segments, the transformation matrices were then applied to perform automatic segmentation in all subsequent frames. 
 
+\textbf{Evaluation of Edge tracking algorithm}
+
+To evaluate the accuracy of edge tracking achieved through cost function minimization, the deviation of the overlap between points on the transformed frame and the target frame was measured. 
+
+The mean alignment error per point was derived by dividing the cost function output by the total number of points in the transformed frame. This value quantifies the average distance that a point on the transformed frame deviated from its corresponding point on the target frame. This value was calculated for all frames, and the average across all points and frames was taken for each dataset.
+
+To assess the variability of these mean alignment errors across different datasets, the Standard Error of the Mean (SEM) was calculated using the following formula:
+\begin{equation}
+	\text{SEM} = \frac{\sigma}{\sqrt{n}}
+\end{equation}
+where $\sigma$ is the standard deviation of the mean alignment errors within each dataset, and $n$ is the number of frames analyzed per dataset.
+
 \subsubsection{Extraction of Biomechanical Parameters}
 After achieving automated segmentation of the tibia and femur across all frames, the next step involved extracting biomechanical parameters from the segmented regions. Two key metrics were considered for analysis to assess the relationship between these bones throughout the flexion-extension cycle captured in the 2D CINE images.
 
@@ -660,41 +659,35 @@ For statistical analysis, a two-sample independent t-test was performed for each
 
 \subsection{Edge tracking and segmentation}
 
-To evaluate the accuracy of edge tracking achieved through cost function minimization, the deviation of the overlap between points on the transformed frame and the target frame was measured. 
-
-The mean alignment error per point was derived by dividing the cost function output by the total number of points in the transformed frame. This value quantifies the average distance that a point on the transformed frame deviated from its corresponding point on the target frame. This value was calculated for all frames, and the average across all points and frames was taken for each dataset.
-
-
+The measured alignment error per point for the femur and the tibia are presented separately in Figures \ref{fig:barfemur} and \ref{fig:bartibia} respectively. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{bar_no_1_3_Femur_both.png}
-	\caption{This bar chart illustrates the mean alignment error per point for edge tracking in tibia datasets under loaded(orange) and unloaded(blue) conditions. Error bars represent the standard error of the mean (SEM) for each condition within each dataset.}
+	\caption{Bar chart illustrating the mean alignment error per point for edge tracking in femur datasets under loaded (orange) and unloaded (blue) conditions. Error bars represent the standard error of the mean (SEM) across frames for each condition within each dataset.}
 	\label{fig:barfemur}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{bar_no_1_3_Tibia_both.png}
-	\caption{ The same bar chart as Figure \ref{fig:barfemur} but for the Tibia datasets}
+	\caption{Bar chart illustrating the mean alignment error per point for edge tracking in tibia datasets under loaded (orange) and unloaded (blue) conditions. Error bars represent the standard error of the mean (SEM) across frames for each condition within each dataset.}
 	\label{fig:bartibia}
 \end{figure}
 
-A lower value of the y-axis in these bar charts indicates better accuracy of the edge tracking algorithm. Error bars reflect the standard error of the mean (SEM) for each condition within each dataset, demonstrating the precision of the mean alignment error estimates. It was calculated using the following formula: 
-\begin{equation}
-	\text{SEM} = \frac{\sigma}{\sqrt{n}}
-	\label{eq:sem}
-\end{equation}    
+A lower value of the y-axis in these bar charts indicates better accuracy of the edge tracking algorithm. Error bars reflect the standard error of the mean (SEM) for each condition within each dataset, demonstrating the precision of the mean alignment error estimates.  
 
-where $\sigma$ is the standard deviation of alignment error within each dataset and $n$ is the number of frames for that given dataset. For the femur datasets, The highest mean alignment error observed was 0.478 mm ± 0.044 mm, indicating that dataset 3 under load had the least precision in edge tracking. Conversely, the lowest mean alignment error was 0.238 mm ± 0.009 mm, suggesting that dataset 1 without load had the best edge tracking accuracy. On average, the mean alignment error for the 'Loaded' condition was 0.373 mm ± 0.019 mm, while for the 'Unloaded' condition, it was 0.331 mm ± 0.018 mm.
+For the femur datasets, The highest mean alignment error observed was 0.48 mm ± 0.04 mm, indicating that dataset 3 under load had the least precision in edge tracking. Conversely, the lowest mean alignment error was 0.24 mm ± 0.01 mm, suggesting that dataset 1 without load had the best edge tracking accuracy. On average, the mean alignment error for the loaded condition was 0.37 mm ± 0.02 mm, while for the unloaded condition, it was 0.33 mm ± 0.02 mm.
 
-Similarly, for the tibia datasets, the highest mean alignment error observed was 0.510 mm ± 0.021 mm, implying that dataset 5 under load had the least precision in edge tracking for the tibia . Conversely, the lowest mean alignment error recorded was 0.269 mm ± 0.013 mm, suggesting that the edge tracking in tibia worked best for dataset 2 also under load. On average, the mean alignment error for the 'Loaded' condition was 0.381 mm ± 0.018 mm, while for the 'Unloaded' condition, it was 0.317 mm ± 0.015 mm.  
+Similarly, for the tibia datasets, the highest mean alignment error observed was 0.51 mm ± 0.02 mm, implying that dataset 5 under load had the least precision in edge tracking for the tibia . Conversely, the lowest mean alignment error recorded was 0.27 mm ± 0.01 mm, suggesting that the edge tracking in tibia worked best for dataset 2 also under load. On average, the mean alignment error for the loaded condition was 0.38 mm ± 0.02 mm, while for the unloaded condition, it was 0.32 mm ± 0.01 mm.
 
-To illustrate how this alignment error translates to actual performance of the segmentation, the worst performing dataset, which is the Loaded case for the femur for dataset 5 is shown in Figure \ref{fig:d5wfem}: 
+A paired sample t-test was conducted to compare the mean alignment errors per point between the loaded and unloaded conditions across five datasets for the femur and tibia datasets. The null hypothesis tested was that there is no significant difference in the average values of mean alignment errors between the two conditions. The p-values obtained were 0.087 for the femur datasets and 0.057 for the tibia datasets. Given these p-values, the null hypothesis was not rejected for either dataset, suggesting no statistically significant difference in the mean alignment errors between the conditions at the conventional 0.05 significance level.
+   
+To illustrate how this alignment error translates to actual performance of the segmentation, the worst performing dataset, which is the loaded case for the femur for dataset 5 is shown in Figure \ref{fig:d5wfem}: 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{d5_W_fem}
-	\caption{Mosaic showing the result of automatic segmentation of the femur (shown in green) for dataset 3 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 31 represent the knee at maximally flexed positions, at the start and end of the full cycle. The number in between are the intermediary frames.}
+	\caption{ The result of the proposed automatic segmentation of the femur (shown in green) for dataset 3 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 31 represent the knee at maximally flexed positions, at the start and end of the full cycle.}
 	\label{fig:d5wfem}
 \end{figure}
 
@@ -703,11 +696,11 @@ As for the tibia dataset, the worst performing dataset is illustrated similarly 
 \begin{figure} [H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{d7_W_tib}
-	\caption{Mosaic showing the result of automatic segmentation of the tibia (shown in green) for dataset 5 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 45 represent the knee at maximally flexed positions, at the start and end of the full cycle respectively. The frame numbers in between are the intermediary frames between.}
+	\caption{ The result of automatic segmentation of the tibia (shown in green) for dataset 5 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 45 represent the knee at maximally flexed positions, at the start and end of the full cycle respectively.}
 	\label{fig:d7wtib}
 \end{figure}
  
-The results above demonstrate that even by hand-picking the datasets with the highest magnitude of mean alignment error per point, visually, this error is not perceivable.   
+The results above demonstrate that despite the highest magnitude of mean alignment error per point, the error is not visually perceptible in the segmentation.   
 
 \subsection{Biomechanical parameter extraction}
 
@@ -780,22 +773,21 @@ With these considerations in mind, the following sections discuss the specific r
 The accuracy of segmentation in this study is fundamentally tied to the precision of the introduced edge tracking, as the segment boundary is defined by the detected edges. A significant factor that compromises edge tracking accuracy is through-plane motion of the bones, leading to inaccurate transformations. The algorithm is specifically designed to manage only rigid transformations within a single plane; therefore, any deviations introduced by through-plane motion significantly impair edge detection and, consequently, segmentation accuracy.
 
 Through-plane motion is particularly problematic for the tibia compared to the femur, primarily due it having more degrees of freedom, as illustrated in Figure \ref{fig:sixdegrees}, which details the six degrees of freedom of the tibia's movement relative to the femur. Despite the lower leg being secured at the ankle with Velcro straps and the knee cradled in a wedge positioner to limit movement predominantly to one plane, complete immobilization is not achievable. This limitation is especially pronounced in subjects with smaller bones, where even additional padding at the wedge positioner was insufficient to prevent all undesired motion. While localizers are employed prior to the scans in both extended and flexed positions to ensure that the slice moves only within a predetermined single plane, certain rotations cannot be fully corrected by simply angling the localizer and may still be evident in the final images. 
-
 Figure \ref{fig:edgebad} showcases this problem faced by the edge tracking algorithm: 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\linewidth]{edge_bad_circle}
-	\caption{Three frames at -100\%, 0\%, and 100\% flexion are displayed, showcasing the binary edge of the tibia boundary (in white) alongside reference coordinates (in blue) during the edge tracking process. The images reveal that the algorithm struggles to accurately track the transformation between subsequent frames, especially evident in the misalignment of blue points near the proximal tibia in the middle frame (highlighted with a yellow circle). However, alignment improves significantly in the final frame as the knee returns to its original position. This variability is likely due to the leg's movement in and out of the scanning plane}
+	\caption{Three frames at -100\%, 0\%, and 100\% flexion are displayed, showcasing the binary edge of the tibia boundary (in white) alongside reference coordinates (in blue) during the edge tracking process. The images reveal that the algorithm struggles to accurately track the transformation between subsequent frames, especially evident in the misalignment of blue points near the proximal tibia in the middle frame (highlighted with a yellow circle). However, alignment improves significantly in the final frame as the knee returns to its original position. This variability is likely due to the leg's movement in and out of the scanning plane.}
 	\label{fig:edgebad}
 \end{figure}
 
 
 Instances where significant deviations between transformed and target frames were observed like that shown above, led to the exclusion of the entire dataset from the analysis. This action was necessary because analyses based on misaligned data from any subject, whether during loaded or unloaded conditions, could result in misleading conclusions. Therefore, datasets were discarded to ensure the reliability and accuracy of the study's findings.
 
-The datasets included in the analysis  demonstrated satisfactory segmentation, as could be discerned with the naked eye. Edge tracking performance was consistently robust across both loaded and unloaded conditions as well as between different bones (femur and tibia). The similar trends in mean alignment errors for both conditions suggest that the edge tracking algorithm was equally effective regardless of the mechanical loading on the joints. Specifically, the mean alignment error for the femur in the unloaded condition was 0.331 mm ± 0.018 mm, compared to 0.373 mm ± 0.019 mm in the loaded condition. Similarly, for the tibia, the unloaded condition showed a mean alignment error of 0.317 mm ± 0.015 mm, while the loaded condition was slightly higher at 0.381 mm ± 0.018 mm. Additionally, the fact that even the datasets with the highest magnitude of mean alignment error (0.510 mm for the tibia under load) did not visually exhibit significant segmentation flaws reinforces the notion that the algorithm can tolerate a certain degree of error without compromising the overall quality of the segmentation.
+The datasets included in the analysis  demonstrated satisfactory segmentation. Edge tracking performance was consistently robust across both loaded and unloaded conditions as well as between different bones (femur and tibia). The similar trends in mean alignment errors for both conditions suggest that the edge tracking algorithm was equally effective regardless of the mechanical loading on the joints. Specifically, the mean alignment error for the femur in the unloaded condition was 0.331 mm ± 0.018 mm, compared to 0.37 mm ± 0.02 mm in the loaded condition. Similarly, for the tibia, the unloaded condition showed a mean alignment error of 0.32 mm ± 0.02 mm, while the loaded condition was slightly higher at 0.38 mm ± 0.02 mm. Additionally, the fact that even the datasets with the highest magnitude of mean alignment error (0.51 mm for the tibia under load) did not visually exhibit significant segmentation flaws reinforces the notion that the algorithm can tolerate a certain degree of error without compromising the overall quality of the segmentation.
 
-To provide a context for these values, it is noted that similar metrics have been reported in MRI-based measurements. For example, Rathnayaka et al. (2012) recorded an average alignment error per point of 0.23 mm in their study on the accuracy of MRI-generated 3D models of long bones \parencite{rathnayaka_quantification_2012}. 
+To provide a context for these values, it is noted that similar metrics have been reported in MRI-based measurements. For example, Rathnayaka et al\,(2012) recorded an average alignment error per point of 0.23 mm in their study on the accuracy of MRI-generated 3D models of long bones \parencite{rathnayaka_quantification_2012}. 
 
 
 \subsection{Angle calculation}
@@ -833,7 +825,7 @@ This study set out to explore the precision and practicality of a semi-automated
 
 \textbf{Key Findings and Implications}
 
-The metric used to quantify the accuracy of semi-automatic segmentation has been found comparable to those reported in the literature concerning MRI-based segmentation techniques. Additionally, simple visual inspection also supports the accuracy of the segmentation, further validating the process's reliability. This semi-automated method is particularly advantageous for analyzing dynamic frames over time, making it highly suitable for clinical and research applications where advanced machine learning-based automatic segmentation techniques are not yet available for dynamic CINE images. The approach facilitates rapid and efficient analysis of a large number of frames and requires minimal computational power. Moreover, once the bones are segmented, a wide range of biomechanical analyses can be conducted, providing comprehensive insights into joint mechanics, beyond those attempted in this study.
+The metric used to quantify the accuracy of semi-automatic segmentation has been found comparable to those reported in the literature concerning MRI-based segmentation techniques. This semi-automated method is particularly advantageous for analyzing dynamic frames over time, making it highly suitable for clinical and research applications where advanced machine learning-based automatic segmentation techniques are not yet available for dynamic CINE images. The approach facilitates rapid and efficient analysis of a large number of frames and requires minimal computational power. Moreover, once the bones are segmented, a wide range of biomechanical analyses can be conducted, providing comprehensive insights into joint mechanics, beyond those attempted in this study.
 
 The analysis of the angle between the long axes of the tibia and femur showed no significant differences between loaded and unloaded conditions. Any deviation from this trend while measuring patients with underlying conditions with OA could indicate potential pathological issues.
 
