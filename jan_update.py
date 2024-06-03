@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -193,7 +193,7 @@ viewer.add_points(points_for_napari(giant_list_last), size=1, face_color='green'
 
 #%%
 transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(tib_coords) # new_tib_coords_first
-viewer.add_points(points_for_napari(giant_list_first), size=1, face_color='blue', name='transformed_frame_W_stiched')
+viewer.add_points(points_for_napari(giant_list_first), size=2, face_color='green', name='transformed_frame_W_stiched')
 #%%
 ''' below is the cost value dataframe creation and plotting routine  ''' 
 with open('master_df_cost.pkl', 'wb') as file:
