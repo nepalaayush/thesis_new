@@ -23,7 +23,8 @@
 
 
 % For formatting of your bibliography, please use the following package with options 
-\usepackage[style=authoryear-icomp, maxcitenames=1, maxbibnames=5, backend=biber, uniquelist=false ]{biblatex}
+\usepackage[style=authoryear-icomp, maxcitenames=1, minbibnames = 3, maxbibnames=5, backend=biber, uniquelist=true ]{biblatex}
+
 \addbibresource{bibliography.bib} % add a bib-reference file
 
 \AtEveryBibitem{\clearfield{day}}
@@ -136,7 +137,7 @@ The knee joint, a crucial structure in human movement, consists of various tissu
 
 Traditionally, MRI studies aimed at assessing the structure and function of the knee joint have been performed with the joint at rest or in non-weight-bearing conditions, which, however, do not accurately reflect the physiological state of the knee during daily activities \parencite{blankevoort_envelope_1988}. For instance, research has shown that bone marrow lesions, which are associated with osteoarthritis progression, are significantly related to mechanical loading during activities like walking, highlighting the limitations of non-weight-bearing MRIs in detecting early-stage OA \parencite{bennell_bone_2010}. Additionally, dynamic MRI studies have demonstrated that knee kinematics during continuous movement reveal significant differences compared to static positions, providing crucial information that static scans may miss \parencite{dentremont_dynamicbased_2013}.
 
-Recent advancements in MRI technology have enabled the study of knee joints under mechanical loading conditions, better mimicking the actual physiological environment by allowing both controlled application of loads and dynamic movement during imaging \autocite{brisson_repeatability_2024} \parencite{conconi_-vivo_2023} \parencite{jogi_device_2022}. MRI-compatible loading devices facilitate the investigation of how tissues deform and how their morphology changes in response to stress and movement.  Various MRI measures, including tissue deformation from magnitude images, phase information, and quantitative MRI, have been employed to assess these changes. 
+Recent advancements in MRI technology have enabled the study of knee joints under mechanical loading conditions, better mimicking the actual physiological environment by allowing both controlled application of loads and dynamic movement during imaging \autocites{conconi_-vivo_2023}{jogi_device_2022}. MRI-compatible loading devices facilitate the investigation of how tissues deform and how their morphology changes in response to stress and movement.  Various MRI measures, including tissue deformation from magnitude images, phase information, and quantitative MRI, have been employed to assess these changes. 
 
 Building on these recent advancements in MRI technology, this thesis utilizes high-resolution dynamic MRI to develop a method for analyzing the relative movements between the femur and tibia during flexion-extension cycles under various loading conditions.  This method is then applied to track specific kinematic parameters at various points in the movement cycles, providing a basis for validating the method and conducting detailed biomechanical analyses.
 
