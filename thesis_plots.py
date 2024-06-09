@@ -15,13 +15,16 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np 
+import pingouin as pg 
 
 sns.set_context("talk")
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_cost.pkl', 'rb') as file:
-    master_df_cost =  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
+    master_df_point =  pickle.load(file)
 
+#%%
+master_df_cut = master_df_point[master_df_point['Dataset'].isin([2,4,5,6,7])]
 
 #%%
 voxel_size = 0.48484848484848486
@@ -252,12 +255,12 @@ def plot_and_test_binned_data(df, bin_width):
     plt.ylabel("Euclidean Distance (mm)")
     plt.title("Variation of distance with respect to flexion-extension cycle")
     plt.grid(True)
-    plt.savefig('distance_no_13.png', dpi=300)
+    #plt.savefig('distance_no_13.png', dpi=300)
     plt.show()
 
     return pd.DataFrame(t_test_results, columns=['Bin', 'p-value'])
 
-xx = plot_and_test_binned_data(df_point_new, 10)
+xx = plot_and_test_binned_data(master_df_cut, 10)
 
 #%%
 # lets split the data and plot side by side without aggregation 
@@ -297,6 +300,141 @@ fg.refline(y=0)
 fg.set_axis_labels("Percentage of flexion [%]", "Euclidean Distance[mm]")
 plt.savefig('norm_non_agg.svg', dpi=300)
 
+#%%
+# adding the relative Y column from the Disp_Y column 
+def calculate_relative_y(df):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Function to calculate relative Y displacement for each group
+    def calculate_group_relative_y(group):
+        reference_value = group.loc[group['Frame Number'] == 0, 'Disp_Y'].values[0]
+        group['Relative_Y'] = group['Disp_Y'] - reference_value
+        return group
+
+    # Apply the function to each group and add the new column to the original DataFrame
+    df_copy = df_copy.groupby(['Dataset', 'Condition']).apply(calculate_group_relative_y)
+    
+    return df_copy
+
+
+master_df_cut = calculate_relative_y(master_df_cut)
+
+
+#%%
+# plotting the relative translation only not norm : can work with any column of choosing, which is nice. 
+
+def plot_and_test_binned_data_2(df, bin_width, analysis_column):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that include the full range from -100 to 100
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percent Flexed' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])[analysis_column].mean().reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+
+    # Prepare to plot
+    plt.figure(figsize=(10, 6))
+    default_palette = sns.color_palette()
+    custom_palette = {'Loaded': default_palette[1], 'Unloaded': default_palette[0]}
+
+    # Plotting the data
+    sns.lineplot(
+        data=grouped,
+        x='Bin_Center',
+        y=analysis_column,
+        hue='Condition',
+        marker="o",
+        ci='sd',  # Uses standard deviation for the error bars
+        palette=custom_palette
+    )
+    
+    # T-tests for each bin
+    t_test_results = []
+    for name, group in grouped.groupby('Custom_Bin'):
+        loaded = group[group['Condition'] == 'Loaded'][analysis_column]
+        unloaded = group[group['Condition'] == 'Unloaded'][analysis_column]
+        t_test = pg.ttest(loaded, unloaded, paired=False)
+        t_test_results.append((name, t_test['p-val'].values[0]))
+
+    # Display t-test results
+    #for bin_center, p_val in t_test_results:
+       # plt.text(bin_center.mid, 1, f'p={p_val:.3f}', color='red')  # Adjust positioning and color as necessary
+
+    #plt.axhline(y=0, color='gray', linestyle='--')
+    plt.axvline(x=0, color='gray', linestyle='--')
+    plt.xlabel("Flexion percentage [%]")
+    plt.ylabel("Euclidean Distance (mm)")
+    plt.title("Variation of distance with respect to flexion-extension cycle")
+    plt.grid(True)
+    #plt.savefig('distance_no_13.png', dpi=300)
+    plt.show()
+
+    return pd.DataFrame(t_test_results, columns=['Bin', 'p-value'])
+
+# Example usage
+disp_Y = plot_and_test_binned_data_2(master_df_cut, 10, 'Relative Norm')
+
+
+#%%
+# plot and test phases: 
+    
+def plot_and_test_phases(df, analysis_column):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define phases
+    df_copy['Phase'] = pd.cut(df_copy['Percent Flexed'], bins=[-100, 0, 100], labels=['Extension', 'Flexion'], include_lowest=True)
+
+    # Group by 'Condition' and 'Phase' to calculate means
+    grouped = df_copy.groupby(['Condition', 'Phase'])[analysis_column].mean().reset_index()
+
+    # Prepare to plot
+    plt.figure(figsize=(10, 6))
+    default_palette = sns.color_palette()
+    custom_palette = {'Loaded': default_palette[1], 'Unloaded': default_palette[0]}
+
+    # Plotting the data
+    sns.barplot(
+        data=grouped,
+        x='Phase',
+        y=analysis_column,
+        hue='Condition',
+        ci='sd',  # Uses standard deviation for the error bars
+        palette=custom_palette
+    )
+    
+    # T-tests for each condition
+    t_test_results = []
+    for condition in ['Loaded', 'Unloaded']:
+        phase_1 = df_copy[(df_copy['Condition'] == condition) & (df_copy['Phase'] == 'Extension')][analysis_column]
+        phase_2 = df_copy[(df_copy['Condition'] == condition) & (df_copy['Phase'] == 'Flexion')][analysis_column]
+        t_test = pg.ttest(phase_1, phase_2, paired=False)
+        t_test_results.append((condition, t_test['p-val'].values[0]))
+
+    # Display t-test results
+    for condition, p_val in t_test_results:
+        print(f"{condition} Condition: p-value = {p_val:.3f}")
+
+    plt.axhline(y=0, color='gray', linestyle='--')
+    plt.ylabel("Mean Euclidean Distance (mm)")
+    plt.title("Comparison of Mean Distance Between Different Phases")
+    plt.grid(True)
+    plt.savefig('compare_phase.png', dpi=300)
+    plt.show()
+
+    return pd.DataFrame(t_test_results, columns=['Condition', 'p-value'])
+
+# Example usage
+comp_phase = plot_and_test_phases(master_df_cut, 'Relative Norm')
+
+    
 #%%
 # ok, trying to draw sequence diagram using python 
 # for tutorial refer to this: https://mrsd.readthedocs.io/en/latest/flash/index.html
