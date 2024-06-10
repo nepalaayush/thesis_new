@@ -11,7 +11,7 @@
 \usepackage{float}
 \usepackage[utf8]{inputenc} % depends on the font encoding that you are using
 
-
+\usepackage{pdfpages}
 \usepackage{gensymb}
 \usepackage{amsmath}
 \usepackage{booktabs}
@@ -72,7 +72,33 @@ In conclusion, this thesis presents a robust method for analyzing knee joint kin
 
 \clearpage
 \subsection*{Acknowledgements}
+I would like to sincerely express my heartfelt gratitude to all those who have made significant contributions to the completion of this thesis.
 
+First and foremost, I am deeply grateful to my supervisors, Prof. Dr. Jürgen Reichenbach, and Dr. Martin Krämer, for their unwavering support, guidance, and expertise throughout the entire research process. Their valuable feedback, mentorship, and scholarly insights have been instrumental in shaping the direction and quality of this study.
+
+
+I would like to extend my sincere appreciation to the participants of this research: Jon, Helena, Marta, Uday, and Nick. Thank you for volunteering your time and effort to participate in this project.
+ 
+ 
+I am also indebted to Dr. Karl-Heinz Hermann and Dr. Daniel Güllmar for their expert advice and valuable contributions. Their extensive knowledge and thoughtful suggestions have greatly enriched my research.
+
+
+I am grateful to Renat for his invaluable assistance with programming and data visualization.
+
+
+I would also like to acknowledge Uniklinikum Jena for providing the necessary resources and facilities that enabled my research.
+
+
+I am also grateful to all the faculty members of Medical Photonics and FSU Jena for their teachings, mentorship, and intellectual guidance, which have significantly contributed to my growth and development as a researcher.
+ 
+
+To Shreya, thank you for your love and support throughout this journey.
+
+To my father, Kumar Prasad Nepal, without whom I would not be here.
+
+Although it is impossible to mention everyone individually, please know that your unwavering support, contributions, and encouragement have been indispensable to the successful completion of this thesis.
+
+Once again, thank you all for your enduring support and encouragement.
 
 % ----------------------------------------------------------------------------
 % Table of contents
@@ -137,18 +163,21 @@ The knee joint, a crucial structure in human movement, consists of various tissu
 
 Conventionally, MRI studies aimed at assessing the structure and function of the knee joint have been performed with the joint at rest or under non-weight-bearing conditions, which, however, do not accurately reflect the physiological state of the knee during daily activities \parencite{blankevoort_envelope_1988}. For instance, research has shown that bone marrow lesions, which are associated with OA progression, are significantly related to mechanical loading during activities like walking, highlighting the limitations of non-weight-bearing MRIs in detecting early-stage OA \parencite{bennell_bone_2010}. 
 
-Given these limitations, the development of dynamic MRI techniques has become essential to more accurately reflect the knee's behavior under realistic conditions. For example, one dynamic MRI study demonstrated that knee kinematics during continuous movement reveal significant differences in several parameters---such as tibial abduction, internal rotation, anterior translation---compared to static positions \parencite{dentremont_dynamicbased_2013}. Recent advancements in MRI technology now enable the examination of knee joints under mechanical loading conditions, better simulating the actual physiological environment. This is achieved through both controlled application of loads \parencite{jogi_device_2022} and dynamic movements during imaging \parencite{conconi_-vivo_2023}. Moreover, MRI-compatible loading devices facilitate the study of tissue deformation and morphology changes under stress \parencite{shimozaki_extrusion_2023}, as well as the quantification of skeletal motion \parencite{kaiser_measurement_2013}. 
+Given these limitations, the development of dynamic MRI techniques has become essential to more accurately reflect the knee's behavior under realistic conditions. For example, one dynamic MRI study demonstrated that knee kinematics during continuous movement reveal significant differences in several parameters---such as tibial abduction, internal rotation, anterior translation---compared to static positions \parencite{dentremont_dynamicbased_2013}. 
 
-One such advanced techniques in dynamic MRI involves the use of a knee loading device combined with sophisticated MR acquisition methods to capture high-resolution 2D images during the flexion-extension cycle of the knee under different loading conditions \autocites{brisson_novel_2022}{aleksiev_high-resolution_2022}. While this approach allows for detailed visualization of the knee, the challenge of conducting precise kinematic analysis on these images highlights the need for improved analytical methods.  
+Various studies on tibiofemoral kinematics of the knee in motion using dynamic MRI have been conducted.  For example, Conconi et al. (2023) used a low-field MRI to study the knee in deep flexion under weight-bearing conditions, manually segmenting static images and using an automated system to track bone movement in dynamic scans. \parencite{conconi_-vivo_2023}. Similarly, Lansdown et al. (2014) compared three methods for measuring knee movement using T2-weighted MRI images, evaluating the reproducibility of these methods for tracking certain knee movements Their study aimed to evaluate the reproducibility of these methods for measuring anterior tibial translation and internal tibial rotation \parencite{lansdown_reproducibility_2015}. In another study, Kaiser et al.\,(2013) utilized a 3D MR sequence to acquire dynamic volumetric images. They created subject-specific bone models from high-resolution static images and registered these to the dynamic images to measure 3D tibiofemoral translations and rotations during knee flexion-extension cycles, using a knee loading device to simulate the load acceptance phase of gait \parencite{kaiser_measurement_2013}. Mazzoli et al.\,(2017) developed a different method for capturing high-resolution, four-dimensional (4D) images of the knee without needing external triggers. They scanned the knee during a flexion/extension task using a special sampling technique and imaging sequence to collect data. Kinematic parameters were derived through a two-step rigid registration process of the segmented femur and tibia masks from high-resolution anatomical scans \parencite{mazzoli_accelerated_2017}.
 
-Building on these recent advancements in MRI technology, this thesis utilizes high-resolution dynamic MRI to develop a method for analyzing the relative movements between the femur and tibia during flexion-extension cycles under various loading conditions.  This method is then applied to track specific kinematic parameters at various points in the movement cycles, providing a basis for validating the method and conducting detailed biokinematic analyses.
+Despite these innovative approaches, several studies share common limitations that warrant further consideration. For instance, Mazzoli et al.\,(2017), Kaiser et al.\,(2013), d'Entremont et al.\,(2013), and Conconi et al.\,(2023) all rely on high-resolution static scans to create models of the bones, which are then combined with dynamic scans to derive kinematic parameters. The need to acquire a static scan in addition to the dyanamic scans increases the overall scanning time and complexity of the procedure, which might make them impractical for routine clinical use. Moreover, manual segmentation of musculoskeletal tissues, where an operator delineates the boundaries of each joint structure on every MR image slice, is a widely used but extremely time-consuming process. The efficiency and repeatability of the process is dependent on the operator's level of experience \parencite{mcwalter_use_2005}. For example, Lansdown et al.\,(2014) highlight these challenges, noting that the segmentation process for the femur and tibia in both extended and flexed positions took up to 144 minutes. On the other hand, machine learning techniques like Convolutional Neural Networks and U-Nets are being widely used to automate the segmentation process \parencite{liu_deep_2018}. Unfortunately, these methods typically require large annotated datasets for training, which are not available for the dynamic knee imaging performed in these projects.
 
-To achieve reliable kinematic analyses, the initial step involves accurately segmenting key anatomical structures from the images acquired with dynamic MRI sequences. This segmentation is essential, as it significantly influences the reliability of biokinematic measurements derived from the MRI data. Traditionally, segmentation of musculoskeletal tissues has been performed manually with an operator delineating the boundaries of each joint structure on each MR image slice, which is extremely time-consuming with the efficiency and repeatability of the process dependent on the operator's level of experience. \parencite{mcwalter_use_2005}. This problem is exacerbated when dealing with multiple frames in a dynamic sequence. On the other hand, modern techniques like Convolutional Neural Networks and U-Nets are being widely used to automate the segmentation process \parencite{liu_deep_2018}. Unfortunately, these methods typically require large annotated datasets for training, which were not available for the dynamic knee imaging performed in this project. To address these issues, this thesis developed a semi-automated pipeline specifically designed to segment the tibia and femur from the dynamic MRI data. The pipeline processes single-slice 2D images in sagittal view, captured throughout the knee's motion cycle under both loaded and unloaded conditions. This new methodology aims to streamline the segmentation process, reducing the time and effort involved across multiple sequential images.
+To address the limitations of current knee MRI techniques, this thesis aims to develop a comprehensive methodology for assessing knee joint mechanics under realistic conditions. The primary goal is to create a semi-automated pipeline specifically designed to segment the tibia and femur from dynamic MRI of the knee. This pipeline processes high-resolution single-slice 2D images in the sagittal view, captured during the flexion-extension cycle of the knee under different loading conditions.
 
-Following the successful segmentation of the bones, the subsequent analysis quantifies two distinct biokinematic parameters: the angle between the long axes of the tibia and femur segments and the distance between specific anatomical landmarks on these bones. These parameters were chosen because they naturally capture the relative motion and spatial relationships between the femur and tibia, which are essential for understanding knee joint mechanics. The purpose of this quantification was to investigate how these parameters change throughout the motion cycle and how they vary under loaded and unloaded conditions. Conducting this study on healthy volunteers aims to establish normative trends that can serve as benchmarks for future comparisons with patient data, potentially aiding in the assessment of knee joint stability and functionality. 
+In addition to segmentation, the secondary goal is to track and analyze specific kinematic parameters—such as the angle between the long axes of the tibia and femur segments and the distance between specific anatomical landmarks on these bones—throughout the motion cycle. This analysis will investigate how these parameters change under loaded and unloaded conditions. By conducting this study on healthy volunteers, the aim is to establish normative trends that can serve as benchmarks for future comparisons with patient data. These benchmarks will be essential for assessing knee joint stability and functionality, ultimately aiding in the early diagnosis and treatment of conditions like osteoarthritis.  
+
+This thesis is structured as follows: Chapter \ref{sec:fundamentals} delves into the fundamentals of the knee joint and dynamic MRI, providing the necessary anatomical and technical background. Chapter \ref{sec:methods} outlines the methodology, detailing the data collection, MRI sequence parameters, and the development of the semi-automated segmentation pipeline.  Chapter \ref{sec:results} presents the results, highlighting the performance of the segmentation method and the biokinematic analysis under varying loading conditions. Chapter \ref{sec:discussion} discusses the findings in detail, comparing them with existing research and exploring their clinical implications.
+Finally, Chapter \ref{sec:conclusion} concludes the thesis with a summary of key contributions and suggestions for future research directions.
 
 \section{Fundamentals}
-\label{sec:intro}
+\label{sec:fundamentals}
 
 
 \subsection{The Knee Joint }
@@ -297,9 +326,8 @@ Radial golden-angle acquisition refers to a special modification of how k-space 
   
  \begin{figure}[H]
  	\centering
- 	\includegraphics[width=0.7\linewidth]{radial}
- 	\caption{Generic radial k-space sampling diagram. The image shows concentric circles representing constant k-space radii, with $k_x$ and $k_y$ axes indicating spatial frequencies. The lines labeled '1st line' and '2nd line' demonstrate different radial sampling lines, each separated by an angle $\Delta \theta$. The equation $\Delta k_{\theta} = k_{\text{max}} \Delta \theta$ illustrates that the change in the k-space coordinates along a specific angular direction ($\Delta k_{\theta}$) is proportional to the maximum k-space radius ($k_{\text{max}}$), which determines the highest spatial frequency sampled, and the angular step size ($\Delta \theta$).
- 		 \parencite[p.306]{brown_magnetic_2014}}
+ 	\includegraphics[scale=0.4]{k_space_2}
+ 	\caption{Generic radial k-space sampling diagram featuring multiple spokes (solid black lines) of data acquisition. The diagram includes concentric circles representing lines of constant k-space radii. The axes $k_x$ and $k_y$ indicate the spatial frequencies. $\Delta \theta$ represents the angular separation between adjacent spokes. The orange dots distributed along each spoke are the individual k-space readout points (adapted from p.306 \cite{brown_magnetic_2014} )  }
  	\label{fig:radial}
  \end{figure}
  
@@ -324,7 +352,7 @@ Figure \ref{fig:goldenanglefigure} provides a visual comparison between the trad
 
 
 \section{Methodology}
-\label{sec:second}
+\label{sec:methods}
 
 \subsection{Data Collection Methods}
 
@@ -397,13 +425,13 @@ The MRI raw data, with dimensions of (352, 276, 16, 100), was processed using a 
 
 In addition to the raw MRI data, the binary data from the acquisition computer, which included both the optical sensor readings and the MRI scanner trigger signals, was loaded. This binary data was read and parsed to extract the knee rotation angles (in degrees) and the MRI trigger signals in a usable format. By detecting significant changes in the trigger signals, the start of new k-space repetitions were identified. The knee rotation angles were then grouped according to each k-space repetition based on these trigger signals. This resulted in 100 groups, each containing a range of knee rotation angle information for a specific k-space repetition. 
 
-For each k-space repetition, the spokes were categorized based on the knee rotation angles, divided into 2-degree intervals. This means each reconstructed frame covered a 2-degree segment of knee motion. This process was repeated for the entire range of motion, ensuring a comprehensive coverage.  
+For each k-space repetition, the spokes were categorized based on the knee rotation angles, divided into 2-degree intervals. This means that each reconstructed frame covered a 2-degree segment of knee motion. This process was repeated for the entire range of motion, ensuring a comprehensive coverage.  
 
-Image reconstruction was then performed on each newly formed k-space dataset. The number of spokes within each 2-degree angle range varied between 300 and 1000. The direction of leg movement—either flexion, where the leg moves downward, or extension, where the leg moves upward—was determined by calculating the slope of the angle data. Images were reconstructed separately for each direction, as the biomechanics of moving downward (flexion) versus upward (extension) differ significantly.  
+Image reconstruction was then performed on each newly formed k-space dataset. The number of spokes within each 2-degree angle range varied between 300 and 1000. The direction of leg movement—either flexion, where the leg moves downward, or extension, where the leg moves upward—was determined by calculating the slope of the angle data. Images were reconstructed separately for each direction, as the biokinematics of moving downward (flexion) versus upward (extension) differs significantly.  
 
 \textbf{Non cartesian image reconstruction (RIESLING)}
 
-Iterative image reconstruction is a computational method used in various imaging modalities, including MRI, to enhance image quality. Unlike direct reconstruction techniques, iterative methods repeatedly refine the image by comparing the acquired data with an estimated version of the image, making adjustments to minimize the difference between the two. This process allows for better handling of incomplete or noisy data, improving the accuracy and resolution of the final image. Iterative reconstruction is particularly advantageous in non-Cartesian MRI because it can effectively manage the complex data geometry, leading to more precise and detailed images \parencite{block_undersampled_2007}.
+Iterative image reconstruction is a computational method used in various imaging modalities, including MRI, to enhance image quality. Unlike direct reconstruction techniques, iterative methods repeatedly refine the image by comparing the acquired data with an estimated version of the image, making adjustments to minimize the difference between the two. This process allows for better handling of incomplete or noisy data, effectively reducing artifacts and suppressing noise, which contributes to improved image quality. Non-Cartesian MRI, such as spiral or radial imaging, involves sampling data along non-linear trajectories in the k-space, rather than the traditional grid pattern. This non-uniform sampling can complicate image reconstruction because the data are not evenly spread across the k-space, leading to potential artifacts and gaps in information. Iterative reconstruction is advantageous in this context because it can more effectively interpolate missing data and reduce artifacts by iteratively adjusting the image based on the available non-linearly sampled data \parencite{block_undersampled_2007}.
 
 To implement these iterative reconstruction methods, the actual image reconstruction was done by using the RIESLING (Radial Interstices Enable Speedy Low-Volume imagING)   reconstruction toolbox \parencite{wood2020riesling}. This toolbox offers a range of advanced algorithms tailored for non-Cartesian MRI reconstruction. In this study, an Alternating Direction Method of Multipliers (ADMM) approach was employed \parencite{MAL-016}, incorporating Total Generalized Variation (TGV) regularization \parencite{tgv}. 
 
@@ -411,23 +439,23 @@ ADMM is an iterative optimization algorithm that breaks down complex problems in
 
 TGV is an advanced regularization method that reduces noise while promoting smoothness in the reconstructed images. Unlike basic Total Variation (TV) regularization, TGV allows for piecewise smooth transitions between different regions, making it better suited for images with varied structures. In this study, a regularization strength of 0.05 was chosen empirically, striking a balance between noise suppression and edge sharpness.
 
-Each image frame was reconstructed with dimensions of (528, 528) and the number of frames were subject dependent directly influenced by their range of motion achieved within the scanner bore.
+Each image frame was reconstructed with dimensions of (528, 528) and the number of frames was dependent on the range of motion achieved by each individual within the scanner bore.
 
 
 \subsection{Data Analysis}
-All analyses and data visualization were done using the python programming language (v3.11.5). Several distinct steps were performed to semi-automate the segmentation of tibia and femur. This involves first finding one boundary edge each for the bones, and then tracking them across the full flexion-extension cycle by computing their respective transformation matrices. 
+All analyses and data visualizations were done using the Python programming language (v3.11.5). Several distinct steps were performed to semi-automate the segmentation of the tibia and femur. This involved first finding one boundary edge for each of the bones, and then tracking them throughout the full extension -flexion cycle. This is achieved by computing transformation matrices that map the movement of each boundary edge from one frame to the next throughout the cycle. 
  
 \subsubsection{Segmentation}
-The semi-auto segmentation process is achieved in five distinct steps as described below: 
+The semi-automatic segmentation process was achieved in five distinct steps as described below: 
 
 \textbf{Step 1: Edge Detection}
 
-The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. The Canny edge detection algorithm operates in several key steps to identify edges with high accuracy in images. Initially, the image is smoothed using a Gaussian filter to reduce noise and potential false edge detections. Following this, the algorithm calculates the gradient intensity and direction of the image brightness at each pixel, which helps in identifying the edges' boundaries. This is done by differentiating the image in two orthogonal directions and computing the gradient magnitude as the root sum of
+The Canny filter \parencite{canny_computational_1986}, as implemented in the scikit-image's feature library (v0.21.0), was employed to apply an edge filter to the images. The Canny edge detection algorithm operates through several key steps to identify edges with high accuracy in images. Initially, the image is smoothed using a Gaussian filter to reduce noise and potential false edge detections. Following this, the algorithm calculates the gradient magnitude and direction of the image brightness at each pixel, which helps identifying the edges boundaries. This is done by differentiating the image in two orthogonal directions and computing the gradient magnitude as the root sum of
 squares of the derivatives. The gradient direction is computed using the arctangent of the ratio of the derivatives.
 
-Subsequently, the algorithm applies double thresholding, which involves two thresholds: a low and a high. This creates three categories of pixels: strong, weak, and non-edges. Pixels with intensities above the high threshold are marked as strong edge pixels, while those below the low threshold are considered to be non-edges. Pixels between these two thresholds are marked as weak edge pixels. Weak edge pixels are potentially converted into strong edges through a process known as hysteresis, where only those weak edges that are connected to strong edges are confirmed as true edges. In this context, hysteresis refers to the algorithm's reliance on the connectivity history of pixels to decide their edge status, ensuring that only meaningful, connected edges are preserved \parencite{heath_robust_1997}.  
+Subsequently, the algorithm applies double thresholding to the gradient magnitudes, which involves two thresholds: a low and a high. This creates three categories of pixels: strong, weak, and non-edges. Pixels with intensities above the high threshold are marked as strong edge pixels, while those below the low threshold are considered to be non-edges. Pixels between these two thresholds are marked as weak edge pixels. Weak edge pixels are potentially converted into strong edges through a process known as hysteresis, where only those weak edges that are connected to strong edges are confirmed as true edges. In this context, hysteresis refers to the algorithm's reliance on the connectivity history of pixels to decide their edge status, ensuring that only meaningful, connected edges are preserved \parencite{heath_robust_1997}.  
 
-To optimize the edge detection specifically to capture the desired edges of the tibia and femur, different parameters like the standard deviation of gaussian blur ($\sigma$) and the upper and lower thresholds were tested in different combinations. The optimal results were achieved with a low threshold between 0 to 5 and a high threshold between 6 to 10. and a value of 2 was used for $\sigma$. Figure \ref{fig:edgemitimg} displays the output of the edge detection with these parameters.  
+To optimize the edge detection specifically to capture the desired edges of the tibia and femur, different parameters like the standard deviation of gaussian blur ($\sigma$) and the upper and lower thresholds were tested in different combinations. The optimal results were achieved with a low threshold between 0 to 5 and a high threshold between 6 to 10, while a value of 2 was used for $\sigma$. Figure \ref{fig:edgemitimg} displays the output of the edge detection with these parameters.  
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{edge_new}
@@ -436,11 +464,11 @@ To optimize the edge detection specifically to capture the desired edges of the 
 \end{figure}
 
 
-Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. It should be pointed out that the final edge does not necessarily need to span the full boundary of the interior edge of the cortical bone; even partial edges were successfully used for this purpose.  
+Subsequently, the scikit-image's morphology library was utilized to remove small elements from the binary image. The image was then skeletonized to a one-pixel width, retaining only long and consistent edges. It should be pointed out that the final edge does not necessarily need to span the entire boundary of the interior edge of the cortical bone; even partial edges were successfully used for this purpose.  
 
-\textbf{Step 2: Labelling}
+\textbf{Step 2: Labeling}
 
-For the final selection of the desired edges, a labeling algorithm (`ndimage.label`) from SciPy, an open-source Python library designed for scientific computing (version 1.11.3), was utilized. The purpose of employing this labeling algorithm is to effectively isolate specific structural features, such as distinguishing the interior cortical bone from the exterior, by assigning unique labels to separate closely situated edges detected in the image. This algorithm applies the principle of connected-component labeling, a method used in computer vision to detect connected regions in binary digital images \parencite{dillencourt_general_1992}. Connected-component labeling algorithm scans an image and groups its pixels into components based on pixel connectivity, meaning that all pixels in a connected component share similar pixel values and are adjacent to each other.
+For the final selection of the desired edges, a labeling algorithm (`ndimage.label`) from SciPy, an open-source Python library designed for scientific computing (version 1.11.3), was used. The purpose of employing this labeling algorithm was to effectively isolate specific structural features, such as distinguishing the interior cortical bone from the exterior, by assigning unique labels to separate closely situated edges detected in the image. This algorithm utilizes the principle of connected-component labeling, a method used in computer vision to detect connected regions in binary digital images \parencite{dillencourt_general_1992}. The connected-component labeling algorithm scans an image and groups its pixels into components based on pixel connectivity, meaning that all pixels in a connected component share similar pixel values and are adjacent to each other.
 
 The labeling process treats any non-zero values in the input array as part of potential edges and zero values as background. The connectivity of these components is determined by a structuring element, which in this case was a fully connected $3\times3\times3$ matrix. This structuring element ensures that each voxel (3D pixel) is connected to its 26 immediate neighbors (including those connected by faces, edges, and vertices), known as 26-way connectivity.
 
@@ -455,13 +483,13 @@ Figure \ref{fig:labelimg} shows the output from the labelling algorithm for a gi
 	\label{fig:labelimg}
 \end{figure}
  
-After choosing the appropriate labels, a binary image for each frame is obtained, where the foreground has the boundary for the interior edge of tibia and femur, and the background has intensity value of zero.   
+After choosing the appropriate labels, a binary image for each frame was obtained, where the foreground has the boundary for the interior edge of tibia and femur, and the background has intensity value of zero.   
 
 \textbf{Step 3: Obtaining the set of reference points}
 
-After isolating the binary edge images of the tibia and femur in Step 2, the next task is to identify a set of reference points along these binary edges. Captured when the knee is fully flexed, this reference frame served as the baseline for further analysis, with transformations initially set to zero. The purpose of establishing these reference points is so that it ensures a consistent basis for accurately calculating the rigid transformations between subsequent frames. The direct use of the densely packed unordered binary edge data would be computationally cumbersome and less precise for such transformations.
+After isolating the binary edge images of the tibia and femur in Step 2, the next task involved identifying a set of reference points along these binary edges. Captured when the knee was fully flexed, this reference frame served as the baseline for further analysis, with transformations initially set to zero.  Establishing these reference points ensured a consistent basis for accurately calculating rigid transformations between subsequent frames. The densely packed unordered binary edge data would have been computationally cumbersome and less precise for such transformations.
 
-To begin, the points along the boundary were organised in a systematic manner by sorting. This was done by first, defining a starting point, and then iteratively using a greedy nearest neighbor algorithm for sorting \parencite{Hinneburg2000neare-5849}. The most distal point of the bone was taken as the initial seed. Afterwards, the algorithm then selects the nearest neighboring point as the next point in the sequence. It continues to do this iteratively—choosing the closest point that hasn't been selected yet—until all points are sorted in a path that follows the boundary of the bone.
+To begin, the points along the boundary were organised in a systematic manner by sorting. This was done by first, defining a starting point, and then iteratively using a greedy nearest neighbor algorithm for sorting \parencite{Hinneburg2000neare-5849}. The most distal point of the bone was taken as the initial seed. The algorithm then selected the nearest neighboring point as the next point in the sequence. It continued to do this iteratively—choosing the closest point that had not been selected yet—until all points were sorted in a path that followed the boundary of the bone.
 
 Once the points were sorted, the next step involved downsampling these points to a set of uniform equidistant reference points along the boundary of the binary edge. Directly sampling every n-th point from the sorted list did not suffice, as it resulted in uneven spacing due to the variable distances between consecutive points in the original boolean data.
 
@@ -469,18 +497,18 @@ The first step in this process was calculating the cumulative distances between 
 
 Determining the optimal number of points—ranging between 50 to 80—was established through trial and error. Fewer than 50 points often compromised the accuracy of the edge overlap by failing to capture the essential contours of the bone. Conversely, exceeding 80 points did not significantly enhance the algorithm's accuracy but increased the computation time slightly. 
 
-To ensure that the position of points adhere closely to the original curve, yet remain equidistant, the cubic spline interpolation from SciPy's interpolate library was used. This routine used interpolation to add place points based on the above criteria. 
+To ensure that the positions of the points adhered closely to the original curve, while remaining equidistant, the cubic spline interpolation from SciPy's interpolate library was used. This routine used interpolation to add and place points based on the criteria mentioned above. 
 Figure \ref{fig:downsampled} depicts this result. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{downsampled}
-	\caption{A close-up view at the equidistant sampled points (orange) along the boundary of the tibia edge (white) after completion of the sorting and downsample routine. }
+	\caption{A close-up view of the equidistantly sampled points (orange) along the boundary of the tibia edge (white) after completion of the sorting and downsample routine. }
 	\label{fig:downsampled}
 \end{figure}
 
 \textbf{Step 4: Transformation matrices computation}
 
-In this step, a set of transformation matrices was obtained, each containing the parameters that aligned the reference points from one frame to the next. These transformations included solely the translation in the sagittal plane and rotation about the transverse axis. This approach assumed that the bone does not undergo any deformation and that through-plane motion is negligible throughout the motion cycle. 
+In this step, a set of transformation matrices was obtained, each containing the parameters that aligned the reference points from one frame to the next. These transformations included solely translations in the sagittal plane and rotations about the transverse axis perpendicular to the sagittal plane. This approach assumed that the bone did not undergo any deformation and that through-plane motion was negligible throughout the motion cycle. 
 
 Mathematically, the transformation of each point from one frame to the next can be expressed as 
 \begin{equation}
@@ -510,7 +538,7 @@ where:
 	 	\]
  	\item $\Delta x$ and $\Delta y$ are the translations in the Cartesian coordinate system. 
 \end{itemize}   
-As such, only three parameters, $x$, $y$, and $\phi$ needed to be computed. To determine these parameters, a cost function was defined. This function, denoted as $C(x,y,\phi)$, quantifies the alignment error by calculating the 'cost' of deviations for any given set of transformation parameters. The minimization of this cost identifies the combination of parameters that achieves the best alignment or overlap of the transformed frame with the reference frame. A lower value of the cost function output indicates a closer match to the target frame, suggesting a better alignment, whereas a higher value signifies a less accurate alignment. The equation of the cost function is given in Equation \ref{eq:cost_func}:  
+Only three parameters, $x$, $y$, and $\phi$ needed to be computed. To determine these parameters, a cost function was defined. This function, denoted as $C(x,y,\phi)$, quantified the alignment error by calculating the 'cost' of deviations for any given set of transformation parameters. The minimization of this cost identified the combination of parameters that achieved the best alignment or overlap of the transformed frame with the reference frame. A lower value of the cost function output indicated a closer match to the target frame, suggesting a better alignment, whereas a higher value signified a less accurate alignment. The equation of the cost function is given in Equation \ref{eq:cost_func}:  
 \begin{equation}
 	C(\Delta x, \Delta y, \phi) = \sum_{p=1}^{N} \min_{q \in Q} \left( \sqrt{(x_q - x_p')^2 + (y_q - y_p')^2} \right)
 	\label{eq:cost_func}
@@ -518,7 +546,7 @@ As such, only three parameters, $x$, $y$, and $\phi$ needed to be computed. To d
 where:
 \begin{itemize}
 	\item $ (x_p, y_p) $ are the coordinates of the points in the reference frame
-	\item $(x_p', y_p')$ are the coordinates of points after being transformed:
+	\item $(x_p', y_p')$ are the coordinates of points after having been transformed:
 	\begin{align*}
 		x_p' &= \Delta x + x_p \cos(\phi) - y_p \sin(\phi) \\
 		y_p' &= \Delta y + x_p \sin(\phi) + y_p \cos(\phi)
@@ -527,9 +555,9 @@ where:
 	\item $N$ is the number of points in the reference frame, and $Q$ represents all points in the target frame.
 \end{itemize}
 
-This cost function evaluates the alignment of transformed coordinates to target coordinates by calculating the sum of the shortest distances from each point in the transformed frame to the closest point in the target frame. Each $(x_p', y_p')$ is the position of a point from the reference frame after being transformed by the parameters $\Delta x$, $\Delta y$, and $\phi$. For each transformed point,the distance to every point $(x_q, y_q)$ in the target frame is computed, the minimum of these distances is selected, and sum these minimum distances across all points is calculated. This sum is the output of the cost function, which is optimized in the following step. 
+This cost function evaluates the alignment of transformed coordinates to target coordinates by calculating the sum of the shortest distances from each point in the transformed frame to the closest point in the target frame. Each $(x_p', y_p')$ represents the position of a point from the reference frame after having been transformed by the parameters $\Delta x$, $\Delta y$, and $\phi$. For each transformed point, the distance to every point $(x_q, y_q)$ in the target frame is computed, the minimum of these distances is selected, and the sum of these minimum distances is calculated over all points. This sum is the output of the cost function, which was optimized in the following step. 
 
-The optimization of this cost function was performed using a nonlinear least squares approach where the initial guess of [0,0,0] was provided. This guess represented the starting point for the transformation parameters $\Delta x$, $\Delta y$ and $\phi$. The \texttt{fmin} function from SciPy’s optimization module was used for this purpose, which uses the Nelder-Mead simplex method \parencite{nelder_simplex_1965}. The algorithm was used with a function and parameter tolerance of $1 \times 10^{-8}$, and maximum iterations of 1000. This method iteratively explores the parameter space to find the set of parameters that result in the lowest cost function value. The optimization procedure continues until the change in the cost function is less than the specified tolerance or the maximum number of iterations is reached, indicating convergence to an optimal solution. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
+The optimization of this cost function was performed using a nonlinear least squares approach where the initial guess of [0,0,0] was provided. This guess represented the starting values for the transformation parameters $\Delta x$, $\Delta y$ and $\phi$. The \texttt{fmin} function from SciPy’s optimization module was used for this purpose, which uses the Nelder-Mead simplex method \parencite{nelder_simplex_1965}. The algorithm was used with a function tolerance and a parameter tolerance of $1 \times 10^{-8}$, and a maximum of 1000 iterations. This method iteratively explored the parameter space to find the set of parameters that resulted in the lowest cost function value. The optimization procedure continued until the change in the cost function was less than the specified tolerance or the maximum number of iterations was reached, indicating convergence to an optimal solution. Figure \ref{fig:edge_tracking} provides a visual representation of the overlap of the reference points from the fully flexed initial position to the frame where the lower leg has been rotated by an angle of 12 degrees as reported by the rotary angle encoder. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{image137}
@@ -537,17 +565,17 @@ The optimization of this cost function was performed using a nonlinear least squ
 	\label{fig:edge_tracking}
 \end{figure}
 
-These transformation matrices were obtained iteratively, where each set of transformed reference points served as the basis for the next iteration. Ultimately, a list of these matrices were obtained, containing information for each adjacent frame. 
+The transformation matrices were obtained iteratively, where each set of transformed reference points served as the basis for the next iteration. Ultimately, a list of these matrices was obtained, containing information for each adjacent frame. 
 
 
 \textbf{Step 5: Application of transformation matrices }
 
-Given the transformation matrices obtained from edge tracking, any shape drawn on the first frame could now be transformed across the subsequent frames. If the initial edge detection covers the entire boundary of the bone, no further manual input is required, and the segmentation process is considered complete. However, for datasets where only a partial chunk of the full interior boundary of the bone (generally for the tibia) was found by edge detection, manual segmentation was necessary. This is illustrated in Figure \ref{fig:manualsegment}, which shows the tibia's boundary extended manually to complete the segmentation. 
+With the transformation matrices obtained from edge tracking, any shape drawn on the first frame can be transformed across the subsequent frames. If the initial edge detection covers the entire boundary of the bone, no further manual input is required, and the segmentation process is considered complete. However, for datasets where only a partial chunk of the full interior boundary of the bone (generally for the tibia) was found by edge detection, manual segmentation was necessary. This is illustrated in Figure \ref{fig:manualsegment}, which shows the tibia's boundary extended manually to complete the segmentation. 
 
 \begin{figure} [H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{manual_segment}
-	\caption{Manual segmentation is performed to complete the boundary of the tibia's interior edge shown in green, along with the reference points (orange).}
+	\caption{Manual segmentation was performed to complete the boundary of the tibia's interior edge shown in green, along with the reference points (orange).}
 	\label{fig:manualsegment}
 \end{figure}
 
@@ -557,7 +585,7 @@ Using the shapes of these manually drawn segments, the transformation matrices w
 
 To evaluate the accuracy of edge tracking achieved through cost function minimization, the deviation of the overlap between points on the transformed frame and the target frame was measured. 
 
-The mean alignment error per point was derived by dividing the cost function output by the total number of points in the transformed frame. This value quantifies the average distance that a point on the transformed frame deviated from its corresponding point on the target frame. This value was calculated for all frames, and the average across all points and frames was taken for each dataset.
+The mean alignment error per point was derived by dividing the cost function output by the total number of points in the transformed frame. This value quantifies the average distance that a point on the transformed frame deviated from its corresponding point on the target frame. This value was calculated for all frames, and the average across all points and frames was determined for each dataset.
 
 To assess the variability of these mean alignment errors across different datasets, the Standard Error of the Mean (SEM) was calculated using the following formula:
 \begin{equation}
@@ -565,20 +593,20 @@ To assess the variability of these mean alignment errors across different datase
 \end{equation}
 where $\sigma$ is the standard deviation of the mean alignment errors within each dataset, and $n$ is the number of frames analyzed per dataset.
 
-\subsubsection{Extraction of Biomechanical Parameters}
-After achieving automated segmentation of the tibia and femur across all frames, the next step involved extracting biomechanical parameters from the segmented regions. Two key metrics were considered for analysis to assess the relationship between these bones throughout the flexion-extension cycle captured in the 2D CINE images.
+\subsubsection{Extraction of Biokinematic Parameters}
+After achieving automated segmentation of the tibia and femur across all frames, the next step involved extracting biokinematic parameters from the segmented regions. Two key metrics were considered for analysis to assess the relationship between these bones throughout the flexion-extension cycle captured in the 2D CINE images.
 
-The first metric involved calculating the angle between the long axis of femur and tibia segments. This measurement provided insight into how the relative orientation of the two bones changes over time.
+The first metric calculated the angle between the long axis of femur and tibia segments, providing insight into how the relative orientation of the two bones changed over time.
 
-The second metric measured the distance between specific anatomical landmarks on both the femur and tibia. Tracking this distance across the frames offered an understanding of how the spatial relationship between these two bones evolved during the motion cycle. 
+The second metric assessed the distance between specific anatomical landmarks on both the femur and tibia. Tracking this distance across the frames offered an understanding of how the spatial relationship between these two bones evolved during the motion cycle. 
 
 \textbf{Angle between the bones}
 
 To calculate the angle between the bones, the long axis of each bone segment was identified using Principal Component Analysis (PCA) \parencite{jolliffe_principal_2004}. The analysis was performed using the PCA implementation from the scikit-learn (v1.3.1) Python library, a module for machine learning built on top of SciPy.
 
-PCA determines the direction of maximum variance in the data, which coincides with the longitudinal axis of the bone. To perform PCA, the coordinates of the segmented binary mask are used as input. First, the centroid of the shape is calculated. This centroid is then subtracted from each data point, effectively centering the data. As a result of this transformation, the mean of the centered data points is shifted to (0, 0), meaning that the average position of all the data points is now at the origin of the coordinate system. 
+PCA determines the direction of maximum variance in the data, which coincides with the longitudinal axis of the bone. To perform PCA, the coordinates of the segmented binary mask were used as input. First, the centroid of the shape was calculated. This centroid was then subtracted from each data point, effectively centering the data. As a result of this transformation, the mean of the centered data points was shifted to (0, 0), meaning that the average position of all the data points was at the origin of the coordinate system. 
 
-Next, the covariance matrix (\text{Cov}) is computed, a square matrix that gives an indication of how the data varies along each dimension and how different dimensions vary together. 
+Next, the covariance matrix (\text{Cov}) was computed, a square matrix that gives an indication of how the data varies along each dimension and how different dimensions vary together. 
 
 \begin{equation}
 	\mathbf{Cov} = 
@@ -607,22 +635,22 @@ where:
 \end{itemize}
 
 
-When this covariance matrix is applied to a vector, the matrix transforms the vector such that it aligns with the direction of maximum variance in the dataset. Therefore, by computing the matrix's eigenvectors and eigenvalues, the vectors representing the direction of maximum variance is identified. The first principal component refers to the eigenvector associated with the largest eigenvalue. In figure \ref{fig:longaxes}, the longitudinal axis of femur and tibia are shown. 
+When this covariance matrix is applied to a vector, the matrix transforms the vector such that it aligns with the direction of maximum variance in the dataset. Therefore, by computing the matrix's eigenvectors and eigenvalues, the vectors representing the direction of maximum variance are identified. The first principal component refers to the eigenvector associated with the largest eigenvalue. In figure \ref{fig:longaxes}, the longitudinal axis of femur and tibia are shown. 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{theta_angle_new}
-	\caption{The long axis of the bones are identified by using the PCA (blue) along with the centroid (white cross) for each segment. $\theta$ represents the obtuse angle between the vectors of the axes}
+	\caption{The long axis of the bones are identified by using the PCA (blue) along with the centroid (white cross) for each segment. $\theta$ represents the obtuse angle between the vectors of the axes.}
 	\label{fig:longaxes}
 \end{figure}
 
-The angles between the segments was calculated by using the dot product between unit vectors:
+The angles between the segments were calculated by using the dot product between unit vectors:
 
 \begin{equation}
 	\theta = \arccos(\mathbf{U}_{\text{fem}} \cdot \mathbf{U}_{\text{tib}})
 	\label{eq:angle}
 \end{equation}
-where, $\mathbf{U}_{\text{fem}}$ and $\mathbf{U}_{\text{tib}}$ are the unit vectors of the longitudinal axes for the femur and tibia segments respectively. The range of $\theta$, the angle between the femur and tibia, is from 0° to 180°. As the knee extends, this angle is increases up to 180°. Should it extend beyond this point, the excess is added rather than subtracted, allowing the visualization of angles exceeding 180°. 
+where, $\mathbf{U}_{\text{fem}}$ and $\mathbf{U}_{\text{tib}}$ are the unit vectors of the longitudinal axes for the femur and tibia segments respectively. The range of $\theta$, the angle between the femur and tibia, spans from 90° to 180°. As the knee extends, this angle increases up to 180°. Should it extend beyond this angle, the excess is added rather than subtracted, allowing the visualization of angles exceeding 180°. 
 
 \textbf{Distance between the bones}
 
@@ -636,28 +664,28 @@ To quantify the spatial relationship between the bones, anatomical landmarks on 
 
 These points were selected based on their consistent availability and reliable identification in the chosen MRI slices of each dataset.
 
-The euclidean distance between the femur landmark ($y_2, x_2$) and the tibia landmark ($y_1, x_1$) was measured by using Equation \ref{eq:distance}. 
+The euclidean distance between the femur landmark ($x_2, y_2$) and the tibia landmark ($x_1, y_1$) was measured by using Equation \ref{eq:distance}. 
 \begin{equation}
-	d = \sqrt{(y_2 - y_1)^2 + (x_2 - x_1)^2}
+	d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}
 	\label{eq:distance}
 \end{equation} 
 
 
-\textbf{Normalizing the x-axis for analysis and graphical purposes}
+\textbf{Normalizing the time axis for analysis and graphical purposes}
 
-Even though the number of frames is consistent between the loaded and unloaded conditions for a given dataset, the total number of frames reconstructed varies across different datasets due to the varying ranges of motion achieved by the subjects inside the scanner during the experiment. 
+Even though the number of frames was consistent between the loaded and unloaded conditions for a given dataset, the total number of frames reconstructed varied across different datasets due to the varying ranges of motion achieved by the subjects inside the scanner during the experiment. 
 
-The variation in frame count necessitated the normalization of the time axis across all datasets to ensure consistent analysis and comparison. The nature of the exercise is such that each dataset inherently begins at a maximally flexed position—where the leg touches the bore of the scanner—and extends to maximum, where the leg is parallel to the scanner bore, before flexing back to the original position. This movement cycle, from -100\% for maximal flexion, through 0\% at full extension, and back to +100\% for maximal flexion, was consistent across all datasets. To facilitate the comparison and aggregation of biomechanical parameters, the normalized time axis was divided into bins of 10 degrees. Data were aggregated within each bin across all datasets, and the center of each bin was selected as the plotting point for graphical representation
+The variation in frame count necessitated the normalization of the time axis across all datasets to ensure consistent analyses and comparisons. The nature of the exercise was such that each dataset inherently began at a maximally flexed position—where the leg touched the bore of the scanner—and extended to maximum, where the leg was parallel to the scanner bore, before flexing back to the original position. This movement cycle, from -100\% for maximal flexion, through 0\% at full extension, and back to +100\% for maximal flexion, was consistent across all datasets. To facilitate the comparison and aggregation of the kinematic parameters, the normalized time axis was divided into bins of 10 degrees of leg rotation. Data were aggregated within each bin across all datasets, and the center of each bin was selected as the plotting point for graphical representation
 
-For statistical analysis, a two-sample independent t-test was performed for each bin using the \texttt{stats} module from the  SciPy library. This analysis was aimed at testing the null hypothesis that any observed differences in parameters under loaded and unloaded conditions could be attributed to random chance. 
+For statistical analysis, a two-sample independent t-test was performed for each bin using the \texttt{stats} module from the  SciPy library. This analysis aimed at testing the null hypothesis that any observed differences in parameters under loaded and unloaded conditions were due to random chance. 
 
 
 \section{Results}
-\label{sec:yetanother}
+\label{sec:results}
 
 \subsection{Edge Tracking and Segmentation}
 
-The measured alignment error per point for the femur and the tibia are presented separately in Figures \ref{fig:barfemur} and \ref{fig:bartibia} respectively. 
+The measured alignment error per point for the femur and the tibia are presented separately in Figures \ref{fig:barfemur} and \ref{fig:bartibia}, respectively. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{bar_no_1_3_Femur_both.png}
@@ -674,18 +702,18 @@ The measured alignment error per point for the femur and the tibia are presented
 
 A lower value of the y-axis in these bar charts indicates better accuracy of the edge tracking algorithm. Error bars reflect the standard error of the mean (SEM) for each condition within each dataset, demonstrating the precision of the mean alignment error estimates.  
 
-For the femur datasets, The highest mean alignment error observed was 0.48 mm ± 0.04 mm, indicating that dataset 3 under load had the least precision in edge tracking. Conversely, the lowest mean alignment error was 0.24 mm ± 0.01 mm, suggesting that dataset 1 without load had the best edge tracking accuracy. On average, the mean alignment error for the loaded condition was 0.37 mm ± 0.02 mm, while for the unloaded condition, it was 0.33 mm ± 0.02 mm.
+For the femur datasets, the highest mean alignment error observed was 0.48 mm ± 0.04 mm, indicating that dataset 3 under load had the least precision in edge tracking. Conversely, the lowest mean alignment error was 0.24 mm ± 0.01 mm, suggesting that dataset 1 without load had the best edge tracking accuracy. On average, the mean alignment error for the loaded condition was 0.37 mm ± 0.02 mm, while for the unloaded condition, it was 0.33 mm ± 0.02 mm.
 
-Similarly, for the tibia datasets, the highest mean alignment error observed was 0.51 mm ± 0.02 mm, implying that dataset 5 under load had the least precision in edge tracking for the tibia . Conversely, the lowest mean alignment error recorded was 0.27 mm ± 0.01 mm, suggesting that the edge tracking in tibia worked best for dataset 2 also under load. On average, the mean alignment error for the loaded condition was 0.38 mm ± 0.02 mm, while for the unloaded condition, it was 0.32 mm ± 0.01 mm.
+Similarly, for the tibia datasets, the highest mean alignment error observed was 0.51 mm ± 0.02 mm, implying that dataset 5 under load had the least precision in edge tracking for the tibia . Conversely, the lowest mean alignment error recorded was 0.27 mm ± 0.01 mm, suggesting that the edge tracking in the tibia worked best for dataset 2 also under load. On average, the mean alignment error for the loaded condition was 0.38 mm ± 0.02 mm, while for the unloaded condition, it was 0.32 mm ± 0.01 mm.
 
-A paired sample t-test was conducted to compare the mean alignment errors per point between the loaded and unloaded conditions across five datasets for the femur and tibia datasets. The null hypothesis tested was that there is no significant difference in the average values of mean alignment errors between the two conditions. The p-values obtained were 0.087 for the femur datasets and 0.057 for the tibia datasets. Given these p-values, the null hypothesis was not rejected for either dataset, suggesting no statistically significant difference in the mean alignment errors between the conditions at the conventional 0.05 significance level.
+A paired sample t-test was conducted to compare the mean alignment errors per point between the loaded and unloaded conditions across the five datasets for the femur and tibia. The p-values obtained were 0.087 for the femur datasets and 0.057 for the tibia datasets. Given these p-values, the null hypothesis was not rejected for either dataset, suggesting no statistically significant difference in the mean alignment errors between the conditions at the conventional 0.05 significance level.
    
-To illustrate how this alignment error translates to actual performance of the segmentation, the worst performing dataset, which is the loaded case for the femur for dataset 5 is shown in Figure \ref{fig:d5wfem}: 
+To illustrate how this alignment error translates to the actual performance of the segmentation, the worst performing dataset, which was the loaded case for the femur for dataset 3 is shown in Figure \ref{fig:d5wfem}: 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{d5_W_fem}
-	\caption{ The result of the proposed automatic segmentation of the femur (shown in green) for dataset 3 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 31 represent the knee at maximally flexed positions, at the start and end of the full cycle.}
+	\caption{ The result of the proposed automatic segmentation of the femur (shown in green) for dataset 3 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 31 represent the knee in its maximally flexed positions, making the start and end of the full cycle, respectively.}
 	\label{fig:d5wfem}
 \end{figure}
 
@@ -694,38 +722,38 @@ As for the tibia dataset, the worst performing dataset is illustrated similarly 
 \begin{figure} [H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{d7_W_tib}
-	\caption{ The result of automatic segmentation of the tibia (shown in green) for dataset 5 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 45 represent the knee at maximally flexed positions, at the start and end of the full cycle respectively.}
+	\caption{ The result of automatic segmentation of the tibia (shown in green) for dataset 5 under load at various time points during the extension-flexion cycle. Frame 0 and Frame 45 represent the knee in its maximally flexed positions, making the start and end of the full cycle, respectively.}
 	\label{fig:d7wtib}
 \end{figure}
  
-The results above demonstrate that despite the highest magnitude of mean alignment error per point, the error is not visually perceptible in the segmentation.   
+These results demonstrate that, despite the highest magnitude of mean alignment error per point, its effect is not visually perceptible in the segmentation.   
 
 \subsection{Biokinematic Parameter Extraction}
 
 \textbf{Angle calculation}
 
-Figure \ref{fig:anglegraphstickman} displays the result of calculating the angle between the long axes of bone segments across the flexion-extension cycle. 
+Figure \ref{fig:anglegraphstickman} displays the calculated angle between the long axes of bone segments throughout the extension-flexion cycle. 
  
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{angle_no_13_stick}
-	\caption{Average angle between the long axes of the bone segments with respect to time during the motion cycle under loaded and unloaded condition.The x-axis ticks represent the centers of bins, each with a width of 10 percentage units. The shaded regions represent one standard deviation uncertainty across all the datasets. Angles greater than 180° imply hyperextension. Both loaded and unloaded conditions exhibit a similar pattern: : the angle increases as the knee extends, peaking slightly beyond 180° at maximum extension, before decreasing symmetrically as the motion approaches 100\% flexion}
+	\caption{Average angle between the long axes of the bone segments with respect to time during the motion cycle under loaded and unloaded conditions. The x-axis ticks represent the centers of bins, each with a width of 10 percentage units. The shaded regions represent one standard deviation uncertainty across all the datasets. Angles greater than 180° imply hyperextension. Both loaded and unloaded conditions exhibit a similar pattern: the angle increases as the knee extends, peaking slightly beyond 180° at maximum extension, before decreasing symmetrically as the motion approaches 100\% flexion}
 	\label{fig:anglegraphstickman}
 \end{figure}
 
-No significant differences were observed between the loaded and unloaded conditions for any of the bins, as given in table \ref{tab:p_values_combined}. 
+No significant differences were observed between the loaded and unloaded conditions for any of the bins, as given in Table \ref{tab:p_values_combined}. 
 
 \textbf{Distance calculation }
 
-The Euclidean distance between two points on the tibia and femur segments was measured throughout the flexion-extension cycle for both loaded and unloaded conditions. The aggregated results are shown in Figure \ref{fig:resultsdistancestickman}
+The Euclidean distance between two points on the tibia and femur segments was measured throughout the flexion-extension cycle for both loaded and unloaded conditions. The aggregated results are shown in Figure \ref{fig:resultsdistancestickman}.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\linewidth]{distance_no_13_stick}
-	\caption{Plot showing the variation of euclidean distance between the anatomical landmarks on the femur and tibia with respect to time in the motion cycle. All distances are relative to the baseline measurement at -100\% flexion, set at 0 mm. The shaded region represents one standard deviation uncertainty across all datasets for each condition. In both loaded and unloaded conditions, the distance decreases during the extension half of the cycle, indicating that the segments are coming closer together, and then increases during the flexion half, suggesting the segments are moving further apart.}
+	\caption{Plot showing the variation of the Euclidean distance between the anatomical landmarks on the femur and tibia with respect to time in the motion cycle. All distances are relative to the baseline measurement at -100\% flexion, set to 0 mm. The shaded region represents one standard deviation uncertainty across all datasets for each condition. In both loaded and unloaded conditions, the distance decreases during the extension half of the cycle, indicating that the segments are coming closer together, and then increases during the flexion half, suggesting the segments are moving further apart.}
 	\label{fig:resultsdistancestickman}
 \end{figure}
 
-The null hypothesis was rejected for only the movement range between 0-10\% flexion. No significant differences were observed for the remaining bins, as noted in table \ref{tab:p_values_combined}. 
+The null hypothesis was only rejected for the movement range between 0-10\% flexion. No significant differences were observed for the remaining bins, as noted in Table \ref{tab:p_values_combined}. 
 \begin{table}[H]
 	\centering
 	\caption{Comparison of P-Values Across Flexion Percentage Ranges for Different Measurements}
@@ -757,10 +785,11 @@ The null hypothesis was rejected for only the movement range between 0-10\% flex
 	\end{tabular}
 	\begin{minipage}[t]{\linewidth} % Adjusting the width if necessary
 		\bigskip
-		\textbf{Note:} This table presents the p-values obtained from independent t-tests comparing the mean Euclidean distances and angles between loaded and unloaded conditions across predefined flexion percentage ranges. Each range represents an interval of 10\% in the flexion-extension cycle, with averages taken across all datasets. Significant p-values (p \textless 0.05) are highlighted in bold.
+		\textbf{Note:} This table presents the p-values obtained from independent t-tests comparing the mean Euclidean distances and angles between loaded and unloaded conditions across predefined flexion percentage ranges. Each range represents an interval of 10\% in the extension-flexion cycle, with averages taken across all datasets. Significant p-values (p \textless 0.05) are highlighted in bold.
 	\end{minipage}
 \end{table}
 \section{Discussion}
+\label{sec:discussion}
 
 The accuracy and reliability of the measurements obtained from the dynamic MRI scans are influenced by several factors that need to be considered to ensure meaningful results. One significant factor is the overall bulk movement of the leg during the scan. If the femur is not properly fixated, the entire leg might shift, leading to inaccurate measurements. Ensuring that the thigh is securely positioned on the device with the thigh strap is critical for minimizing this movement. Additionally, improper fixation can allow the upper leg to lift or shift laterally, further compromising the accuracy of the measurements. This overall instability can be exacerbated by the entire leg shifting longitudinally within the scanner, causing misalignment and poor-quality output.
 
@@ -786,7 +815,7 @@ Instances where significant deviations between transformed and target frames wer
 
 The datasets included in the analysis  demonstrated satisfactory segmentation. Edge tracking performance was consistently robust for both loaded and unloaded conditions as well as between different bones (femur and tibia). The similar trends in mean alignment errors for both conditions suggest that the edge tracking algorithm was equally effective regardless of the mechanical loading on the joints. Specifically, the mean alignment error for the femur in the unloaded condition was 0.331 mm ± 0.018 mm, compared to 0.37 mm ± 0.02 mm in the loaded condition. Similarly, for the tibia, the unloaded condition showed a mean alignment error of 0.32 mm ± 0.02 mm, while in the loaded condition it was slightly higher at 0.38 mm ± 0.02 mm. Additionally, the fact that even the datasets with the highest magnitude of mean alignment error (0.51 mm for the tibia under load) did not visually exhibit significant segmentation flaws reinforces the notion that the algorithm can tolerate a certain degree of error without compromising the overall quality of the segmentation.
 
-To provide a context for these values, it is noted that similar metrics have been reported in MRI-based measurements. For example, Rathnayaka et al.\,(2012) recorded an average alignment error per point of 0.23 mm in their study on the accuracy of MRI-generated 3D models of long bones \parencite{rathnayaka_quantification_2012}. 
+To provide a context for these values, it is noted that similar metrics have been reported in MRI-based measurements. For example, Rathnayaka et al.\,(2012) recorded an average alignment error per point of 0.23 mm in their study on the accuracy of MRI-generated 3D models of long bones \parencite{rathnayaka_quantification_2012}.  Furthermore, Van Oevelen et al. (2024) reported similar accuracy metrics in their study on meniscal dynamics and tibiofemoral kinematics using dynamic MRI. They quantified the precision of their segmentation using Average Surface Distance (ASD), with values for the medial meniscus ranging from 0.32 mm to 0.36 mm, and for the lateral meniscus from 0.41 mm to 0.70 mm, across different degrees of knee flexion \parencite{van_oevelen_relation_2024}.
 
 
 \subsection{Angle Calculation}
@@ -823,12 +852,14 @@ Given these observations, it can be hypothesized that the response to external l
  
 
 \section{Conclusion}
+\label{sec:conclusion}
+This study set out to develop a semi-automated segmentation tool for analyzing dynamic MRI scans of the knee during flexion-extension cycles and to apply this tool to track and quantify biokinematic parameters. The findings illustrate the potential of this method to accurately measure bone alignment and distances between anatomical landmarks under different loading conditions.
 
-This study set out to explore the precision and practicality of a semi-automated segmentation process for analyzing dynamic MRI scans of the knee during flexion-extension cycles. The findings demonstrate the potential of this method to accurately track and quantify biomechanical parameters such as bone alignment and distances between anatomical landmarks under different loading conditions.
+Other imaging modalities, such as dynamic CT, have also been used to study tibiofemoral kinematics. A recent study (n=100) established normative knee kinematics of healthy subjects using a fully automatic workflow with dynamic CT \parencite{dunning_fully_2023}. While this approach is useful, it involves significant computational effort, particularly due to the reliance on deep learning-based neural networks for segmentation and registration. 
 
 \textbf{Key Findings and Implications}
 
-The metric used to quantify the accuracy of semi-automatic segmentation has been found comparable to those reported in the literature concerning MRI-based segmentation techniques. This semi-automated method is particularly advantageous for analyzing dynamic frames over time, making it highly suitable for clinical and research applications where advanced machine learning-based automatic segmentation techniques are not yet available for dynamic CINE images. The approach facilitates rapid and efficient analysis of a large number of frames and requires minimal computational power. Moreover, once the bones are segmented, a wide range of biomechanical analyses can be conducted, providing comprehensive insights into joint mechanics, beyond those attempted in this study.
+The metric used to quantify the precision of semi-automatic segmentation has been found comparable to those reported in the literature concerning MRI-based segmentation techniques. This semi-automated method is particularly advantageous for analyzing dynamic frames over time, making it highly suitable for clinical and research applications where advanced machine learning-based automatic segmentation techniques are not yet available for dynamic CINE images. The approach facilitates rapid and efficient analysis of a large number of frames and requires minimal computational power. Moreover, once the bones are segmented, a wide range of biomechanical analyses can be conducted, providing comprehensive insights into joint mechanics, beyond those attempted in this study.
 
 The analysis of the angle between the long axes of the tibia and femur showed no significant differences between loaded and unloaded conditions. Any deviation from this trend while measuring patients with underlying conditions with OA could indicate potential pathological issues.
 
@@ -842,7 +873,7 @@ Despite its promising results, this study's methodology is limited by its relian
 
 Additionally, the semi-automated segmentation method demonstrated here can be adapted to analyze patellofemoral kinematics. The patella shows well-defined edges in the images, making it a suitable candidate for this processing pipeline. Given the patella's significant role in knee mechanics \parencite{powers_evidence-based_2017}, this extension would provide valuable insights and complement the current analysis of tibiofemoral interactions.
 
-In conclusion, the semi-automated segmentation process evaluated in this study offers a robust and efficient method for analyzing dynamic MRI scans of the knee. By enabling accurate tracking of biomechanical parameters and accommodating various analyses, it presents a valuable tool for both clinical diagnostics and biomechanical research. While current limitations highlight the need for 3D analysis to fully capture knee kinematics, the potential applications of this method are vast, paving the way for more comprehensive and insightful studies of knee joint mechanics.
+In conclusion, the semi-automated segmentation process evaluated in this study offers a robust and efficient method for analyzing dynamic MRI scans of the knee. By enabling accurate tracking of biomechanical parameters and accommodating various analyses, it presents a valuable tool for both clinical diagnostics and biokinematic research. While current limitations highlight the need for 3D analysis to fully capture knee kinematics, the potential applications of this method are vast, paving the way for more comprehensive and insightful studies of knee joint mechanics.
 % ----------------------------------------------------------------------------
 % Bibliography
 % ----------------------------------------------------------------------------
@@ -879,7 +910,10 @@ In conclusion, the semi-automated segmentation process evaluated in this study o
 % ----------------------------------------------------------------------------
 % Statutory declaration
 % ----------------------------------------------------------------------------
-\makeThesisDeclaration
+%\makeThesisDeclaration
+
+\includepdf{Declaration of Academic Integrity (Eigenständigkeitserklärung).pdf}
+
 
 \end{document}
 
