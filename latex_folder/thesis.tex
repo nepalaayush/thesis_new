@@ -44,7 +44,7 @@
 \thesisTutorb{Dr. rer. nat. Martin Krämer}
 \thesisMatrikel{198683}
 %\thesisAddress{}
-\thesisDate{\today}
+\thesisDate{June 11, 2024}
 % In case of external supervisor
 \thesisCompany{}
 
@@ -62,9 +62,9 @@
 
 The knee joint, a critical component of human movement, is often exposed to mechanical loads that can lead to degenerative conditions such as osteoarthritis (OA). OA, prevalent globally and particularly affecting the knee, requires early diagnosis for effective intervention. Magnetic resonance imaging (MRI) has proven effective in detecting soft tissue changes, but conventional MRI studies often miss early-stage OA indicators as conventional static MRI measurements are conducted under non-weight-bearing conditions, unlike the actual physiological state during daily activities.
 
-This thesis leverages recent advancements in MRI technology to analyze the knee joint under mechanical loading, using high-resolution CINE MRI imaging. This approach enables the investigation of dynamic interactions between the femur and tibia during flexion-extension cycles and provides potential insights into knee kinematics. A major challenge in this process is the accurate segmentation of anatomical structures, over multiple time frames, which is critical for reliable biomechanical measurements. To address this, a semi-automated segmentation pipeline was developed to streamline the process and improve consistency across sequential images.
+This thesis leverages recent advancements in MRI technology to analyze the knee joint under mechanical loading, using high-resolution CINE MRI imaging. This approach enables the investigation of dynamic interactions between the femur and tibia during flexion-extension cycles and provides potential insights into knee kinematics. A major challenge in this process is the accurate segmentation of anatomical structures, over multiple time frames, which is critical for reliable biokinematic measurements. To address this, a semi-automated segmentation pipeline was developed to streamline the process and improve consistency across sequential images.
 
-Following segmentation, biomechanical parameters such as the angle between the long axes of the femur and tibia and the distance between anatomical landmarks were quantified under various loading conditions. The results showed significant variations in distance measurements during the early phase of flexion, highlighting the knee's sensitivity to external loading. However, no significant differences were found in the angle measurements, suggesting stable bone alignment under loading.
+Following segmentation, biokinematic parameters such as the angle between the long axes of the femur and tibia and the distance between anatomical landmarks were quantified under various loading conditions. The results showed significant variations in distance measurements during the early phase of flexion, highlighting the knee's sensitivity to external loading. However, no significant differences were found in the angle measurements, suggesting stable bone alignment under loading.
 
 This research demonstrates the potential of semi-automated segmentation for efficient and reliable analysis of dynamic knee MRI scans, offering potential benefits for clinical and research applications. Despite the promising findings, the study's use of single 2D slices limits the comprehensive assessment of knee kinematics. Future work should extend this methodology to 3D analyses and explore its application to patellofemoral kinematics to gain a more holistic understanding of knee mechanics.
 
@@ -837,7 +837,7 @@ Figure \ref{fig:resultsdistancestickman} shows the variation in the Euclidean di
 
 However, significant differences were observed in this study for the flexion percentage range between 0\% to 10\% with a P-value of 0.016. This would imply that external mechanical loading affects the spatial relationship between the femur and tibia, but only at the beginning of the flexion phase.  Unlike Westphal's study, which compared different types of loading, the current study focuses on varying magnitudes of the same type of loading. This distinction highlights how kinematic responses can differ significantly depending on the nature of the mechanical load applied.
 
-This suggests that there is an underlying mechanism influencing the measured distance near terminal extension but not during other phases of motion. A likely candidate for this is the screw home mechanism (SHM) \parencite{kim_screw-home_2015}.The SHM involves the rotation of the tibia around the femur near terminal extension. It occurs due to the unequal lengths of the condyles. The medial femoral condyle is longer than the lateral condyle, which causes the tibia to rotate externally in the last stages of extension.   This rotation occurs to lock the knee in a stable, fully extended position. Then, when flexion starts during the second half of the cycle, the tibia rotates internally, which 'unlocks' the knee for further flexion.
+This suggests that there is an underlying mechanism influencing the measured distance near terminal extension but not during other phases of motion. A likely candidate for this is the screw home mechanism (SHM) \parencite{kim_screw-home_2015}. The SHM involves the rotation of the tibia around the femur near terminal extension. It occurs due to the unequal lengths of the condyles. The medial femoral condyle is longer than the lateral condyle, which causes the tibia to rotate externally in the last stages of extension.   This rotation occurs to lock the knee in a stable, fully extended position. Then, when flexion starts during the second half of the cycle, the tibia rotates internally, which 'unlocks' the knee for further flexion.
 
 It has been previously reported that the impact of external loading increases the magnitude of internal rotation of the tibia relative to the femur \parencite{myers_vivo_2012}. Not only does the magnitude of this rotation increase, but it has also been reported that the rotation occurs earlier during the flexion cycle under weight-bearing conditions \parencite{johal_tibio-femoral_2005}. Therefore, it seems that this internal rotation is more susceptible to changes in the distance between the defined anatomical landmarks due to external loading compared to external rotation. This susceptibility likely results in the significant differences observed during the initial phase of flexion, as the knee transitions from a fully extended, locked position to a flexed, unlocked state.  
 
@@ -852,7 +852,7 @@ Other studies, such as those by Westphal et al.\,(2013) and Kaiser et al.\,(2013
 \label{sec:conclusion}
 This study set out to develop a semi-automated segmentation tool for analyzing dynamic MRI scans of the knee during flexion-extension cycles and to apply this tool to track and quantify biokinematic parameters. The findings illustrate the potential of this method to accurately measure bone alignment and distances between anatomical landmarks under different loading conditions.
 
-Other imaging modalities, such as dynamic CT, have also been used to study tibiofemoral kinematics. A recent study (n=100) established normative knee kinematics of healthy subjects using a fully automatic workflow with dynamic CT \parencite{dunning_fully_2023}. While this approach is useful, it involves significant computational effort, particularly due to the reliance on deep learning-based neural networks for segmentation and registration. 
+Other imaging modalities, such as dynamic CT, have also been used to study tibiofemoral kinematics. A recent study established normative knee kinematics of healthy subjects (n=100) using a fully automatic workflow with dynamic CT \parencite{dunning_fully_2023}. While this approach is useful, it involves significant computational effort, particularly due to the reliance on deep learning-based neural networks for segmentation and registration. 
 
 \textbf{Key Findings and Implications}
 
@@ -874,7 +874,7 @@ This study's methodology is also limited by its reliance on a single 2D slice. T
 
 Additionally, the semi-automated segmentation method demonstrated here can be adapted to analyze patellofemoral kinematics. The patella shows well-defined edges in the images, making it a suitable candidate for this processing pipeline. Given the patella's significant role in knee mechanics \parencite{powers_evidence-based_2017}, this extension would provide valuable insights and complement the current analysis of tibiofemoral interactions.
 
-In conclusion, the semi-automated segmentation process evaluated in this study offers a robust and efficient method for analyzing dynamic MRI scans of the knee. By enabling accurate tracking of biomechanical parameters and accommodating various analyses, it presents a valuable tool for both clinical diagnostics and biokinematic research. While current limitations highlight the need for 3D analysis to fully capture knee kinematics, the potential applications of this method are vast, paving the way for more comprehensive and insightful studies of knee joint mechanics.
+In conclusion, the semi-automated segmentation process evaluated in this study offers a robust and efficient method for analyzing dynamic MRI scans of the knee. By enabling accurate tracking of biokinematic parameters and accommodating various analyses, it presents a valuable tool for both clinical diagnostics and biokinematic research. While current limitations highlight the need for 3D analysis to fully capture knee kinematics, the potential applications of this method are vast, paving the way for more comprehensive and insightful studies of knee joint mechanics.
 % ----------------------------------------------------------------------------
 % Bibliography
 % ----------------------------------------------------------------------------
@@ -913,7 +913,7 @@ In conclusion, the semi-automated segmentation process evaluated in this study o
 % ----------------------------------------------------------------------------
 %\makeThesisDeclaration
 
-\includepdf{Declaration of Academic Integrity (Eigenständigkeitserklärung).pdf}
+%\includepdf{Declaration of Academic Integrity (Eigenständigkeitserklärung).pdf}
 
 
 \end{document}
