@@ -20,8 +20,8 @@ import pingouin as pg
 sns.set_context("talk")
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl', 'rb') as file:
-    master_df_point =  pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/df_angle.pkl', 'rb') as file:
+    df_angle =  pickle.load(file)
 
 #%%
 master_df_cut = master_df_point[master_df_point['Dataset'].isin([2,4,5,6,7])]
@@ -140,7 +140,13 @@ def calculate_averages_and_test(df, bone, conditions=('Loaded', 'Unloaded')):
 
 # Example usage, assuming 'master_df_cost' is defined and contains the necessary structure.
 
-calculate_averages_and_test(master_df_cost, 'Tibia')    
+calculate_averages_and_test(master_df_cost, 'Tibia')
+
+#%%
+#trying to redefine the angle.. 
+
+df_angle['angle'] = 180 - df_angle['angle'] 
+    
 #%%
 def plot_binned_angle_data(df, bin_width):
     # Make a copy of the DataFrame to ensure the original remains unchanged
@@ -193,13 +199,13 @@ def plot_binned_angle_data(df, bin_width):
     plt.ylabel("Average Angle [°]")
     plt.title("Angle between the long axis of tibia and femur segments")
     plt.grid(True)
-    plt.savefig('angle_no_13.svg', dpi=300)
+    #plt.savefig('angle_no_13.svg', dpi=300)
     plt.tight_layout()
     plt.show()
     return pd.DataFrame(t_test_results, columns=['Bin', 'p-value'])
     
 # Example usage
-nn = plot_binned_angle_data(df_angle_new, 10)
+nn = plot_binned_angle_data(df_angle, 10)
 
 
 
