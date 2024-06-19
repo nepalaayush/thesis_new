@@ -640,8 +640,8 @@ def print_binned_angle_stats(df, bin_width):
 print_binned_angle_stats(modified_angle_df, 10)
 
 #%%
-with open('modified_angle_df.pkl', 'wb') as f:
-    pickle.dump(modified_angle_df, f) 
+with open('df_angle.pkl', 'wb') as f:
+    pickle.dump(df_angle, f) 
     
     
 #%%
