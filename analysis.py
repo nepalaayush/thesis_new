@@ -203,14 +203,14 @@ viewer1.add_points(convert_point_list_to_napari(tib_points))
 image1 = full_image # added this because i directly opened this in the viiewer without path 
 #%%
 # tib_label = coords_to_boolean(new_tib_coords_first, image1.shape)
-tib_label = final_label
+#tib_label = final_label
 
-total_frames = len(tib_label) 
+total_frames = len(image1) 
 desired_frames = 6
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer = viewer1.layers["fem_W"].to_labels(image1.shape)
+disp_layer = viewer1.layers["tib"].to_labels(image1.shape)
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
 #xrange=slice(150,480)
 xrange = slice(80,350)
@@ -224,7 +224,7 @@ for ax, idi in zip(axes.flatten(), frame_indices):
     ax.set_title(f"Frame {idi}", color='white')
      
 plt.tight_layout()
-plt.savefig('JL_W_segmented_fem_s.svg')
+plt.savefig('ds1_tib.svg')
 
 #%%
 
