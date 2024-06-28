@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -24,8 +24,8 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
     
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = '/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2024-03-08/108_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos ='/data/projects/ma-nepal-segmentation/data/Maggioni^Marta_Brigid/2024-03-08/108_MK_Radial_NW_CINE_30bpm_CGA/MM_NW_ai2_tgv_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/MM_2_dataset1/MM_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos ='C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/MM_2_dataset1/MM_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
 image_neg = path_to_image(path_neg)[2:]
 image_pos = path_to_image(path_pos)[2:]
@@ -38,7 +38,7 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(full_image,  name='AN_NW_full')
+viewer = napari.view_image(full_image,  name='ds1_NW_full')
 
 #%%
 import matplotlib.pyplot as plt

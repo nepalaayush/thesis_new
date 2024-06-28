@@ -148,6 +148,9 @@ calculate_averages_and_test(master_df_cost, 'Tibia')
 df_angle['angle'] = 180 - df_angle['angle'] 
     
 #%%
+''' 
+# !!! this is the code to plot the angle , given df_angle in the root directory 
+''' 
 def plot_binned_angle_data(df, bin_width):
     # Make a copy of the DataFrame to ensure the original remains unchanged
     df_copy = df.copy()
@@ -212,7 +215,7 @@ def plot_binned_angle_data(df, bin_width):
    
 
 
-    plt.savefig('inverted_angle.png', dpi=300)
+   #plt.savefig('inverted_angle.png', dpi=300)
     plt.tight_layout()
     plt.show()
     return pd.DataFrame(t_test_results, columns=['Bin', 'p-value'])
