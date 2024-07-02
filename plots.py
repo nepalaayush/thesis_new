@@ -100,6 +100,7 @@ dataset_7_NW_angles = calculate_and_plot_angles_between_bones(JL_NW_fem_info_s, 
 
 
 #%%
+''' Maybe this is used to actually create the dataframe    ''' 
 # Initialize a list to store each row of the DataFrame
 data = []
 
