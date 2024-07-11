@@ -202,19 +202,8 @@ def plot_binned_angle_data(df, bin_width):
     plt.ylabel("Average Angle [°]")
     plt.title("Angle between the long axis of tibia and femur segments")
     plt.grid(True)
-    # Custom text for indicating Extension and Flexion
-    #plt.text(-50, -0.1, 'Extension', ha='center', va='top', fontsize=12, color='black', transform=plt.gca().get_xaxis_transform())
-    #plt.text(50, -0.1, 'Flexion', ha='center', va='top', fontsize=12, color='black', transform=plt.gca().get_xaxis_transform())
-    #plt.annotate('', xy=(-50, -0.08), xytext=(-100, -0.08), arrowprops=dict(arrowstyle='-|>', lw=1.5, color='black'), textcoords=plt.gca().get_xaxis_transform())
-    #plt.annotate('', xy=(50, -0.08), xytext=(100, -0.08), arrowprops=dict(arrowstyle='<|-', lw=1.5, color='black'), textcoords=plt.gca().get_xaxis_transform())
-    # Text for Extension and Flexion exactly below the x-axis ticks
-    #plt.text(-50, -0.05, 'Extension', ha='center', va='top', fontsize=12, color='black', transform=plt.gca().get_xaxis_transform())
-    #plt.text(50, -0.05, 'Flexion', ha='center', va='top', fontsize=12, color='black', transform=plt.gca().get_xaxis_transform())
-    
-   # Arrow for Extension and Flexion
+
    
-
-
    #plt.savefig('inverted_angle.png', dpi=300)
     plt.tight_layout()
     plt.show()

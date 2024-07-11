@@ -732,4 +732,4 @@ def apply_modification(df):
     return result_df
 
 
-modified_angle_df = apply_modification(df_angle_bin_all)
+modified_angle_df = apply_modification(combined_df)
