@@ -7,8 +7,8 @@ Created on Thu Jun 27 10:56:48 2024
 
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -26,8 +26,13 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
 import pingouin as pg 
 import seaborn as sns
 sns.set_context("talk")
+
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/modified_angle_df.pkl', 'rb') as file:
+# apparantly there is a backwards compatibility issue with pickle.load.. so following another solution from the net: 
+    
+master_df_angle = pd.read_pickle('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/master_df_angle_both.pkl')
+#%%
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/master_df_angle_both.pkl', 'rb') as file:
     modified_angle_df_df = pickle.load(file)
 
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds2_angles_df.pkl', 'rb') as file:
@@ -159,8 +164,11 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', 
     return np.array(angles)
 
 #%%
-dataset_7_NW_angles = calculate_and_plot_angles_between_bones(JL_NW_fem_info_s, JL_NW_tib_info_s, name='dataset_7_NW')
 
+master_df_angle['angle'] = 180 - master_df_angle['angle']
+
+with open('master_df_angle_inverted.pkl', 'wb') as f:
+    pickle.dump(master_df_angle, f)   
 
 
 #%%
@@ -282,6 +290,7 @@ def add_percent_flexed(df):
 
 combined_df = add_percent_flexed(combined_df)
 #%%
+# the original plotting functon used in the thesis 
 def plot_binned_angle_data(df, bin_width):
     # Make a copy of the DataFrame to ensure the original remains unchanged
     df_copy = df.copy()
@@ -296,13 +305,14 @@ def plot_binned_angle_data(df, bin_width):
     
     
     # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
-    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['angle'].mean().reset_index()
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['angle'].mean().reset_index() # this was the old line without defining mean and std 
     #grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: (x.left + x.right) / 2)
+    
     grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
     
     # Filter out a specific dataset if needed
     #final_data = grouped[grouped['Dataset'] != 6]
-
+    
     # Plotting the data
     # Prepare to plot
     plt.figure(figsize=(10, 6))
@@ -319,10 +329,271 @@ def plot_binned_angle_data(df, bin_width):
         ci='sd',# Uses standard deviation for the confidence intervals
         #palette=custom_palette
     )
+    
+    plt.axvline(x=0, color='gray', linestyle='--')
+    plt.xlabel("Flexion percentage [%]")
+    plt.ylabel("Average Angle [°]")
+    plt.title("Angle between the long axis of tibia and femur segments")
+    plt.grid(True)
 
+    
     return 
 
-plot_binned_angle_data(master_df_angle_both, 10)
+plot_binned_angle_data(master_df_angle[master_df_angle['Condition'] != 'Loaded'  ], 10)
+
+#%%
+# the code that plots two columns 
+def plot_individual_angle(df, bin_width, datasets):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Create subplots for each dataset
+    fig, axes = plt.subplots(1, len(datasets), figsize=(18, 6), sharey=True)
+    
+    for i, dataset in enumerate(datasets):
+        # Filter data for the current dataset
+        dataset_df = df_copy[df_copy['Dataset'] == dataset]
+        
+        # Group by 'Condition' and 'Custom_Bin' to calculate means
+        grouped = dataset_df.groupby(['Condition', 'Custom_Bin']).agg(
+            angle_mean=('angle', 'mean'),
+            angle_std=('angle', 'std')
+        ).reset_index()
+        grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+        
+        # Plot the data
+        sns.lineplot(
+            data=grouped,
+            x='Bin_Center',
+            y='angle_mean',
+            hue='Condition',
+            marker="o",  # Adds markers to each data point
+            ax=axes[i],
+        )
+        
+        axes[i].axvline(x=0, color='gray', linestyle='--')
+        axes[i].set_xlabel("Flexion percentage [%]")
+        axes[i].set_title(f"Dataset {dataset}")
+        axes[i].grid(True)
+        
+        if i == 0:
+            axes[i].set_ylabel("Average Angle [°]")
+        else:
+            axes[i].get_legend().remove()  # Remove individual legends
+    # Create a single legend for the entire figure
+    #handles, labels = axes[0].get_legend_handles_labels()
+    #fig.legend(handles, labels, title='Condition', loc='upper center', ncol=2)
+    
+    plt.tight_layout()
+    plt.show()
+
+# Example usage
+datasets_to_plot = [1, 2]
+plot_individual_angle(master_df_angle[master_df_angle['Condition'] != 'Loaded'], 10, datasets_to_plot)
+
 
 #%%
 master_df_angle_both = pd.concat([modified_angle_df, df_angle ])
+#%%
+# the function modified to just print out the standard deviations 
+def plot_binned_angle_data_print(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means and std deviations
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset']).agg(
+        angle_mean=('angle', 'mean'),
+        angle_std=('angle', 'std')
+    ).reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+
+    # Calculate the overall mean and std deviation for each bin and condition
+    overall_stats = grouped.groupby(['Condition', 'Custom_Bin']).agg(
+        angle_mean=('angle_mean', 'mean'),
+        angle_std=('angle_mean', 'std'),
+        ci_lower=('angle_mean', lambda x: x.mean() - x.std()),
+        ci_upper=('angle_mean', lambda x: x.mean() + x.std())
+    ).reset_index()
+    overall_stats['Bin_Center'] = overall_stats['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Print the standard deviations to quantify which condition is more 'stable'
+    print("Standard Deviations for Each Condition and Bin:")
+    print(overall_stats.pivot(index='Bin_Center', columns='Condition', values='angle_std'))
+
+    # Plotting the data
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(
+        data=overall_stats,
+        x='Bin_Center',
+        y='angle_mean',
+        hue='Condition',
+        marker="o",  # Adds markers to each data point
+        ci=None,  # We've calculated the CI manually
+    )
+    
+    for condition in overall_stats['Condition'].unique():
+        condition_data = overall_stats[overall_stats['Condition'] == condition]
+        plt.fill_between(
+            condition_data['Bin_Center'],
+            condition_data['ci_lower'],
+            condition_data['ci_upper'],
+            alpha=0.2
+        )
+
+    plt.axvline(x=0, color='gray', linestyle='--')
+    plt.xlabel("Flexion percentage [%]")
+    plt.ylabel("Average Angle [°]")
+    plt.title("Angle between the long axis of tibia and femur segments")
+    plt.grid(True)
+
+    plt.show()
+
+    return 
+
+# Example usage
+plot_binned_angle_data_print(master_df_angle, 10)
+
+#%%
+#the functino that plots bottom and top the standard deviation bar chart and the main graph 
+def plot_binned_angle_data(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means and std deviations
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset']).agg(
+        angle_mean=('angle', 'mean'),
+        angle_std=('angle', 'std')
+    ).reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Calculate the overall mean and std deviation for each bin and condition
+    overall_stats = grouped.groupby(['Condition', 'Custom_Bin']).agg(
+        angle_mean=('angle_mean', 'mean'),
+        angle_std=('angle_mean', 'std'),
+        ci_lower=('angle_mean', lambda x: x.mean() - x.std()),
+        ci_upper=('angle_mean', lambda x: x.mean() + x.std())
+    ).reset_index()
+    overall_stats['Bin_Center'] = overall_stats['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Print the standard deviations to quantify which condition is more 'stable'
+    std_devs = overall_stats.pivot(index='Bin_Center', columns='Condition', values='angle_std')
+    print("Standard Deviations for Each Condition and Bin:")
+    print(std_devs)
+    
+    # Plotting the data
+    fig, axes = plt.subplots(2, 1, figsize=(10, 12))
+
+    # Plot the angle means with confidence intervals
+    sns.lineplot(
+        data=overall_stats,
+        x='Bin_Center',
+        y='angle_mean',
+        hue='Condition',
+        marker="o",  # Adds markers to each data point
+        ci=None,  # We've calculated the CI manually
+        ax=axes[0]
+    )
+    
+    for condition in overall_stats['Condition'].unique():
+        condition_data = overall_stats[overall_stats['Condition'] == condition]
+        axes[0].fill_between(
+            condition_data['Bin_Center'],
+            condition_data['ci_lower'],
+            condition_data['ci_upper'],
+            alpha=0.2
+        )
+
+    axes[0].axvline(x=0, color='gray', linestyle='--')
+    axes[0].set_xlabel("Flexion percentage [%]")
+    axes[0].set_ylabel("Average Angle [°]")
+    axes[0].set_title("Angle between the long axis of tibia and femur segments")
+    axes[0].grid(True)
+
+    # Plot the standard deviations
+    std_devs.plot(kind='bar', ax=axes[1])
+    axes[1].set_xlabel("Flexion percentage [%]")
+    axes[1].set_ylabel("Standard Deviation [°]")
+    axes[1].set_title("Standard Deviations of Angles by Condition and Bin")
+    axes[1].grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+    return 
+
+plot_binned_angle_data(master_df_angle, 10)
+
+#%%
+# function that just plots the bar chart of standard deviations 
+def plot_standard_deviations(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: round(x.mid, 1))
+    
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means and std deviations
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset']).agg(
+        angle_mean=('angle', 'mean'),
+        angle_std=('angle', 'std')
+    ).reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: round(x.mid, 1))
+    
+    # Calculate the overall mean and std deviation for each bin and condition
+    overall_stats = grouped.groupby(['Condition', 'Custom_Bin']).agg(
+        angle_mean=('angle_mean', 'mean'),
+        angle_std=('angle_mean', 'std')
+    ).reset_index()
+    overall_stats['Bin_Center'] = overall_stats['Custom_Bin'].apply(lambda x: round(x.mid, 1))
+    
+    # Print the standard deviations to quantify which condition is more 'stable'
+    std_devs = overall_stats.pivot(index='Bin_Center', columns='Condition', values='angle_std')
+    std_devs = std_devs.rename(columns={'Unloaded': 'Auto'})
+    print("Standard Deviations for Each Condition and Bin:")
+    print(std_devs)
+    
+    # Plot the standard deviations
+    ax = std_devs.plot(kind='bar', figsize=(10, 6))
+    plt.xlabel("Flexion percentage [%]")
+    plt.ylabel("Standard Deviation [°]")
+    plt.title("Standard Deviations of Angles by Condition and Bin")
+    plt.grid(True)
+    
+    # Adjust the legend to be horizontal and placed at the upper left
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, title='Condition', loc='upper left', ncol=2)
+    
+    # Adjust the x-tick labels for better readability
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+    plt.tight_layout()
+    plt.show()
+
+# Example usage
+plot_standard_deviations(master_df_angle[master_df_angle['Condition'] != 'Loaded'], 10)
+
