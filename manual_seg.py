@@ -7,8 +7,8 @@ Created on Thu Jun 27 10:56:48 2024
 
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -30,29 +30,40 @@ sns.set_context("talk")
 #%%
 # apparantly there is a backwards compatibility issue with pickle.load.. so following another solution from the net: 
     
-master_df_angle = pd.read_pickle('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/master_df_angle_both.pkl')
+master_df_angle = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/master_df_inverted.pkl')
+
 #%%
-with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/master_df_angle_both.pkl', 'rb') as file:
-    modified_angle_df_df = pickle.load(file)
 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds2_angles_df.pkl', 'rb') as file:
-    ds2_angles_nw = pickle.load(file)
+master_df = master_df_angle[~master_df_angle['Dataset'].isin([1, 3])]
+#%%
+master_df = master_df.drop(columns=['Bin', 'Bin Center'])
+#%%
+master_df['Dataset'] = pd.factorize(master_df['Dataset'])[0] + 1
 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds3_angles_df.pkl', 'rb') as file:
-    ds3_angles_nw = pickle.load(file)
+#%%
+df = pd.concat([master_df, modified_angle_df], ignore_index=True)
+#%%
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds1_angle_df_new.pkl', 'rb') as file:
+    df1 = pickle.load(file)
 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds4_angles_df.pkl', 'rb') as file:
-    ds4_angles_nw = pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds2_angle_df_new.pkl', 'rb') as file:
+    df2 = pickle.load(file)
 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds5_angles_df.pkl', 'rb') as file:
-    ds5_angles_nw = pickle.load(file)        
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds3_angle_df_new.pkl', 'rb') as file:
+    df3 = pickle.load(file)
+
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds4_angle_df_new.pkl', 'rb') as file:
+    df4 = pickle.load(file)
+
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/ds5_angle_df_new.pkl', 'rb') as file:
+    df5 = pickle.load(file)        
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = 'C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/JL_7_dataset5/JL_NW_ai2_5e-2_neg_ngn.nii'
-path_pos ='C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/JL_7_dataset5/JL_NW_ai2_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/MM_2_dataset1/MM_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/MM_2_dataset1/MM_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
-image_neg = path_to_image(path_neg)[1:]
-image_pos = path_to_image(path_pos)[1:] 
+image_neg = path_to_image(path_neg)[2:]
+image_pos = path_to_image(path_pos)[2:]
 #%%
 # since our image goes from extened to flexed.. the direction means, pos is going down.. and neg is coming up 
 # which means. if we want to present our data as going up then coming down .. we have to reverse the neg, put it at the first half. 
@@ -62,7 +73,7 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(full_image,  name='ds5_NW_full')
+viewer = napari.view_image(full_image,  name='ds1_NW_full')
 
 #%%
 
@@ -129,7 +140,7 @@ def calculate_angle_between_bones(bone1, bone2, axis='long'):
 
     return angle_degrees
 
-#%%
+
 
 def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', new_figure=True):
     """
@@ -165,10 +176,10 @@ def calculate_and_plot_angles_between_bones(bone1, bone2, axis='long', name='', 
 
 #%%
 
-master_df_angle['angle'] = 180 - master_df_angle['angle']
+df['angle'] = 180 - df['angle']
 
-with open('master_df_angle_inverted.pkl', 'wb') as f:
-    pickle.dump(master_df_angle, f)   
+with open('master_df_inverted.pkl', 'wb') as f:
+    pickle.dump(df, f)   
 
 
 #%%
@@ -213,17 +224,17 @@ tib_info = process_multi_frame(viewer.layers['tib'], full_image.shape)
 fem_info = process_multi_frame(viewer.layers['fem'], full_image.shape)
 
 #%%
-ds5_angles_nw = calculate_and_plot_angles_between_bones(tib_info, fem_info, name='ds_5_NW')
+ds1_angles_nw_new = calculate_and_plot_angles_between_bones(tib_info, fem_info, name='ds_1_NW_new')
 
 #%%
-with open('tib_info_ds5.pkl', 'wb') as f:
+with open('tib_info_ds1_new.pkl', 'wb') as f:
     pickle.dump(tib_info, f)   
 
-with open('fem_info_ds5.pkl', 'wb') as f:
+with open('fem_info_ds1_new.pkl', 'wb') as f:
     pickle.dump(fem_info, f)   
 
-with open('ds5_angles_nw.pkl', 'wb') as f:
-    pickle.dump(ds5_angles_nw, f)   
+with open('ds1_angles_nw_new.pkl', 'wb') as f:
+    pickle.dump(ds1_angles_nw_new, f)   
 
 
 #%%
@@ -247,14 +258,14 @@ def create_angle_dataframe(angle_array, dataset_id):
     return df
 
 
-ds5_angle_df = create_angle_dataframe(ds5_angles_nw, 5)
+ds1_angle_df_new = create_angle_dataframe(ds1_angles_nw_new, 1)
 
 #%%
-with open('master_df_angle_both.pkl', 'wb') as f:
-    pickle.dump(master_df_angle_both, f)   
+with open('ds1_angle_df_new.pkl', 'wb') as f:
+    pickle.dump(ds1_angle_df_new, f)   
 #%%
 # now that all the datasets are here.. i need to create a man_seg df that contains all of them .. 
-dfs = [ds1_angles_nw, ds2_angles_nw, ds3_angles_nw, ds4_angles_nw, ds5_angles_nw]
+dfs = [df1, df2, df3, df4, df5]
 combined_df = pd.concat(dfs, ignore_index=True)
 
 #%%
@@ -289,6 +300,10 @@ def add_percent_flexed(df):
     return df
 
 combined_df = add_percent_flexed(combined_df)
+
+#%%
+
+
 #%%
 # the original plotting functon used in the thesis 
 def plot_binned_angle_data(df, bin_width):
@@ -335,7 +350,7 @@ def plot_binned_angle_data(df, bin_width):
     plt.ylabel("Average Angle [°]")
     plt.title("Angle between the long axis of tibia and femur segments")
     plt.grid(True)
-
+    plt.savefig('aggregate_plot.svg', dpi=300)
     
     return 
 
@@ -392,10 +407,11 @@ def plot_individual_angle(df, bin_width, datasets):
     #fig.legend(handles, labels, title='Condition', loc='upper center', ncol=2)
     
     plt.tight_layout()
+    plt.savefig('ds1_5_man_v_auto_angle.svg',dpi=300)
     plt.show()
 
 # Example usage
-datasets_to_plot = [1, 2]
+datasets_to_plot = [1, 5]
 plot_individual_angle(master_df_angle[master_df_angle['Condition'] != 'Loaded'], 10, datasets_to_plot)
 
 
@@ -592,8 +608,21 @@ def plot_standard_deviations(df, bin_width):
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
 
     plt.tight_layout()
+    plt.savefig('bar_chart.svg', dpi=300)
     plt.show()
+    
 
 # Example usage
 plot_standard_deviations(master_df_angle[master_df_angle['Condition'] != 'Loaded'], 10)
+
+#%%
+#using the exact shape from the auto datasets .. the first task is to extract just the first frame from the dragged and dropped shape. 
+
+tib = viewer.layers['MM_NW_tib_shape'].data[0]
+
+viewer.add_shapes(tib, shape_type='polygon', name='tib')
+
+fem = viewer.layers['MM_NW_fem_shape'].data[0]
+
+viewer.add_shapes(fem, shape_type='polygon', name='fem')
 
