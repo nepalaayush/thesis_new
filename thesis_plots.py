@@ -215,7 +215,7 @@ nn = plot_binned_angle_data(df_angle, 10)
 
 
 #%%
-# to do the statistical tests. 
+# to do the statistical tests. # the plot that was used in the thesis 
 
 def plot_and_test_binned_data(df, bin_width):
     # Make a copy of the DataFrame to ensure the original remains unchanged
@@ -271,7 +271,7 @@ def plot_and_test_binned_data(df, bin_width):
 
     return pd.DataFrame(t_test_results, columns=['Bin', 'p-value'])
 
-xx = plot_and_test_binned_data(master_df_cut, 10)
+xx = plot_and_test_binned_data(master_df_point, 10)
 
 #%%
 # lets split the data and plot side by side without aggregation 
