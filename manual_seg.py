@@ -30,13 +30,13 @@ sns.set_context("talk")
 #%%
 # apparantly there is a backwards compatibility issue with pickle.load.. so following another solution from the net: 
     
-master_df_angle = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/master_df_inverted.pkl')
+master_df_point = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/manual_point_master.pkl')
 
 #%%
-
-master_df = master_df_angle[~master_df_angle['Dataset'].isin([1, 3])]
+master_df = master_df_point[~master_df_point['Dataset'].isin([1, 3])]
 #%%
-master_df = master_df.drop(columns=['Bin', 'Bin Center'])
+master_df = master_df.drop(columns=['Binned Percent Flexed', 'Custom_Bin'])
+
 #%%
 master_df['Dataset'] = pd.factorize(master_df['Dataset'])[0] + 1
 
@@ -261,8 +261,8 @@ def create_angle_dataframe(angle_array, dataset_id):
 ds1_angle_df_new = create_angle_dataframe(ds1_angles_nw_new, 1)
 
 #%%
-with open('ds1_angle_df_new.pkl', 'wb') as f:
-    pickle.dump(ds1_angle_df_new, f)   
+with open('manual_segmentation/manual_point_master.pkl', 'wb') as f:
+    pickle.dump(manual_point_master, f)   
 #%%
 # now that all the datasets are here.. i need to create a man_seg df that contains all of them .. 
 dfs = [df1, df2, df3, df4, df5]
@@ -299,10 +299,7 @@ def add_percent_flexed(df):
 
     return df
 
-combined_df = add_percent_flexed(combined_df)
-
-#%%
-
+manual_master_df = add_percent_flexed(manual_master_df)
 
 #%%
 # the original plotting functon used in the thesis 
@@ -625,4 +622,208 @@ viewer.add_shapes(tib, shape_type='polygon', name='tib')
 fem = viewer.layers['MM_NW_fem_shape'].data[0]
 
 viewer.add_shapes(fem, shape_type='polygon', name='fem')
+
+#%%
+
+# Now doing the same thing but for the distance dataframe 
+
+# first thing is to clean up the dataset 
+
+# cleaned up above .. 
+
+# now to nmodify the creating function, because the previous one used the W column # the code can be found in the seaborn tutorial python file 
+
+def create_points_arrays(fem_NW_name, tib_NW_name, fem_index, tib_index): 
+    fem_shape = viewer.layers[fem_NW_name].data
+    tib_shape = viewer.layers[tib_NW_name].data
+    
+    fem_points_NW = np.array([item[fem_index] for item in fem_shape]) 
+    tib_points_NW = np.array([item[tib_index] for item in tib_shape])
+    
+    return fem_points_NW, tib_points_NW
+
+
+fem_points_NW, tib_points_NW = create_points_arrays('ds5_fem_frm_auto', 'ds5_tib_frm_auto',39,2)
+
+#%%
+voxel_size_y = 0.7272727272727273 / 1.5  # Adjusted voxel size for y
+voxel_size_x = 0.7272727272727273 / 1.5  # Adjusted voxel size for x
+
+
+# Function to create DataFrame for a condition
+def create_condition_df(points_fem, points_tib, condition):
+    return pd.DataFrame({
+        'Frame': points_fem[:, 0].astype(int),
+        'Femur_Y': points_fem[:, 1] * voxel_size_y,
+        'Femur_X': points_fem[:, 2] * voxel_size_x,
+        'Tibia_Y': points_tib[:, 1] * voxel_size_y,
+        'Tibia_X': points_tib[:, 2] * voxel_size_x,
+        'Condition': condition,
+    })
+
+# Create DataFrames for each condition
+df5_point = create_condition_df(fem_points_NW, tib_points_NW, 'Manual')
+
+df5_point['Dataset'] = 5
+
+#%%
+def add_norm(df):
+    df['Norm'] = np.sqrt(
+    (df['Femur_X'] - df['Tibia_X'])**2 +
+    (df['Femur_Y'] - df['Tibia_Y'])**2
+)
+    
+add_norm(df5_point)  
+
+
+#%%
+manual_point_master  = pd.concat([manual_master_df, master_df ], ignore_index= True)
+
+#%%
+# before adding the relative norm column as well as the percent flex3ed, it might be worth it to first concat all the manual point dfs, and then do this, it will be much more efficient 
+# afterwards, we can then concatenate this and the master df for plotting 
+
+def add_relative_norm_column(df):
+    """
+    Adds a 'Relative Norm' column to the dataframe where the norm value is adjusted
+    to start from 0 for the first frame of each condition within each dataset.
+
+    Parameters:
+    df (pandas.DataFrame): The dataframe containing at least 'Norm', 'Dataset', and 'Condition' columns.
+
+    Returns:
+    pandas.DataFrame: The modified dataframe with a new 'Relative Norm' column.
+    """
+    # Calculating the relative norm
+    def calculate_relative_norm(group):
+        first_norm = group.iloc[0]['Norm']  # First 'Norm' value in the group
+        group['Relative Norm'] = group['Norm'] - first_norm
+        return group
+
+    # Applying the function to each group and returning the modified dataframe
+    return df.groupby(['Dataset', 'Condition']).apply(calculate_relative_norm)
+
+# Example usage
+# Assume 'master_df_point' is your existing DataFrame loaded elsewhere in your code.
+# master_df_point = pd.read_csv('path_to_your_data.csv')  # If you need to load it from a CSV file
+
+# Adding the 'Relative Norm' column
+manual_master_df = add_relative_norm_column(manual_master_df)
+
+
+#%%
+# now time to do the plot 
+
+def plot_binned_angle_data(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    #df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: (x.left + x.right) / 2)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid) # to match with the other plot 
+    
+    
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset'])['Relative Norm'].mean().reset_index()
+    #grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: (x.left + x.right) / 2)
+    
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Filter out a specific dataset if needed
+    #final_data = grouped[grouped['Dataset'] != 6]
+    
+    # Plotting the data
+    # Prepare to plot
+    plt.figure(figsize=(10, 6))
+    default_palette = sns.color_palette()
+    #custom_palette = {'Loaded': default_palette[1], 'Unloaded': default_palette[0]}
+    
+    
+    # Plotting the data
+    sns.lineplot(
+        data=grouped,
+        x='Bin_Center',
+        y='Relative Norm',
+        hue='Condition',
+        marker="o",
+        ci='sd',  # Uses standard deviation for the error bars
+
+    )
+    
+    plt.axhline(y=0, color='gray', linestyle='--')
+    plt.axvline(x=0, color='gray', linestyle='--')
+    plt.xlabel("Flexion percentage [%]")
+    plt.ylabel("Euclidean Distance (mm)")
+    plt.title("Variation of distance with respect to flexion-extension cycle")
+    plt.grid(True)
+    plt.savefig('distance_manual_compare.png', dpi=300)
+    plt.show()
+    
+    return 
+
+#plot_binned_angle_data(master_df_angle[master_df_angle['Condition'] != 'Loaded'  ], 10)
+plot_binned_angle_data(master_df_point[master_df_point['Condition'] != 'Loaded'  ], 10)
+
+#%%
+# now doing the standard deviation 
+
+# function that just plots the bar chart of standard deviations 
+def plot_standard_deviations_dist(df, bin_width):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: round(x.mid, 1))
+    
+    # Group by 'Condition', the new 'Custom_Bin', and 'Dataset' to calculate means and std deviations
+    grouped = df_copy.groupby(['Condition', 'Custom_Bin', 'Dataset']).agg(
+        dist_mean=('Relative Norm', 'mean'),
+        dist_std=('Relative Norm', 'std')
+    ).reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: round(x.mid, 1))
+    
+    # Calculate the overall mean and std deviation for each bin and condition
+    overall_stats = grouped.groupby(['Condition', 'Custom_Bin']).agg(
+        dist_mean=('dist_mean', 'mean'),
+        dist_std=('dist_mean', 'std')
+    ).reset_index()
+    overall_stats['Bin_Center'] = overall_stats['Custom_Bin'].apply(lambda x: round(x.mid, 1))
+    
+    # Print the standard deviations to quantify which condition is more 'stable'
+    std_devs = overall_stats.pivot(index='Bin_Center', columns='Condition', values='dist_std')
+    std_devs = std_devs.rename(columns={'Unloaded': 'Auto'})
+    print("Standard Deviations for Each Condition and Bin:")
+    print(std_devs)
+    
+    # Plot the standard deviations
+    ax = std_devs.plot(kind='bar', figsize=(10, 6))
+    plt.xlabel("Flexion percentage [%]")
+    plt.ylabel("Standard Deviation [mm]")
+    plt.title("Standard Deviations of Distances by Condition and Bin")
+    plt.grid(True)
+    
+    # Adjust the legend to be horizontal and placed at the upper left
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, title='Condition', loc='upper left', ncol=2)
+    
+    # Adjust the x-tick labels for better readability
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+
+    plt.tight_layout()
+    plt.savefig('bar_chart_dist.svg', dpi=300)
+    plt.show()
+    
+
+# Example usage
+plot_standard_deviations_dist(master_df_point[master_df_point['Condition'] != 'Loaded'], 10)
+
+
 
