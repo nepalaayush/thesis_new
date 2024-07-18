@@ -826,4 +826,63 @@ def plot_standard_deviations_dist(df, bin_width):
 plot_standard_deviations_dist(master_df_point[master_df_point['Condition'] != 'Loaded'], 10)
 
 
+#%%
+
+# the code that plots two columns 
+def plot_individual_angle(df, bin_width, datasets):
+    # Make a copy of the DataFrame to ensure the original remains unchanged
+    df_copy = df.copy()
+
+    # Define bin edges that cover the entire expected range of flexion percentages
+    bin_edges = list(range(-100, 101, bin_width))
+    
+    # Bin 'Percentage of Flexion' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Create subplots for each dataset
+    fig, axes = plt.subplots(1, len(datasets), figsize=(18, 6), sharey=True)
+    
+    for i, dataset in enumerate(datasets):
+        # Filter data for the current dataset
+        dataset_df = df_copy[df_copy['Dataset'] == dataset]
+        
+        # Group by 'Condition' and 'Custom_Bin' to calculate means
+        grouped = dataset_df.groupby(['Condition', 'Custom_Bin']).agg(
+            angle_mean=('Relative Norm', 'mean'),
+            angle_std=('Relative Norm', 'std')
+        ).reset_index()
+        grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+        
+        # Plot the data
+        sns.lineplot(
+            data=grouped,
+            x='Bin_Center',
+            y='angle_mean',
+            hue='Condition',
+            marker="o",  # Adds markers to each data point
+            ax=axes[i],
+        )
+        
+        axes[i].axvline(x=0, color='gray', linestyle='--')
+        axes[i].set_xlabel("Flexion percentage [%]")
+        axes[i].set_title(f"Dataset {dataset}")
+        axes[i].grid(True)
+        
+        if i == 0:
+            axes[i].set_ylabel("Euclidean Distance [mm]")
+        else:
+            axes[i].get_legend().remove()  # Remove individual legends
+    # Create a single legend for the entire figure
+    #handles, labels = axes[0].get_legend_handles_labels()
+    #fig.legend(handles, labels, title='Condition', loc='upper center', ncol=2)
+    
+    plt.tight_layout()
+    plt.savefig('ds3_4_man_v_auto_distance.svg',dpi=250)
+    plt.show()
+
+# Example usage
+datasets_to_plot = [3, 4]
+plot_individual_angle(master_df_point[master_df_point['Condition'] != 'Loaded'], 10, datasets_to_plot)
+
 
