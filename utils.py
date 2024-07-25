@@ -7,6 +7,8 @@ Created on Fri Jan  5 14:24:36 2024
 """
 import os 
 import numpy as np
+import napari
+import math
 import nibabel as nib 
 import matplotlib.pyplot as plt 
 from scipy import ndimage
