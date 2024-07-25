@@ -30,7 +30,7 @@ sns.set_context("talk")
 #%%
 # apparantly there is a backwards compatibility issue with pickle.load.. so following another solution from the net: 
     
-master_df_point = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/manual_point_master.pkl')
+master_df_inverted = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/master_df_inverted.pkl')
 
 #%%
 master_df = master_df_point[~master_df_point['Dataset'].isin([1, 3])]
@@ -351,10 +351,10 @@ def plot_binned_angle_data(df, bin_width):
     
     return 
 
-plot_binned_angle_data(master_df_angle[master_df_angle['Condition'] != 'Loaded'  ], 10)
+plot_binned_angle_data(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'  ], 10)
 
 #%%
-# the code that plots two columns 
+# the code that plots two columns \ this still bins the data into intervals of 10 flexion % .. 
 def plot_individual_angle(df, bin_width, datasets):
     # Make a copy of the DataFrame to ensure the original remains unchanged
     df_copy = df.copy()
@@ -404,13 +404,88 @@ def plot_individual_angle(df, bin_width, datasets):
     #fig.legend(handles, labels, title='Condition', loc='upper center', ncol=2)
     
     plt.tight_layout()
-    plt.savefig('ds1_5_man_v_auto_angle.svg',dpi=300)
+    #plt.savefig('ds1_5_man_v_auto_angle.svg',dpi=300)
     plt.show()
 
 # Example usage
 datasets_to_plot = [1, 5]
-plot_individual_angle(master_df_angle[master_df_angle['Condition'] != 'Loaded'], 10, datasets_to_plot)
+plot_individual_angle(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], 10, datasets_to_plot)
 
+
+#%%
+# here is a function that does not do the aggregation.. since we are only interested in individual datasets.. plotting the y values directly from the x values no binns 
+def plot_individual_angle_no_binning(df, datasets):
+    fig, axes = plt.subplots(1, len(datasets), figsize=(18, 6), sharey=True)
+    
+    for i, dataset in enumerate(datasets):
+        # Filter data for the current dataset and each condition
+        dataset_df = df[df['Dataset'] == dataset]
+
+        # Plot the data directly without binning
+        sns.lineplot(
+            data=dataset_df,
+            x='Percent Flexed',
+            y='angle',
+            hue='Condition',
+            marker="o",
+            ax=axes[i]
+        )
+
+        axes[i].axvline(x=0, color='gray', linestyle='--')
+        axes[i].set_xlabel("Flexion percentage [%]")
+        axes[i].set_title(f"Dataset {dataset}")
+        axes[i].grid(True)  # Include grid for better visualization
+        if i == 0:
+            axes[i].set_ylabel("Angle [°]")
+        else:
+            axes[i].get_legend().remove()  # Remove individual legends from other plots to avoid clutter
+
+    plt.tight_layout()
+    plt.savefig('direct_angle_1_5.svg', dpi=300)
+    plt.show()
+
+# Example usage
+datasets_to_plot = [1, 5]
+plot_individual_angle_no_binning(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
+#%%
+# now plotting the derivative of the graph above: 
+
+def plot_derivative_by_condition(df, datasets):
+    fig, axes = plt.subplots(1, len(datasets), figsize=(18, 6), sharey=True)
+    
+    for i, dataset in enumerate(datasets):
+        dataset_df = df[df['Dataset'] == dataset].sort_values(by='Percent Flexed')  # Ensure data is sorted
+        
+        # Plotting derivatives for each condition within the dataset
+        conditions = dataset_df['Condition'].unique()  # Get unique conditions
+        for condition in conditions:
+            condition_df = dataset_df[dataset_df['Condition'] == condition]
+            x = condition_df['Percent Flexed'].values
+            y = condition_df['angle'].values
+            
+            # Calculate slopes and midpoints
+            slopes = np.abs ( (y[1:] - y[:-1]) / (x[1:] - x[:-1]) )  
+            midpoints = (x[:-1] + x[1:]) / 2
+
+            # Label conditions appropriately
+            label = 'Auto' if condition == 'Unloaded' else 'Manual'
+            
+            # Plotting the derivative
+            axes[i].plot(midpoints, slopes, marker='o', label=f'{label} - Dataset {dataset}')
+            axes[i].set_xlabel("Flexion Percentage [%]")
+            axes[i].set_ylabel("Rate of Change of Angle [°/%]")
+            axes[i].set_title(f"Rate of Change by Condition in Dataset {dataset}")
+            axes[i].grid(True)
+        
+        axes[i].legend()
+
+    plt.tight_layout()
+    #plt.savefig('derivate_angle_1_5.svg', dpi=300)
+    plt.show()
+
+# Example usage
+datasets_to_plot = [1, 5]
+plot_derivative_by_condition(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
 
 #%%
 master_df_angle_both = pd.concat([modified_angle_df, df_angle ])
@@ -878,7 +953,7 @@ def plot_individual_angle(df, bin_width, datasets):
     #fig.legend(handles, labels, title='Condition', loc='upper center', ncol=2)
     
     plt.tight_layout()
-    plt.savefig('ds3_4_man_v_auto_distance.svg',dpi=250)
+    #plt.savefig('ds3_4_man_v_auto_distance.svg',dpi=250)
     plt.show()
 
 # Example usage
