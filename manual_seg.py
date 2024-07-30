@@ -413,10 +413,9 @@ plot_individual_angle(master_df_inverted[master_df_inverted['Condition'] != 'Loa
 
 
 #%%
-# here is a function that does not do the aggregation.. since we are only interested in individual datasets.. plotting the y values directly from the x values no binns 
-def plot_individual_angle_no_binning(df, datasets):
+# !!! do this for comparing just two.  here is a function that does not do the aggregation.. since we are only interested in individual datasets.. plotting the y values directly from the x values no binns 
+def plot_individual_angle_no_binning(df, datasets): 
     fig, axes = plt.subplots(1, len(datasets), figsize=(18, 6), sharey=True)
-    
     for i, dataset in enumerate(datasets):
         # Filter data for the current dataset and each condition
         dataset_df = df[df['Dataset'] == dataset]
@@ -441,16 +440,64 @@ def plot_individual_angle_no_binning(df, datasets):
             axes[i].get_legend().remove()  # Remove individual legends from other plots to avoid clutter
 
     plt.tight_layout()
-    plt.savefig('direct_angle_1_5.svg', dpi=300)
+    plt.savefig('direct_angle_all_datasets.svg', dpi=300)
     plt.show()
 
 # Example usage
-datasets_to_plot = [1, 5]
+datasets_to_plot = [1,2,3,4, 5]
 plot_individual_angle_no_binning(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
-#%%
-# now plotting the derivative of the graph above: 
 
+#%% 
+# do this for plotting all datasets in the same 
+def plot_individual_angle_no_binning(df, datasets):
+    # Define rows and columns for the subplot grid
+    rows = 2
+    columns = 3  # Keeping it consistent with three columns for visual symmetry
+
+    fig, axes = plt.subplots(rows, columns, figsize=(18, 12), sharey=True)
+    axes = axes.ravel()  # Flatten the axes array for easier iteration
+
+    for i, dataset in enumerate(datasets):
+        dataset_df = df[df['Dataset'] == dataset]
+        
+        # Use seaborn lineplot to plot the data
+        sns.lineplot(
+            data=dataset_df,
+            x='Percent Flexed',
+            y='angle',
+            hue='Condition',
+            marker="o",
+            ax=axes[i]
+        )
+        
+        axes[i].axvline(x=0, color='gray', linestyle='--')
+        axes[i].set_xlabel("Flexion percentage [%]")
+        axes[i].set_title(f"Dataset {dataset}")
+        axes[i].grid(True)
+        if i == 0:
+            axes[i].set_ylabel("Angle [°]")
+        else:
+            axes[i].get_legend().remove()  # Remove legends to declutter except for the first subplot
+
+    # Turn off unused subplot axes if there are fewer datasets than subplots
+    for j in range(i + 1, rows * columns):
+        axes[j].axis('off')
+
+    plt.tight_layout()
+    plt.savefig('direct_angle_all_datasets.svg', dpi=300)
+    plt.show()
+
+# Example usage
+datasets_to_plot = [1, 2, 3, 4, 5]
+plot_individual_angle_no_binning(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
+
+
+
+#%%
+# !! !  now plotting the derivative of the graph above: 
+# when we are comparing just two use this code: 
 def plot_derivative_by_condition(df, datasets):
+
     fig, axes = plt.subplots(1, len(datasets), figsize=(18, 6), sharey=True)
     
     for i, dataset in enumerate(datasets):
@@ -464,7 +511,7 @@ def plot_derivative_by_condition(df, datasets):
             y = condition_df['angle'].values
             
             # Calculate slopes and midpoints
-            slopes = np.abs ( (y[1:] - y[:-1]) / (x[1:] - x[:-1]) )  
+            slopes = ( y[1:] - y[:-1] ) / (x[1:] - x[:-1] )  # np.abs ( (y[1:] - y[:-1]) / (x[1:] - x[:-1]) )  
             midpoints = (x[:-1] + x[1:]) / 2
 
             # Label conditions appropriately
@@ -484,8 +531,103 @@ def plot_derivative_by_condition(df, datasets):
     plt.show()
 
 # Example usage
-datasets_to_plot = [1, 5]
+datasets_to_plot = [1,2]
 plot_derivative_by_condition(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
+
+
+#%% 
+# !!! when we are comparing all the datasets in one, use this codew: 
+def plot_derivative_by_condition(df, datasets):
+    # Determine the number of rows and columns for the subplots based on the number of datasets
+    rows = 2
+    columns = 3  # Use 3 columns to keep the figure width consistent
+
+    fig, axes = plt.subplots(rows, columns, figsize=(18, 12), sharey=True)
+    axes = axes.ravel()  # Flatten the axes array for easier iteration
+    
+    
+    all_slopes_data = []  # List to store slope data for DataFrame
+    
+    # Loop through each dataset
+    for i, dataset in enumerate(datasets):
+        dataset_df = df[df['Dataset'] == dataset].sort_values(by='Percent Flexed')
+        conditions = dataset_df['Condition'].unique()
+        
+        for condition in conditions:
+            condition_df = dataset_df[dataset_df['Condition'] == condition]
+            x = condition_df['Percent Flexed'].values
+            y = condition_df['angle'].values
+            
+            # Calculate slopes and midpoints
+            slopes = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
+            midpoints = (x[:-1] + x[1:]) / 2
+            
+            
+            for slope in slopes:
+                all_slopes_data.append({
+                    'Dataset': dataset,
+                    'Condition': condition,
+                    'Slope': slope
+                })
+
+            
+            
+            # Split data into two halves around the 0% flexion point
+            negative_half_indices = midpoints < 0
+            positive_half_indices = midpoints > 0
+            
+            negative_half_slopes = slopes[negative_half_indices]
+            positive_half_slopes = slopes[positive_half_indices]
+
+            # Calculate standard deviation for each half
+            std_neg_half = np.std(negative_half_slopes)
+            std_pos_half = np.std(positive_half_slopes)
+
+            # Print out standard deviations
+            print(f"Dataset {dataset}, Condition {condition} ('Auto' if condition == 'Unloaded' else 'Manual'):")
+            print(f"  Standard deviation of slopes from -100% to 0%: {std_neg_half:.3f}")
+            print(f"  Standard deviation of slopes from 0% to 100%: {std_pos_half:.3f}")
+
+            # Set label based on condition
+            label = 'Auto' if condition == 'Unloaded' else 'Manual'
+            
+            # Plotting
+            axes[i].plot(midpoints, slopes, marker='o', label=f'{label} - Dataset {dataset}')
+            axes[i].set_xlabel("Flexion Percentage [%]")
+            axes[i].set_ylabel("Rate of Change of Angle [°/%]")
+            axes[i].set_title(f"Rate of Change by Condition in Dataset {dataset}")
+            axes[i].grid(True)
+            axes[i].legend()
+
+    # If there are fewer datasets than subplots, turn off the unused axes
+    for j in range(i + 1, rows * columns):
+        axes[j].axis('off')
+
+    plt.tight_layout()
+    #plt.savefig('derivate_angle_all_datasets.svg', dpi=300)
+    plt.show()
+    
+    # Create DataFrame from collected data
+    slope_df = pd.DataFrame(all_slopes_data)
+    
+    
+    return slope_df
+
+# Example usage
+datasets_to_plot = [1, 2, 3, 4, 5]
+slope_df = plot_derivative_by_condition(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
+
+with open('manual_segmentation/slope_df.pkl', 'wb') as f:
+    pickle.dump(slope_df, f)  
+
+#%%
+#
+#
+#
+#
+#
+#
+# the distance stuff comes below this 
 
 #%%
 master_df_angle_both = pd.concat([modified_angle_df, df_angle ])
