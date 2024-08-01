@@ -548,6 +548,8 @@ def plot_derivative_by_condition(df, datasets):
     
     all_slopes_data = []  # List to store slope data for DataFrame
     
+    std_dev_data = []
+    
     # Loop through each dataset
     for i, dataset in enumerate(datasets):
         dataset_df = df[df['Dataset'] == dataset].sort_values(by='Percent Flexed')
@@ -584,10 +586,10 @@ def plot_derivative_by_condition(df, datasets):
             std_pos_half = np.std(positive_half_slopes)
 
             # Print out standard deviations
-            print(f"Dataset {dataset}, Condition {condition} ('Auto' if condition == 'Unloaded' else 'Manual'):")
+            condition_label = 'Auto' if condition == 'Unloaded' else 'Manual'
+            print(f"Dataset {dataset}, Condition {condition_label}:")
             print(f"  Standard deviation of slopes from -100% to 0%: {std_neg_half:.3f}")
             print(f"  Standard deviation of slopes from 0% to 100%: {std_pos_half:.3f}")
-
             # Set label based on condition
             label = 'Auto' if condition == 'Unloaded' else 'Manual'
             
@@ -617,8 +619,105 @@ def plot_derivative_by_condition(df, datasets):
 datasets_to_plot = [1, 2, 3, 4, 5]
 slope_df = plot_derivative_by_condition(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
 
-with open('manual_segmentation/slope_df.pkl', 'wb') as f:
-    pickle.dump(slope_df, f)  
+
+
+#%%
+
+def plot_derivative_by_condition(df, datasets):
+    rows = 2
+    columns = 3  # Use 3 columns to keep the figure width consistent
+
+    fig, axes = plt.subplots(rows, columns, figsize=(18, 12), sharey=True)
+    axes = axes.ravel()  # Flatten the axes array for easier iteration
+    
+    all_slopes_data = []  # List to store slope data for DataFrame
+    std_dev_data = []  # List to store standard deviation data
+    
+    for i, dataset in enumerate(datasets):
+        dataset_df = df[df['Dataset'] == dataset].sort_values(by='Percent Flexed')
+        conditions = dataset_df['Condition'].unique()
+        
+        for condition in conditions:
+            condition_df = dataset_df[dataset_df['Condition'] == condition]
+            x = condition_df['Percent Flexed'].values
+            y = condition_df['angle'].values
+            
+            slopes = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
+            midpoints = (x[:-1] + x[1:]) / 2
+            
+            for slope in slopes:
+                all_slopes_data.append({
+                    'Dataset': dataset,
+                    'Condition': condition,
+                    'Slope': slope
+                })
+            
+            negative_half_indices = midpoints < 0
+            positive_half_indices = midpoints > 0
+            
+            negative_half_slopes = slopes[negative_half_indices]
+            positive_half_slopes = slopes[positive_half_indices]
+
+            std_neg_half = np.std(negative_half_slopes)
+            std_pos_half = np.std(positive_half_slopes)
+
+            condition_label = 'Auto' if condition == 'Unloaded' else 'Manual'
+            std_dev_data.append({
+                'Dataset': dataset,
+                'Condition': condition_label,
+                'Half': 'Negative',
+                'Std Dev': std_neg_half
+            })
+            std_dev_data.append({
+                'Dataset': dataset,
+                'Condition': condition_label,
+                'Half': 'Positive',
+                'Std Dev': std_pos_half
+            })
+
+            axes[i].plot(midpoints, slopes, marker='o', label=f'{condition_label} - Dataset {dataset}')
+            axes[i].set_xlabel("Flexion Percentage [%]")
+            axes[i].set_ylabel("Rate of Change of Angle [°/%]")
+            axes[i].set_title(f"Rate of Change by Condition in Dataset {dataset}")
+            axes[i].grid(True)
+            axes[i].legend()
+
+    for j in range(i + 1, rows * columns):
+        axes[j].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+    
+    slope_df = pd.DataFrame(all_slopes_data)
+    std_dev_df = pd.DataFrame(std_dev_data)
+    
+    return slope_df, std_dev_df
+
+# Example usage
+datasets_to_plot = [1, 2, 3, 4, 5]
+slope_df, std_dev_df = plot_derivative_by_condition(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
+
+# Plotting the standard deviations
+fig, ax = plt.subplots(figsize=(12, 8))
+std_dev_df.pivot_table(index=['Dataset', 'Condition'], columns='Half', values='Std Dev').plot(kind='bar', ax=ax)
+ax.set_ylabel('Standard Deviation of Slopes')
+ax.set_title('Standard Deviation of Slopes by Condition and Dataset')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+
+#%%
+
+slope_df['Slope'].replace([-np.inf, np.inf], np.nan, inplace=True)
+
+
+df_clean = slope_df.dropna()
+
+std_dev = slope_df.groupby(['Dataset', 'Condition'])['Slope'].std().reset_index()
+
+print(std_dev)
+
 
 #%%
 #
