@@ -24,11 +24,11 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
     
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = 'C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/MM_2_dataset1/MM_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos ='C:/Users/Aayush/Documents/thesis_files/manual_segmentation_datasets/MM_2_dataset1/MM_NW_ai2_tgv_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
-image_neg = path_to_image(path_neg)[2:]
-image_pos = path_to_image(path_pos)[2:]
+image_neg = path_to_image(path_neg)[1:]
+image_pos = path_to_image(path_pos)[1:]
 #%%
 # since our image goes from extened to flexed.. the direction means, pos is going down.. and neg is coming up 
 # which means. if we want to present our data as going up then coming down .. we have to reverse the neg, put it at the first half. 
@@ -38,32 +38,46 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(full_image,  name='ds1_NW_full')
+viewer = napari.view_image(full_image,  name='ds4_NW_full')
 
 #%%
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+
 image1 = full_image # added this because i directly opened this in the viiewer without path 
 
 total_frames = len(full_image) 
-desired_frames = 6
+desired_frames = 8
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
 disp_layer_tib = viewer.layers["MK_NW_tib_shape_stiched"].to_labels(image1.shape)
 disp_layer_fem = viewer.layers["MK_NW_fem_shape_stiched"].to_labels(image1.shape)
 
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(7,6), facecolor='black')
+fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(12.9,5.9), facecolor='black')
+plt.subplots_adjust(wspace=0, hspace=0)
 xrange = slice(80,480)
-yrange=slice(120,400)
+yrange=slice(50,400)
+
+
+# Create a custom colormap for solid primary blue
+blue_cmap = ListedColormap([ "blue"])
+
+# Or for primary green:
+green_cmap = ListedColormap(["black", "green"])
+
+
+
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
-    ax.imshow(disp_layer_tib[idi,xrange,yrange], alpha=(disp_layer_tib[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
+    ax.imshow(disp_layer_tib[idi,xrange,yrange], alpha=(disp_layer_tib[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap=blue_cmap)
     ax.imshow(disp_layer_fem[idi,xrange,yrange], alpha=(disp_layer_fem[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(f"Frame {idi}", color='white')
      
-plt.tight_layout()
+fig.tight_layout()
+plt.savefig('ds_ismrm/mosaic_seg.svg', dpi=600)
 
 #%%
 # add the 4d image to a new viewer
