@@ -329,7 +329,7 @@ def plot_binned_angle_data(df, bin_width):
     # Prepare to plot
     plt.figure(figsize=(10, 6))
     default_palette = sns.color_palette()
-    #custom_palette = {'Loaded': default_palette[1], 'Unloaded': default_palette[0]}
+    custom_palette = {'Manual': default_palette[1], 'Unloaded': default_palette[0]}
     
     
     sns.lineplot(
@@ -339,15 +339,23 @@ def plot_binned_angle_data(df, bin_width):
         hue='Condition',
         marker="o",  # Adds markers to each data point
         ci='sd',# Uses standard deviation for the confidence intervals
-        #palette=custom_palette
+        palette=custom_palette
     )
+    
+    
+    # Manually change the labels in the legend
+    handles, labels = plt.gca().get_legend_handles_labels()
+    new_labels = ['Auto' if label == 'Unloaded' else label for label in labels]
+    plt.legend(handles=handles, labels=new_labels)
+    
+    
     
     plt.axvline(x=0, color='gray', linestyle='--')
     plt.xlabel("Flexion percentage [%]")
     plt.ylabel("Average Angle [°]")
     plt.title("Angle between the long axis of tibia and femur segments")
     plt.grid(True)
-    plt.savefig('aggregate_plot.svg', dpi=300)
+    plt.savefig('ds_ismrm\man_vs_auto_angle_agg.svg', dpi=500)
     
     return 
 
@@ -403,12 +411,17 @@ def plot_individual_angle(df, bin_width, datasets):
     #handles, labels = axes[0].get_legend_handles_labels()
     #fig.legend(handles, labels, title='Condition', loc='upper center', ncol=2)
     
+    # Manually change the labels in the legend
+    handles, labels = plt.gca().get_legend_handles_labels()
+    new_labels = ['Auto' if label == 'Unloaded' else label for label in labels]
+    plt.legend(handles=handles, labels=new_labels)
+    
     plt.tight_layout()
     #plt.savefig('ds1_5_man_v_auto_angle.svg',dpi=300)
     plt.show()
 
 # Example usage
-datasets_to_plot = [1, 5]
+datasets_to_plot = [1, 2, 3, 4, 5]
 plot_individual_angle(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], 10, datasets_to_plot)
 
 
@@ -448,7 +461,8 @@ datasets_to_plot = [1,2,3,4, 5]
 plot_individual_angle_no_binning(master_df_inverted[master_df_inverted['Condition'] != 'Loaded'], datasets_to_plot)
 
 #%% 
-# do this for plotting all datasets in the same 
+# to plot each dataset manual vs auto in two rows 
+
 def plot_individual_angle_no_binning(df, datasets):
     # Define rows and columns for the subplot grid
     rows = 2
@@ -470,21 +484,31 @@ def plot_individual_angle_no_binning(df, datasets):
             ax=axes[i]
         )
         
+        # Add vertical line at x=0
         axes[i].axvline(x=0, color='gray', linestyle='--')
         axes[i].set_xlabel("Flexion percentage [%]")
         axes[i].set_title(f"Dataset {dataset}")
         axes[i].grid(True)
+        
+        # Set y-axis label for all subplots
+        axes[i].set_ylabel("Angle [°]")
+
+        # Handle the legend for each individual subplot
+        handles, labels = axes[i].get_legend_handles_labels()
+        new_labels = ['Auto' if label == 'Unloaded' else label for label in labels]
+        
+        # Add the legend for the first subplot, but not the others
         if i == 0:
-            axes[i].set_ylabel("Angle [°]")
+            axes[i].legend(handles=handles, labels=new_labels)
         else:
-            axes[i].get_legend().remove()  # Remove legends to declutter except for the first subplot
+            axes[i].get_legend().remove()  # Remove legends for other subplots
 
     # Turn off unused subplot axes if there are fewer datasets than subplots
     for j in range(i + 1, rows * columns):
         axes[j].axis('off')
 
     plt.tight_layout()
-    plt.savefig('direct_angle_all_datasets.svg', dpi=300)
+    plt.savefig('man_vs_auto_angles_nonagg.svg', dpi=500)
     plt.show()
 
 # Example usage
@@ -597,7 +621,7 @@ def plot_derivative_by_condition(df, datasets):
             axes[i].plot(midpoints, slopes, marker='o', label=f'{label} - Dataset {dataset}')
             axes[i].set_xlabel("Flexion Percentage [%]")
             axes[i].set_ylabel("Rate of Change of Angle [°/%]")
-            axes[i].set_title(f"Rate of Change by Condition in Dataset {dataset}")
+            axes[i].set_title(f" Dataset {dataset}")
             axes[i].grid(True)
             axes[i].legend()
 
@@ -606,7 +630,7 @@ def plot_derivative_by_condition(df, datasets):
         axes[j].axis('off')
 
     plt.tight_layout()
-    #plt.savefig('derivate_angle_all_datasets.svg', dpi=300)
+    plt.savefig('ds_ismrm\derivate_angle_all_datasets.svg', dpi=500)
     plt.show()
     
     # Create DataFrame from collected data
