@@ -9,8 +9,8 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
@@ -24,8 +24,8 @@ from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, poi
     
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
+path_neg = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
 image_neg = path_to_image(path_neg)[1:]
 image_pos = path_to_image(path_pos)[1:]
@@ -38,7 +38,7 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 
 #%%
 #add the original image to napari
-viewer = napari.view_image(full_image,  name='ds4_NW_full')
+viewer = napari.view_image(full_image,  name='ds1_NW_full')
 
 #%%
 import matplotlib.pyplot as plt
@@ -51,11 +51,11 @@ desired_frames = 8
 
 frame_indices = np.linspace(0, total_frames - 1, desired_frames, dtype=int)
 
-disp_layer_tib = viewer.layers["MK_NW_tib_shape_stiched"].to_labels(image1.shape)
-disp_layer_fem = viewer.layers["MK_NW_fem_shape_stiched"].to_labels(image1.shape)
+#disp_layer_tib = viewer.layers["MK_NW_tib_shape_stiched"].to_labels(image1.shape)
+#disp_layer_fem = viewer.layers["MK_NW_fem_shape_stiched"].to_labels(image1.shape)
 
-fig, axes = plt.subplots(nrows=2, ncols=4, figsize=(12.9,5.9), facecolor='black')
-plt.subplots_adjust(wspace=0, hspace=0)
+fig, axes = plt.subplots(nrows=2, ncols=4, facecolor='black', constrained_layout=True)
+#plt.subplots_adjust(wspace=0, hspace=0)
 xrange = slice(80,480)
 yrange=slice(50,400)
 
@@ -70,14 +70,42 @@ green_cmap = ListedColormap(["black", "green"])
 
 for ax, idi in zip(axes.flatten(), frame_indices):
     ax.imshow(image1[idi,xrange,yrange], cmap="gray")
-    ax.imshow(disp_layer_tib[idi,xrange,yrange], alpha=(disp_layer_tib[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap=blue_cmap)
-    ax.imshow(disp_layer_fem[idi,xrange,yrange], alpha=(disp_layer_fem[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
+    #ax.imshow(disp_layer_tib[idi,xrange,yrange], alpha=(disp_layer_tib[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap=blue_cmap)
+    #ax.imshow(disp_layer_fem[idi,xrange,yrange], alpha=(disp_layer_fem[idi,xrange,yrange] > 0).astype(float) * 0.2, cmap='brg')
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(f"Frame {idi}", color='white')
      
-fig.tight_layout()
-plt.savefig('ds_ismrm/mosaic_seg.svg', dpi=600)
+#fig.tight_layout()
+plt.savefig('ds_ismrm/mosaic_seg_2.png', dpi=600)
+
+#%%
+from matplotlib.gridspec import GridSpec
+
+
+image1 = full_image  # Example random data
+frame_indices = [0, 1]  # Replace with your actual frame indices
+
+# Create the figure with black facecolor
+fig = plt.figure(facecolor='black')
+
+# Create a GridSpec with 1 row and 2 columns, set spacing to 0
+gs = GridSpec(2, 4, figure=fig)
+gs.update(wspace=0, hspace=0)  # Eliminate spacing between subplots
+
+xrange = slice(80, 480)
+yrange = slice(50, 400)
+
+# Loop through the frames and add to subplots
+for i, idi in enumerate(frame_indices):
+    ax = fig.add_subplot(gs[i])  # Add subplot based on GridSpec index
+    ax.imshow(image1[idi, xrange, yrange], cmap="gray")
+    ax.set_xticks([])  # Remove x-axis ticks
+    ax.set_yticks([])  # Remove y-axis ticks
+    ax.set_title(f"Frame {idi}", color='white')
+
+# Tight layout ensures there is no padding or margins
+plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
 
 #%%
 # add the 4d image to a new viewer
