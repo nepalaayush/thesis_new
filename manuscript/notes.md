@@ -136,3 +136,71 @@ from https://www.sciencedirect.com/journal/zeitschrift-fur-medizinische-physik/p
 Short communication
 
 Short communications are brief reports that focus on specific methodological developments of an experimental, computational or analytic nature. They should be concise, focussed on a specific technical issue and brief (the typical size of a short message is ~3000 words and 5 or fewer figures). Nonetheless, they should report an innovative technical development of broad significance to the medical physics community. Short communications should include empirical testing or validation of the core technique.
+
+
+________________________________
+
+For Magnetic Resonance Imaging journal: 
+
+from  https://www.sciencedirect.com/journal/magnetic-resonance-imaging/publish/guide-for-authors
+
+
+TECHNICAL NOTES--shorter communications focusing on technical advances in the field.
+
+- Lay out text in a single-column format.
+
+
+Title page
+
+You are required to include the following details in the title page information:
+
+    Article title. Article titles should be concise and informative. Please avoid abbreviations and formulae, where possible, unless they are established and widely understood, e.g., DNA).
+
+    Author names. Provide the given name(s) and family name(s) of each author. The order of authors should match the order in the submission system. Carefully check that all names are accurately spelled. If needed, you can add your name between parentheses in your own script after the English transliteration.
+
+    Affiliations. Add affiliation addresses, referring to where the work was carried out, below the author names. Indicate affiliations using a lower-case superscript letter immediately after the author's name and in front of the corresponding address. Ensure that you provide the full postal address of each affiliation, including the country name and, if available, the email address of each author.
+
+    Corresponding author. Clearly indicate who will handle correspondence for your article at all stages of the refereeing and publication process and also post-publication. This responsibility includes answering any future queries about your results, data, methodology and materials. It is important that the email address and contact details of your corresponding author are kept up to date during the submission and publication process.
+
+    Present/permanent address. If an author has moved since the work described in your article was carried out, or the author was visiting during that time, a "present address" (or "permanent address") can be indicated by a footnote to the author's name. The address where the author carried out the work must be retained as their main affiliation address. Use superscript Arabic numerals for such footnotes.
+
+
+    Figure captions
+
+All images must have a caption. A caption should consist of a brief title (not displayed on the figure itself) and a description of the image. We advise you to keep the amount of text in any image to a minimum, though any symbols and abbreviations used should be explained.
+
+Provide captions in a separate file.
+
+Article structure
+Article sections
+
+    Divide your article into clearly defined and numbered sections. Number subsections 1.1 (then 1.1.1, 1.1.2, ...), then 1.2, etc.
+
+    Use the numbering format when cross-referencing within your article. Do not just refer to "the text."
+
+    You may give subsections a brief heading. Headings should appear on a separate line.
+
+    Do not include the article abstract within section numbering.
+
+Introduction
+
+The introduction should clearly state the objectives of your work. We recommend that you provide an adequate background to your work but avoid writing a detailed literature overview or summary of your results.
+Material and methods
+
+The materials and methods section should provide sufficient details about your materials and methods to allow your work to be reproduced by an independent researcher. Some guidelines:
+
+    If the method you used has already been published, provide a summary and reference the originally published method.
+
+    If you are quoting directly from a previously published method, use quotation marks and cite the source.
+
+    Describe any modifications that you have made to existing methods.
+
+Results
+
+Results should be clear and concise. We advise you to read the sections in this guide on supplying tables, artwork, supplementary material and sharing research data.
+Discussion
+
+The discussion section should explore the significance of your results but not repeat them. You may combine your results and discussion sections into one section, if appropriate. We recommend that you avoid the use of extensive citations and discussion of published literature in the discussion section.
+Conclusion
+
+The conclusion section should present the main conclusions of your study. You may have a stand-alone conclusions section or include your conclusions in a subsection of your discussion or results and discussion section.
