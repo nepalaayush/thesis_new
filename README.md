@@ -29,4 +29,34 @@ pmr.py reco radial_cine_2d -i data.twix -o MM_NW_aw2_tgv_5e-2_pos.nii -g ../scan
 
 ____________________
 
-for obtaining the kspace : 
+radial_cine_2d parameters:
+  -g GATING, --gating GATING
+                        file with gating signal
+  -ngn, --nogatingnorm  Do not normalize gating signal to maximum
+  -e {grid,riesling-lsq,riesling-rlsq}, --engine {grid,riesling-lsq,riesling-rlsq}
+                        reconstruction engine to use
+  -ea ENGINEARGS, --engineargs ENGINEARGS
+                        additional arguments for reconstruction engine
+  -os OFFSETSTART, --offsetstart OFFSETSTART
+                        Offset to start angle
+  -oe OFFSETEND, --offsetend OFFSETEND
+                        Offset to end angle
+  -rs REPSTART, --repstart REPSTART
+                        Start repetition
+  -re REPEND, --repend REPEND
+                        End repetition
+  -zf ZEROFILLING, --zerofilling ZEROFILLING
+                        Zero filling factor
+  -cf FOVFACTOR, --fovfactor FOVFACTOR
+                        FoV cut factor
+  -aw ANGLEWINDOW, --anglewindow ANGLEWINDOW
+                        Angle window width
+  -ai ANGLEINCREMENT, --angleincrement ANGLEINCREMENT
+                        Angle increment between frames
+  -d {neg,pos,any}, --direction {neg,pos,any}
+                        Use spokes where gating slope is positive, negative or do not gate by slope
+  -sf {qff,fff,ddd}, --sensorformat {qff,fff,ddd}
+                        sensor file format to use (ddd=double, fff=float, qff=timefloat)
+
+
+
