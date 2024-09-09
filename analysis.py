@@ -335,18 +335,18 @@ output_dir = "screenshots"
 os.makedirs(output_dir, exist_ok=True)
 
 axis_index = 0
-number_of_frames = len(image1)
+number_of_frames = len(full_image)
 
 for frame_index in range(number_of_frames):
-    viewer1.dims.set_point(axis_index, frame_index)
-    screenshot = viewer1.screenshot()
+    viewer.dims.set_point(axis_index, frame_index)
+    screenshot = viewer.screenshot()
     screenshot_path = os.path.join(output_dir, f"frame_{frame_index:04d}.png")
     imageio.imwrite(screenshot_path, screenshot)
  
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
-with imageio.get_writer('JL_W_animation.gif', mode='I') as writer:
+with imageio.get_writer('ds1_animation.gif', mode='I') as writer:
     for i in range(number_of_frames):
         frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
         frame = imageio.imread(frame_path)
