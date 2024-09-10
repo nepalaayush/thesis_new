@@ -60,3 +60,9 @@ radial_cine_2d parameters:
 
 
 
+for 3d: 
+
+pmr.py reco radial_cine_3d -i meas_MID00116_FID309381_MK_UTE_W_CINE_60bpm_S96.dat -o CON_07_3d_riesling_pos.nii -g scan_data_CON07_3D_W.dat -e riesling-rlsq -ea "--sense-fov=270.0,225.0,108.0 --osamp 3 --fov=270.0,225.0,108.0 --tgv=5e-4 --max-outer-its=10" -os 2 -oe 2 -ds 1 -aw 2 -ai 2 -d pos -cf 1.5 -fs 1.5 -sf qff -v
+
+for2d: 
+pmr.py reco radial_cine_2d -i meas_MID00140_FID309405_MK_Radial_NW_CINE_30bpm_CGA.dat -o CON_18_2d_NW_pos.nii -g scan_data_CON18_2D_NW.dat -sf qff  -aw 2 -ai 5 -d pos -zf 2  -v -cf 1 -e riesling-rlsq -ea "--tgv=5e-3 --osamp 3 --sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --max-outer-its=10"
