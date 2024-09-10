@@ -346,12 +346,46 @@ for frame_index in range(number_of_frames):
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
-with imageio.get_writer('ds1_animation.gif', mode='I') as writer:
-    for i in range(number_of_frames):
-        frame_path = os.path.join(output_dir, f"frame_{i:04d}.png")
-        frame = imageio.imread(frame_path)
-        writer.append_data(frame)
 
+import imageio
+from pathlib import Path
+
+
+# Directory containing the screenshots
+screenshots_dir = Path("/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/screenshots")
+
+# Output GIF file
+output_gif = screenshots_dir / "ds1_animation_high_quality_grayscale.gif"
+
+# Set the desired frames per second (adjust as needed)
+fps = 14  # This will show all 28 frames in 4 seconds
+
+# Get all PNG files in the directory, sorted
+png_files = sorted(screenshots_dir.glob("*.png"))
+
+if not png_files:
+    raise ValueError(f"No PNG files found in {screenshots_dir}")
+
+print(f"Found {len(png_files)} PNG files.")
+
+# Read images and create GIF
+images = []
+for png_file in png_files:
+    # Read the image as grayscale using mode='L'
+    img = imageio.imread(png_file, mode='L')
+    images.append(img)
+
+# Create the GIF with optimized settings for grayscale
+imageio.mimsave(output_gif, images, fps=fps, quantizer='wu', subrectangles=True)
+
+print(f"High-quality grayscale GIF created successfully at {output_gif}")
+print(f"GIF file size: {output_gif.stat().st_size / (1024 * 1024):.2f} MB")
+
+
+#%%
+
+
+# to create a mp4 instead of gif because gif did not preserve the quality somehow. 
 
 #%%
 def track_origin(all_frame_info, point_name, bone_name, new_figure,  marker, label):
