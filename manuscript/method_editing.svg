@@ -11,7 +11,7 @@
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
-   sodipodi:docname="methodf.svg"
+   sodipodi:docname="method_editing.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -28,12 +28,12 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="1.4324567"
-     inkscape:cx="467.72793"
-     inkscape:cy="456.90735"
-     inkscape:window-width="2560"
-     inkscape:window-height="1351"
-     inkscape:window-x="2391"
-     inkscape:window-y="-9"
+     inkscape:cx="406.9931"
+     inkscape:cy="847.84413"
+     inkscape:window-width="1920"
+     inkscape:window-height="986"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
      inkscape:window-maximized="1"
      inkscape:current-layer="g36" />
   <defs
@@ -184,6 +184,33 @@
          width="3816145"
          height="3943350"
          id="rect4-4" />
+    </clipPath>
+    <clipPath
+       id="clip9-1">
+      <rect
+         x="0"
+         y="0"
+         width="2647950"
+         height="3743325"
+         id="rect7-8" />
+    </clipPath>
+    <clipPath
+       id="clip11-4">
+      <rect
+         x="0"
+         y="0"
+         width="2522326"
+         height="3743325"
+         id="rect8-5" />
+    </clipPath>
+    <clipPath
+       id="clip13-3">
+      <rect
+         x="0"
+         y="0"
+         width="8771929"
+         height="4010025"
+         id="rect9-7" />
     </clipPath>
   </defs>
   <g
@@ -509,6 +536,43 @@
            style="stroke-width:2.97145"
            x="1528.323"
            y="2305.2327">       </tspan></text>
+      <g
+         clip-path="url(#clip9-1)"
+         transform="matrix(2.70543e-4,0,0,2.6496018e-4,1705.3889,3034.5471)"
+         id="g18-2">
+        <g
+           clip-path="url(#clip11-4)"
+           transform="matrix(1.0498,0,0,1,0,-1)"
+           id="g17-9"
+           inkscape:export-filename="..\symposium+defense\ref_points_fig.png"
+           inkscape:export-xdpi="200"
+           inkscape:export-ydpi="200">
+          <use
+             width="100%"
+             height="100%"
+             xlink:href="#img10"
+             transform="scale(8032.89)"
+             id="use16-5" />
+        </g>
+      </g>
+      <g
+         transform="matrix(1.4169152e-4,0,0,1.3385815e-4,470.44719,4074.627)"
+         id="g31-4"
+         inkscape:export-filename="..\symposium+defense\segmented_mosaic.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96">
+        <g
+           clip-path="url(#clip13-3)"
+           transform="scale(1.00115,1)"
+           id="g30-5">
+          <use
+             width="100%"
+             height="100%"
+             xlink:href="#img12"
+             transform="scale(5696.06)"
+             id="use30-2" />
+        </g>
+      </g>
     </g>
   </g>
 </svg>
