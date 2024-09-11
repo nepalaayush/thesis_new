@@ -352,10 +352,10 @@ from pathlib import Path
 
 
 # Directory containing the screenshots
-screenshots_dir = Path("/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/screenshots")
+screenshots_dir = Path("/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_W_screenshots")
 
 # Output GIF file
-output_gif = screenshots_dir / "ds1_animation_high_quality_grayscale.gif"
+output_gif = screenshots_dir / "ds1_angle.gif"
 
 # Set the desired frames per second (adjust as needed)
 fps = 14  # This will show all 28 frames in 4 seconds
@@ -383,9 +383,45 @@ print(f"GIF file size: {output_gif.stat().st_size / (1024 * 1024):.2f} MB")
 
 
 #%%
-
+import cv2
 
 # to create a mp4 instead of gif because gif did not preserve the quality somehow. 
+
+screenshots_dir = Path("/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_W_screenshots")
+
+# Output MP4 file
+output_mp4 = screenshots_dir / "ds1_angle.mp4"
+
+# Set the desired frames per second
+fps = 14
+
+# Get all PNG files in the directory, sorted
+png_files = sorted(screenshots_dir.glob("*.png"))
+
+if not png_files:
+    raise ValueError(f"No PNG files found in {screenshots_dir}")
+
+print(f"Found {len(png_files)} PNG files.")
+
+# Read the first image to get dimensions
+first_image = cv2.imread(str(png_files[0]))
+height, width = first_image.shape[:2]
+
+# Create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+video = cv2.VideoWriter(str(output_mp4), fourcc, fps, (width, height))
+
+# Read images and add to video
+for png_file in png_files:
+    img = cv2.imread(str(png_file))
+    video.write(img)
+
+# Release the video writer
+video.release()
+
+print(f"Color MP4 video created successfully at {output_mp4}")
+print(f"MP4 file size: {output_mp4.stat().st_size / (1024 * 1024):.2f} MB")
+
 
 #%%
 def track_origin(all_frame_info, point_name, bone_name, new_figure,  marker, label):
