@@ -764,8 +764,8 @@ with open('angle_and_rel_df.pkl', 'wb') as f:
     
 #%%
 # loading from pkl 
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_NW_final_label_fem_stiched.npy', 'rb') as file:
-    fem_label = pickle.load(file)    
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/manual_segmentation/master_df_inverted.pkl', 'rb') as file:
+    master_df_inverted = pickle.load(file)    
 
     
 #%%

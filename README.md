@@ -66,3 +66,9 @@ pmr.py reco radial_cine_3d -i meas_MID00116_FID309381_MK_UTE_W_CINE_60bpm_S96.da
 
 for2d: 
 pmr.py reco radial_cine_2d -i meas_MID00140_FID309405_MK_Radial_NW_CINE_30bpm_CGA.dat -o CON_18_2d_NW_pos.nii -g scan_data_CON18_2D_NW.dat -sf qff  -aw 2 -ai 5 -d pos -zf 2  -v -cf 1 -e riesling-rlsq -ea "--tgv=5e-3 --osamp 3 --sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --max-outer-its=10"
+
+
+for 2d: data structure typical, using twix 
+pmr.py  reco radial_cine_2d -i data.twix -o HS_NW_2d_5e4_NW_neg.nii -g ../scan_data_HS_13092024_NW_2D_12k5pbm.dat -sf qff  -aw 2 -ai 5 -d neg -zf 2  -v -cf 1 -e riesling-rlsq -ea "--tgv=5e-4 --osamp 3 --sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --max-outer-its=10"
+
+
