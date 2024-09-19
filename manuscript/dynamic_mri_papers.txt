@@ -1,0 +1,11 @@
+Paper	MRI Technique	Study Focus	Device Used
+Conconi et al. (2023)	Real-time MRI	Knee deep-flexion kinematics	Yes
+Kaiser et al. (2013)	3D radially undersampled cine SPGR (SPGR-VIPR) 	Tibiofemoral kinematics	Yes
+Kaiser (2016)	“	Tibiofemoral kinematics	Yes
+Rebmann (2003)	three different PC MRI;: cine PC – fastPC 	3D skeletal kinematics	No
+Mazzoli (2017)	4D self-gated MRI	Tibiofemoral kinematics	No
+Westphal et al. (2013)	Cine mri 	Load-dependent knee kinematics	Yes
+Draper et al. (2008)	Real-time MRI	Joint kinematics	Yes
+Brossmann et al. (1993)	Motion-triggered cine MRI	Patellar tracking patterns	No
+Barrance et al. (2005)	Cine phase contrast MRI	Joint kinematics	No
+Seisler and Sheehan (2007)	Cine phase contrast MRI	Patellofemoral and tibiofemoral kinematics	No
