@@ -211,93 +211,18 @@ The conclusion section should present the main conclusions of your study. You ma
 ________________________________________
 
 
-wip 
-<thinking>
-To find a citation for cubic spline interpolation, I should look for a foundational or widely-used reference on the topic. A good starting point would be to search for academic papers or textbooks that discuss numerical methods or interpolation techniques.
-
-For cubic spline interpolation, a commonly cited source is:
-
-de Boor, C. (1978). A Practical Guide to Splines. Springer-Verlag.
-
-This book is considered a classic text on spline functions and their applications, including cubic spline interpolation.
-
-After addressing the citation, I'll need to address the other comments and questions raised in the context:
-
-1. Clarify the Python version and whether a citation is needed
-2. Explain whether the parameters for edge detection and labeling were constant across datasets
-3. Clarify that the process wasn't done for each frame
-4. Find a reference for the greedy nearest neighbor algorithm
-5. Address the overall structure and clarity of the description
-</thinking>
-
-For the cubic spline interpolation, you can cite:
-
-de Boor, C. (1978). A Practical Guide to Splines. Springer-Verlag.
-
-Now, to address the other points:
-
-1. Regarding Python version: You've already added the version (3.11.5). A general citation for Python isn't typically necessary in academic writing, but if you feel it's important, you could cite the official Python website (https://www.python.org).
-
-2. For the edge detection and labeling parameters:
-<thinking>
-I should suggest adding a clarification about whether these parameters were constant across datasets or if they needed to be adjusted for each dataset. This information would be valuable for reproducibility and understanding the robustness of the method.
-</thinking>
-
-You should add a sentence clarifying whether the edge detection and labeling parameters were constant across all datasets or if they required adjustment for each dataset. For example:
-"These parameters were optimized once for the given image contrast and resolution, and then applied consistently across all datasets."
-
-3. To clarify that the process wasn't done for each frame:
-<thinking>
-I should suggest adding a clear statement at the beginning of the description to indicate that steps I and II were performed once for the entire image stack, not for each frame individually.
-</thinking>
-
-At the beginning of the description, add a sentence like:
-"Steps I and II were performed once for the entire image stack, establishing consistent edge detection and labeling across all frames."
-
-4. For the greedy nearest neighbor algorithm:
-<thinking>
-A commonly cited paper for nearest neighbor algorithms in computational geometry is:
-</thinking>
-
-You can cite:
-Preparata, F. P., & Shamos, M. I. (1985). Computational Geometry: An Introduction. Springer-Verlag.
-
-5. For overall structure and clarity:
-<thinking>
-The description could benefit from a brief introduction explaining the overall goal of the algorithm and how the steps work together to achieve bone tracking.
-</thinking>
-
-Consider adding an introductory sentence like:
-"The semi-automatic bone tracking algorithm consists of four main steps: edge detection, edge labeling, reference point extraction, and transformation computation. These steps work together to identify and track the tibia and femur boundaries across all frames of the dynamic MRI sequence."
-
-By addressing these points, you'll improve the clarity, reproducibility, and academic rigor of your methodology description.
+1 Introduction
+The study of tibiofemoral kinematics, which describes the relative motion between the femur and tibia during knee joint movement, is crucial for understanding normal knee function and identifying pathological conditions [1]. Accurate assessment of these movement patterns can provide valuable insights into the diagnosis and treatment of various knee disorders, including osteoarthritis (OA) and ligament injuries [2,3, 4]. For instance, alterations in tibiofemoral kinematics have been associated with the progression of knee OA, one of the most common joint disorders affecting a significant portion of the global population [5].Additionally, studies have shown that the three-dimensional kinematics of anterior cruciate ligament-deficient knees are changed even during low-stress activities, such as walking. [6, 7] 
+Dynamic MRI has proven to be a valuable tool for studying tibiofemoral kinematics in vivo, offering insights into both normal and pathological knee function under more realistic conditions. Recent advancements in dynamic MRI techniques have enabled researchers to capture knee motion with increasing temporal and spatial resolution. Real-time MRI is one approach that allows for rapid image acquisition during continuous joint movement, offering true real-time visualization of knee motion [8,9]. CINE MRI techniques, which reconstruct multiple motion phases into a single representative cycle, have been used to investigate patellar tracking patterns and tibiofemoral kinematics [10,11,12]. Cine phase contrast MRI directly encodes velocity information into the MRI signal, allowing for quantitative measurements of tissue motion [13,14]. 
+Many of these dynamic MRI studies have incorporated specialized devices to guide knee motion and apply controlled loading conditions during imaging. These devices allow for the investigation of load-dependent variations in knee kinematics, providing insights into how the joint responds to different mechanical stresses [15]. Such approaches are particularly valuable for understanding the biomechanical changes associated with conditions like osteoarthritis and ligament injuries.
 
 
-________ 
+In these dynamic MRI studies of knee kinematics, researchers have employed various methods to extract kinematic parameters from the acquired data. Some studies use high-resolution static MRI scans to create detailed 3D models of the bones, which are then registered to lower-resolution dynamic MRI frames [8, 10]. This approach allows for tracking of bone movement throughout the motion cycle. Other studies utilize cine phase contrast MRI techniques, which directly encode velocity information into the MRI signal [14]. Kinematic parameters are then derived by integrating this velocity data over time. Additionally, some researchers opt for identifying and tracking specific anatomical landmarks in each frame of the dynamic sequence [9].
+In light of these advancements in dynamic MRI techniques and loading devices, we recognized the need for an efficient method to analyze the resulting image data. To address this, we developed a semi-automated algorithm for segmenting the tibia and femur in 2D sagittal images of the knee during flexion-extension cycles. This segmentation serves as the basis for tracking specific kinematic parameters throughout the motion cycle. By employing this method in conjunction with a custom MRI-compatible knee loading device, we seek to contribute to the growing body of knowledge on in vivo knee mechanics. This combination of imaging technique, loading device, and analysis method offers a promising tool for both research and clinical applications in understanding normal and pathological knee function.
 
-I've provided a citation for cubic spline interpolation and addressed the other points in my previous response. Let me know if you need any clarification or have additional questions about those suggestions.
 
-<thinking>
-Now, I'll focus on finding an alternative citation for cubic spline interpolation. While de Boor's book is a classic reference, a more recent and potentially more accessible source might be beneficial. I'll look for a widely-used textbook or review paper on numerical methods that covers cubic spline interpolation.
-</thinking>
+___ previous version of the dynamic mri paragraphs: 
+Dynamic MRI has proven to be a valuable tool for studying tibiofemoral kinematics in vivo, offering insights into both normal and pathological knee function under more realistic conditions. Recent advancements in dynamic MRI techniques have enabled researchers to capture knee motion with increasing temporal and spatial resolution. Real-time MRI is one approach that allows for rapid image acquisition during continuous joint movement, offering true real-time visualization of knee motion [8,9]. CINE MRI techniques, which reconstruct multiple motion phases into a single representative cycle, have been used to investigate patellar tracking patterns and tibiofemoral kinematics [10,11,12]. Cine phase contrast MRI directly encodes velocity information into the MRI signal, allowing for quantitative measurements of tissue motion [13,14]. 
+Many of these dynamic MRI studies have incorporated specialized devices to guide knee motion and apply controlled loading conditions during imaging. These devices allow for the investigation of load-dependent variations in knee kinematics, providing insights into how the joint responds to different mechanical stresses [15]. Such approaches are particularly valuable for understanding the biomechanical changes associated with conditions like osteoarthritis and ligament injuries.
 
-For cubic spline interpolation, you could also consider citing:
 
-Press, W. H., Teukolsky, S. A., Vetterling, W. T., & Flannery, B. P. (2007). Numerical Recipes 3rd Edition: The Art of Scientific Computing. Cambridge University Press.
-
-This book is widely used in scientific computing and includes a comprehensive section on cubic spline interpolation. It's more recent than de Boor's book and may be more readily available to readers.
-
-Now, to address the remaining points:
-
-1. Python citation: As mentioned before, citing Python itself isn't typically necessary in academic writing. However, if you want to acknowledge the use of Python, you could include a footnote or mention in the methods section: "All analyses were performed using Python programming language (version 3.11.5, Python Software Foundation, https://www.python.org)."
-
-2. Edge detection and labeling parameters: Add a sentence like: "The edge detection and labeling parameters were optimized once for the given image contrast and resolution, then applied consistently across all datasets, ensuring reproducibility of the method."
-
-3. Clarifying the process wasn't done for each frame: At the beginning of the description, add: "Steps I and II were performed once for the entire image stack, establishing consistent edge detection and labeling across all frames."
-
-4. Greedy nearest neighbor algorithm: You can cite:
-Preparata, F. P., & Shamos, M. I. (1985). Computational Geometry: An Introduction. Springer-Verlag.
-
-5. Overall structure: Consider adding an introductory sentence: "The semi-automatic bone tracking algorithm consists of four main steps: edge detection, edge labeling, reference point extraction, and transformation computation. These steps work together to identify and track the tibia and femur boundaries across all frames of the dynamic MRI sequence."
-
-By incorporating these suggestions, you'll address all the points raised in the comments and improve the overall clarity and academic rigor of your methodology description.
