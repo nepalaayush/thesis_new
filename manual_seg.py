@@ -1225,4 +1225,75 @@ def plot_individual_angle(df, bin_width, datasets):
 datasets_to_plot = [3, 4]
 plot_individual_angle(master_df_point[master_df_point['Condition'] != 'Loaded'], 10, datasets_to_plot)
 
+#%%
+automatic_cv = [22.607229, 46.055132, 32.701069, 32.41297, 36.419106  ]
+manual_cv = [56.035579, 58.6315, 52.060096, 70.945118, 59.842318 ]
 
+
+#%%
+
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(6, 6))
+
+# Create the box plots without outlier points
+positions = [1, 1.7]  # Adjust these values to bring boxes closer
+box_plot = ax.boxplot([automatic_cv, manual_cv], positions=positions, widths=0.5, 
+                      patch_artist=True, showfliers=False, whis=[0,100])
+
+# Color the boxes
+colors = ['#1f77b4', '#ff7f0e']  # Blue for automatic, orange for manual
+for patch, color in zip(box_plot['boxes'], colors):
+    patch.set_facecolor(color)
+    patch.set_alpha(0.7)  # Add some transparency
+
+# Add individual data points
+for i, dataset in enumerate([automatic_cv, manual_cv]):
+    x = np.random.normal(positions[i], 0.04, len(dataset))  # Add some x-jitter
+    ax.scatter(x, dataset, alpha=0.7, c=colors[i], edgecolor='black', s=50)
+
+# Add labels and title
+ax.set_xticks(positions)
+ax.set_xticklabels(['Automatic', 'Manual'])
+ax.set_ylabel('Coefficient of Variation (%)')
+#ax.set_title('Comparison of CV between Automatic and Manual Segmentation Methods')
+
+# Set y-axis to start from 0
+ax.set_ylim(0, max(max(automatic_cv), max(manual_cv)) + 3)
+
+# Set x-axis limits to center the boxes
+ax.set_xlim(0.5, 2.2)
+
+# Add a grid for better readability
+ax.yaxis.grid(True)
+
+# Show the plot
+plt.tight_layout()
+
+plt.savefig('manuscript\\boxplot_cv.png', dpi=600, bbox_inches='tight', format='png')
+
+plt.show()
+
+
+
+#%%
+
+
+automatic_cv = [22.607229, 46.055132, 32.701069, 32.41297, 36.419106]
+manual_cv = [56.035579, 58.6315, 52.060096, 70.945118, 59.842318]
+
+def print_stats(data, name):
+    q1, q3 = np.percentile(data, [25, 75])
+    iqr = q3 - q1
+    print(f"{name} stats:")
+    print(f"Min: {min(data):.2f}, Max: {max(data):.2f}")
+    print(f"Q1: {q1:.2f}, Q3: {q3:.2f}")
+    print(f"IQR: {iqr:.2f}")
+    print(f"Lower whisker: {max(min(data), q1 - 1.5*iqr):.2f}")
+    print(f"Upper whisker: {min(max(data), q3 + 1.5*iqr):.2f}\n")
+
+print_stats(automatic_cv, "Automatic")
+print_stats(manual_cv, "Manual")
+
+fig, ax = plt.subplots()
+box_plot = ax.boxplot([automatic_cv, manual_cv], labels=['Automatic', 'Manual'])
+plt.show()
