@@ -20,7 +20,9 @@ from scipy import ndimage
 from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, points_for_napari,
                    boolean_to_coords, apply_label, find_tibia_edges, find_array_with_min_n, downsample_points,
                    combined_consecutive_transform, coords_to_boolean)
+#%%
 
+import pymri
     
 #%%
 # Step 1: load the image from directory and normalize it
@@ -37,8 +39,113 @@ image_neg = image_neg[::-1]
 full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 
 #%%
+
+from napari_nifti._writer import write_single_image
+
+
 #add the original image to napari
 viewer = napari.view_image(full_image,  name='ds1_NW_full')
+
+
+#%%
+
+# to save shapes layer to niftis 
+
+tib_shape = viewer.layers['MK_NW_tib_shape_stiched']
+fem_shape = viewer.layers['MK_NW_fem_shape_stiched']
+
+
+
+
+#%%
+
+tib_label = tib_shape.to_labels(full_image.shape)
+fem_label = fem_shape.to_labels(full_image.shape)
+
+
+# Convert to binary masks # doing to_masks creates a 4d array with shape (28,28, 528,528) for some reason 
+tib_binary = (tib_label > 0).astype(np.uint8)
+fem_binary = (fem_label > 0).astype(np.uint8)
+
+#%%
+# custom implementation : 
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.pyplot as plt
+#%%
+
+def create_mosaic_with_masks(full_image, tib_binary, fem_binary, ncols=4, nrows=2):
+    # Calculate the number of frames to display
+    n_frames = ncols * nrows
+    frame_idx = np.linspace(0, full_image.shape[0]-1, n_frames, dtype=int)
+
+    # Create the figure and axes
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols*3.5, nrows*3.5), facecolor='black')
+    axes = axes.flatten()
+
+    # Create custom colormaps for the masks using matplotlib's default blue and orange
+    tibia_cmap = LinearSegmentedColormap.from_list("tibia", ["none", plt.cm.tab10(0)])  # Blue
+    femur_cmap = LinearSegmentedColormap.from_list("femur", ["none", plt.cm.tab10(1)])  # Orange
+
+    for i, ax in enumerate(axes):
+        if i < len(frame_idx):
+            frame = frame_idx[i]
+            # Select the region of interest
+            img = full_image[frame, 80:480, 85:400]
+            tib_mask = tib_binary[frame, 80:480, 85:400]
+            fem_mask = fem_binary[frame, 80:480, 85:400]
+
+            # Plot the image
+            vmin, vmax = np.percentile(img, [0, 99])
+            ax.imshow(img, cmap='gray', vmin=vmin, vmax=vmax)
+
+            # Overlay the masks
+            #ax.imshow(tib_mask, cmap=tibia_cmap, alpha=0.6)
+            #ax.imshow(fem_mask, cmap=femur_cmap, alpha=0.6)
+
+            ax.set_title(f"Frame {frame}", color='white', fontsize=14)
+        else:
+            ax.axis('off')
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_facecolor('black')
+
+    plt.tight_layout()
+    fig.patch.set_facecolor('black')
+    return fig
+
+# Use the arrays you already have
+# full_image is your main image data
+# tib_binary and fem_binary are your mask arrays
+
+# Create the mosaic
+fig = create_mosaic_with_masks(full_image, tib_binary, fem_binary)
+
+# Save the figure
+plt.savefig('mosaic_without_masks.svg', facecolor='black', edgecolor='none', dpi=300)
+plt.show()
+
+#%%
+
+# Prepare metadata
+metadata = {
+    "metadata": {}  # You can add specific metadata items here if needed
+}
+
+
+# Save tib_label as NIFTI
+tib_output_path = "tib_mask.nii.gz"
+write_single_image(tib_output_path, tib_binary.astype(np.float32), metadata)
+
+print(f"Tibia label saved as NIFTI to: {tib_output_path}")
+
+
+# Save fem_label as NIFTI
+fem_output_path = "/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/fem_mask.nii.gz"
+write_single_image(fem_output_path, fem_binary.astype(np.float32), metadata)
+
+print(f"Femur label saved as NIFTI to: {fem_output_path}")
+
 
 #%%
 import matplotlib.pyplot as plt
