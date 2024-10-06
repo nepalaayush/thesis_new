@@ -1,0 +1,44 @@
+In studies utilizing dynamic MRI to investigate knee motion, researchers have applied various methodologies to extract kinematic parameters. One common approach involves acquiring high-resolution static MRI scans to construct detailed three-dimensional bone models, which are then registered to lower-resolution dynamic MRI frames to track bone movement [10,16]. This method allows for precise modeling of bone geometry but requires additional imaging time and may not capture bone positions during actual movement due to the static nature of the initial scans. Alternatively, Draper et al. [11] employed a technique that tracks specific anatomical landmarks directly across dynamic image frames using image registration algorithms. While this approach reduces the dependence on static scans and can streamline the imaging process, focusing on limited landmarks may not fully capture complex bone movements, and the lower spatial resolution of dynamic scans can limit the accuracy of kinematic measurements. These limitations highlight the need for methods that can directly analyze high-resolution dynamic MRI data to obtain comprehensive and precise kinematic parameters without relying on additional static scans or limited landmark tracking. Developing such methods would enhance our ability to study knee joint mechanics under realistic, dynamic conditions and could improve the assessment of both normal function and pathological changes in knee kinematics
+
+
+
+
+
+
+13. 	Brossmann J, Muhle C, Schröder C, Melchert UH, Büll CC, Spielmann RP, et al. Patellar tracking patterns during active and passive knee extension: evaluation with motion-triggered cine MR imaging. Radiology 1993; 187 :205–12. https://doi.org/10.1148/radiology.187.1.8451415
+
+abstracrt: To evaluate the critical range of the patellofemoral joint motion from 30 degrees of knee flexion to full extension, motion-triggered cine magnetic resonance (MR) imaging was performed during active extension in 13 patients with confirmed patellar maltracking and 15 healthy subjects. Cine MR images were compared with static MR images obtained during incremental extension of the knee joint. To evaluate the patellar tracking pattern, the same imaging parameters (patellar tilt angle, bisect offset, and lateral patellar displacement) and section locations were used in the static and motion-triggered studies. Statistically significant differences between the passive and active knee motions were found in all three parameters in the group of patients and in the bisect offset in the control group. The comparison between patients and healthy subjects yielded statistically significant differences for all parameters in actively extended knees but not in passively extended knees. The results demonstrate the importance of dynamic patellar motion studies for diagnosis of patello-femoral maltracking.
+
+
+
+Absolutely, with the additional information you've provided, we can revise the paragraph to address the reviewer's comments effectively. Here's the updated paragraph:
+
+---
+
+"In studies utilizing dynamic MRI to investigate knee motion, researchers have employed various methods to extract kinematic parameters. One common approach involves creating detailed three-dimensional bone models from high-resolution static MRI scans, which are then registered to lower-resolution dynamic MRI frames to track bone movement (Kaiser et al. 2017 [16]; Kaiser et al. 2013 [14]; Westphal et al. 2013 [15]; Bingham et al. 2011 [17]). This method allows for precise modeling of bone geometry and can capture complex joint movements; however, it requires additional imaging time for the static scans and may not fully represent bone positions during dynamic motion due to potential misalignment between static and dynamic scans. 
+
+Alternatively, some studies have employed landmark-based tracking methods. Draper et al. (2009) [11] used a semi-automatic tracking algorithm where bony landmarks were manually identified in the first dynamic frame and then tracked across subsequent frames using normalized cross-correlation. Brossmann et al. (1993) [12] utilized manual landmark-based tracking by defining landmarks on bones in each frame and tracking their 2D coordinates throughout the motion sequence. These approaches reduce dependence on static scans and can streamline the imaging process, but focusing on a limited number of landmarks may not capture the full complexity of bone movement, and manual identification can be time-consuming and subject to inter-operator variability.
+
+Another technique involves using cine phase contrast MRI to measure three-dimensional tissue velocities, which are then integrated to compute translations and rotations of bone segments (Seisler and Sheehan 2007 [13]; Behnam et al. 2011 [14]). While this method provides dynamic velocity data and can capture subtle motions, it requires specialized imaging sequences and is sensitive to noise, potentially affecting the accuracy of kinematic measurements.
+
+These methods have advanced our understanding of knee kinematics but also present limitations. The reliance on static scans increases imaging time and may not capture bone positions during actual movement. Landmark-based tracking may not fully represent complex bone movements, and manual processes can be labor-intensive and prone to variability. Cine phase contrast MRI, while informative, demands specific equipment and can suffer from noise-related inaccuracies. Additionally, many of these approaches utilize dynamic scans with lower spatial resolution, limiting the precision of kinematic measurements.
+
+These limitations highlight the need for methods that can directly analyze high-resolution dynamic MRI data to obtain comprehensive and accurate kinematic parameters without relying on additional static scans or limited landmark tracking. Developing such methods would enhance our ability to study knee joint mechanics under realistic, dynamic conditions, potentially improving the assessment of both normal function and pathological changes in knee kinematics."
+
+---
+
+**Explanation of Revisions:**
+
+- **Addressing Comment 1:** We have cited multiple studies employing different techniques, correcting the issue of referring to "other approaches" in the plural while only citing one paper.
+
+- **Addressing Comment 2:** We have explicitly described what each method allows researchers to do and the specifics of how they operate. For instance, we detailed that Draper et al. used normalized cross-correlation for tracking and that cine phase contrast MRI measures tissue velocities.
+
+- **Addressing Comment 3:** We expanded on why the limitations of these methods matter, explaining how they impact imaging time, accuracy, and the ability to capture complex bone movements. This sets the stage for introducing your method as a solution to these problems.
+
+**Final Note:**
+
+This revised paragraph not only addresses the reviewer's comments but also strengthens the introduction by providing a clear rationale for your work. It bridges the gap between the importance of tibiofemoral kinematics and the development of your novel segmentation pipeline, highlighting how your method addresses the limitations of previous approaches.
+
+---
+
+If you have any further questions or need additional assistance with other parts of your manuscript, feel free to ask!
