@@ -24,9 +24,9 @@ with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL
 #%%
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/JL_W_tib_info_s.pkl', 'rb') as file:
     JL_W_tib_info_s = pickle.load(file)    
-
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/JL_W_fem_info_s.pkl', 'rb') as file:
-    JL_W_fem_info_s = pickle.load(file)
+#%%
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/tib_info_ds1.pkl', 'rb') as file:
+    tib_info_ds1 = pickle.load(file)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
     """
@@ -733,3 +733,158 @@ def apply_modification(df):
 
 
 modified_angle_df = apply_modification(combined_df)
+
+
+#%%
+# to calculate the  translations of the centroid for the segments .. NW comaprision manual vs auto . 
+
+
+# to save shapes layer to niftis 
+
+ds2_tib_shape_auto = viewer.layers['ds2_tib_auto']
+ds2_fem_shape_auto  = viewer.layers['ds2_fem_auto']
+
+
+
+
+
+#%%
+from scipy.spatial import ConvexHull
+
+def get_robust_centroid(points):
+    """Calculate centroid using convex hull to account for uneven point distribution"""
+    hull = ConvexHull(points)
+    centroid = np.mean(points[hull.vertices], axis=0)
+    return centroid
+
+
+#%%
+
+def get_robust_centroid(points):
+    """
+    Calculate centroid using convex hull to account for uneven point distribution
+    
+    Args:
+    points: Array of shape boundary points (N x 2 array where N is the number of points)
+    
+    Returns:
+    Tuple of (y, x) coordinates of the centroid
+    """
+    hull = ConvexHull(points)
+    #centroid = np.mean(points[hull.vertices], axis=0)
+    centroid = np.mean(points, axis=0)
+    return centroid
+
+# Calculate centroids for each frame
+tib_centroids = []
+fem_centroids = []
+
+for frame in range(len(ds2_tib_shape_auto.data)):
+    tib_points = ds2_tib_shape_auto.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+    fem_points = ds2_fem_shape_auto.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+    
+    tib_centroid = get_robust_centroid(tib_points)
+    fem_centroid = get_robust_centroid(fem_points)
+    
+    # Add frame number as the first dimension
+    tib_centroids.append(np.array([frame, tib_centroid[0], tib_centroid[1]]))
+    fem_centroids.append(np.array([frame, fem_centroid[0], fem_centroid[1]]))
+
+tib_centroids = np.array(tib_centroids)
+fem_centroids = np.array(fem_centroids)
+
+#%%
+
+# Calculate the initial position of the tibia relative to the femur
+initial_relative_position = tib_centroids[0] - fem_centroids[0]
+
+# Calculate the relative position for each frame
+relative_positions = tib_centroids - fem_centroids
+
+# Calculate the translations relative to the initial position
+is_translation = relative_positions[:, 1] - initial_relative_position[1]
+ap_translation = relative_positions[:, 2] - initial_relative_position[2]
+
+#%%
+# converting the code blocks above into a function. 
+
+
+def process_shape_layers(viewer, dataset):
+    """
+    Process shape layers and calculate translations for a single dataset.
+    
+    Args:
+    viewer: napari viewer object
+    dataset: string, dataset name (e.g., 'ds1')
+    
+    Returns:
+    pandas DataFrame with translations for the dataset, both methods
+    """
+    results = []
+    shape_layers = {}
+
+    # Identify shape layers for the given dataset
+    for layer in viewer.layers:
+        if layer.name.startswith(f"{dataset}_"):
+            parts = layer.name.split('_')
+            if len(parts) == 3:
+                _, bone, method = parts
+                shape_layers[(bone, method)] = layer
+
+    # Process each shape layer
+    for (bone, method), layer in shape_layers.items():
+        centroids = []
+        for frame in range(len(layer.data)):
+            points = layer.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+            centroid = get_robust_centroid(points)
+            centroids.append(np.array([frame, centroid[0], centroid[1]]))
+        centroids = np.array(centroids)
+
+        # Store centroids for later use
+        shape_layers[(bone, method)] = centroids
+
+    # Calculate translations for each method
+    for method in ['man', 'auto']:
+        if ('tib', method) in shape_layers and ('fem', method) in shape_layers:
+            tib_centroids = shape_layers[('tib', method)]
+            fem_centroids = shape_layers[('fem', method)]
+
+            # Calculate the initial position of the tibia relative to the femur
+            initial_relative_position = tib_centroids[0] - fem_centroids[0]
+            
+            # Calculate the relative position for each frame
+            relative_positions = tib_centroids - fem_centroids
+            
+            # Calculate the translations relative to the initial position
+            is_translation = relative_positions[:, 1] - initial_relative_position[1]
+            ap_translation = relative_positions[:, 2] - initial_relative_position[2]
+            
+            # Store results
+            for frame, is_trans, ap_trans in zip(range(len(is_translation)), is_translation, ap_translation):
+                results.append({
+                    'Dataset': dataset,
+                    'Method': method,
+                    'Frame': frame,
+                    'IS_Translation': is_trans,
+                    'AP_Translation': ap_trans
+                })
+    
+    # Create DataFrame from results
+    df = pd.DataFrame(results)
+    
+    return df
+
+#%%
+df5 = process_shape_layers(viewer, 'ds5')
+
+#%%
+df_combined = pd.concat([df1, df2, df3, df4, df5], ignore_index=True)
+
+# Multiply the IS_Translation and AP_Translation columns by the given value
+scaling_factor = 0.48484848484848486
+df_combined['IS_Translation'] = df_combined['IS_Translation'] * scaling_factor
+df_combined['AP_Translation'] = df_combined['AP_Translation'] * scaling_factor
+
+# Save the combined dataframe as a .pkl object
+df_combined.to_pickle('man_auto_translation_dataframe.pkl')
+
