@@ -1,0 +1,7 @@
+@inproceedings{Hinneburg2000neare-5849,
+  year={2000},
+  title={What is the nearest neighbor in high dimensional spaces?},
+  booktitle={Proc. of the 26th Internat. Conference on Very Large Databases, Cairo, Egypt, 2000},
+  pages={506--515},
+  author={Hinneburg, Alexander and Aggarwal, Charu C. and Keim, Daniel A.}
+}
