@@ -1,0 +1,23 @@
+minute writing on 07-10-2024 
+
+measurement time - MK 09-12 . 17-21 med phys  at 3T 
+13-17 ( 7T DG ) 
+
+general announcements : none 
+
+
+
+Lennat Notni: presentation pypulsec and t1 rho measurement 
+
+KH: cryo probe work.need for a technician.  
+
+MK: was on holiday 
+
+RS: worked on fitting routines. r2* fit work in progress. imaging algorithm. 
+
+Berndt: worked on the 3T and 7T 
+
+DG: b1 adjustment optimization of flip angle. test measurements 
+
+AN: starting on dynamic 3d data. doing some literature review at the moment. And, working on edits after Nick's review. 
+
