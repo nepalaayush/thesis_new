@@ -7,8 +7,8 @@ Created on Wed May 22 12:13:55 2024
 """
 
 import os 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 
 import pickle
 import pandas as pd
@@ -20,8 +20,8 @@ import pingouin as pg
 sns.set_context("talk")
 
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/df_angle.pkl', 'rb') as file:
-    df_angle =  pickle.load(file)
+with open('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/man_auto_translation_dataframe.pkl', 'rb') as file:
+    df =  pickle.load(file)
 
 #%%
 master_df_cut = master_df_point[master_df_point['Dataset'].isin([2,4,5,6,7])]

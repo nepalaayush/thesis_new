@@ -72,7 +72,7 @@ for 2d: data structure typical, using twix
 pmr.py  reco radial_cine_2d -i data.twix -o HS_NW_2d_5e4_NW_neg.nii -g ../scan_data_HS_13092024_NW_2D_12k5pbm.dat -sf qff  -aw 2 -ai 5 -d neg -zf 2  -v -cf 1 -e riesling-rlsq -ea "--tgv=5e-4 --osamp 3 --sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --max-outer-its=10"
 
 
-
+pmr.py reco radial_cine_2d -i data.nii -o NO_os_test.nii -g scan_data_20240301_MK_NW_30bpm.dat -sf qff  -aw 2 -ai 5 -d pos -zf 2  -v -cf 1 -e riesling-rlsq -ea "--tgv=5e-3 --osamp 3 --sense-fov=384.0,384.0,3.0 --fov=384.0,384.0,3.0 --max-outer-its=10
 
 ____ 
 

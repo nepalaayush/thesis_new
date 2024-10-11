@@ -741,57 +741,138 @@ modified_angle_df = apply_modification(combined_df)
 
 # to save shapes layer to niftis 
 
-ds2_tib_shape_auto = viewer.layers['ds2_tib_auto']
-ds2_fem_shape_auto  = viewer.layers['ds2_fem_auto']
+ds1_tib_shape_auto = viewer.layers['ds1_tib_auto']
+ds1_fem_shape_auto  = viewer.layers['ds1_fem_auto']
+
+ds1_tib_label = ds1_tib_shape_auto.to_labels((34,528,528))
+
+frame0_tib_image = ds1_tib_label[0]
+#%%
+# this is an attempt to get once and for all good way to get centroid from shape points: 
+
+# starting off with just a single frame .. so no frame info. 
+
+frame_0_points = ds1_tib_shape_auto.data[0][:,1:] # has shape (112,2)
+
+centroid_mean = np.mean(frame_0_points, axis=0)
 
 
+def calculate_centroid(points):
+    # Ensure points is a numpy array
+    points = np.array(points)
+    
+    # Calculate the area of the polygon
+    x = points[:, 0]
+    y = points[:, 1]
+    #area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+    
+    # Calculate centroid coordinates
+    cx = np.mean(x)
+    cy = np.mean(y)
+    
+    return cx, cy
 
+centroid_one = calculate_centroid(frame_0_points)
+viewer.add_points(centroid_one)
+
+
+def compute_centroid(points):
+    # this isthe one that actually computes the correct centroid by using the points 
+    # Ensure the polygon is closed by appending the first point at the end
+    points = np.vstack([points, points[0]])
+    
+    # Separate the x and y coordinates
+    x = points[:, 0]
+    y = points[:, 1]
+    
+    # Calculate the area of the polygon
+    A = 0.5 * np.sum(x[:-1] * y[1:] - x[1:] * y[:-1])
+    
+    # Calculate the centroid coordinates
+    C_x = (1 / (6 * A)) * np.sum((x[:-1] + x[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1]))
+    C_y = (1 / (6 * A)) * np.sum((y[:-1] + y[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1]))
+    
+    return C_x, C_y
+
+# Example usage with a sample array
+centroid_two = compute_centroid(frame_0_points)
+viewer.add_points(centroid_two, face_color='blue')
+
+
+centroid_three = get_robust_centroid(frame_0_points)
+viewer.add_points(centroid_three, face_color='green')
+
+
+from skimage import measure
+
+centroid_four = measure.centroid(frame0_tib_image)
+
+viewer.add_points(centroid_four, face_color='yellow')
+#%%
+
+ds1_tib_shape_auto = viewer.layers['ds1_tib_auto']
+ds1_fem_shape_auto  = viewer.layers['ds1_fem_auto']
+
+def get_centroids(shapes_layer_tib, shapes_layer_fem):
+    # Calculate centroids for each frame
+    tib_centroids = []
+    fem_centroids = []
+    
+    for frame in range(len(shapes_layer_tib.data)):
+        tib_points = shapes_layer_tib.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        fem_points = shapes_layer_fem.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        
+        tib_centroid = compute_centroid(tib_points)
+        fem_centroid = compute_centroid(fem_points)
+        
+        # Add frame number as the first dimension
+        tib_centroids.append(np.array([frame, tib_centroid[0], tib_centroid[1]]))
+        fem_centroids.append(np.array([frame, fem_centroid[0], fem_centroid[1]]))
+        
+    return np.array(tib_centroids) , np.array ( fem_centroids ) 
+
+ds1_tib_auto_centroid , ds1_fem_auto_centroid = get_centroids(ds1_tib_shape_auto, ds1_fem_shape_auto)
 
 
 #%%
-from scipy.spatial import ConvexHull
+# adaptiong this into a function 
 
-def get_robust_centroid(points):
-    """Calculate centroid using convex hull to account for uneven point distribution"""
-    hull = ConvexHull(points)
-    centroid = np.mean(points[hull.vertices], axis=0)
-    return centroid
-
-
-#%%
-
-def get_robust_centroid(points):
-    """
-    Calculate centroid using convex hull to account for uneven point distribution
+def get_centroids_from_shapes(layer_tib_name, layer_fem_name):
+    # Extract layers based on provided names
+    shapes_layer_tib = viewer.layers[layer_tib_name]
+    shapes_layer_fem = viewer.layers[layer_fem_name]
     
-    Args:
-    points: Array of shape boundary points (N x 2 array where N is the number of points)
+    # Determine the dataset number from the layer name
+    dataset_number = int(layer_tib_name.split('ds')[1][0])  # e.g. ds1 -> 1
+    method = 'Auto' if 'auto' in layer_tib_name else 'Manual'
     
-    Returns:
-    Tuple of (y, x) coordinates of the centroid
-    """
-    hull = ConvexHull(points)
-    #centroid = np.mean(points[hull.vertices], axis=0)
-    centroid = np.mean(points, axis=0)
-    return centroid
-
-# Calculate centroids for each frame
-tib_centroids = []
-fem_centroids = []
-
-for frame in range(len(ds2_tib_shape_auto.data)):
-    tib_points = ds2_tib_shape_auto.data[frame][:, 1:]  # Exclude frame number, keep only y and x
-    fem_points = ds2_fem_shape_auto.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+    # Calculate centroids and translations for each frame
+    data = []
     
-    tib_centroid = get_robust_centroid(tib_points)
-    fem_centroid = get_robust_centroid(fem_points)
+    for frame in range(len(shapes_layer_tib.data)):
+        tib_points = shapes_layer_tib.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        fem_points = shapes_layer_fem.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        
+        tib_centroid = compute_centroid(tib_points)
+        fem_centroid = compute_centroid(fem_points)
+        
+        # AP and IS translations
+        AP_translation = fem_centroid[1] - tib_centroid[1]  # AP (x-axis)
+        IS_translation = fem_centroid[0] - tib_centroid[0]  # IS (y-axis)
+        
+        # Append the data for this frame
+        data.append([dataset_number, frame, method, fem_centroid, tib_centroid, AP_translation, IS_translation])
     
-    # Add frame number as the first dimension
-    tib_centroids.append(np.array([frame, tib_centroid[0], tib_centroid[1]]))
-    fem_centroids.append(np.array([frame, fem_centroid[0], fem_centroid[1]]))
+    # Create a dataframe from the collected data
+    df = pd.DataFrame(data, columns=[
+        'Dataset', 'Frame', 'Method', 'Femur_Centroid', 'Tibia_Centroid', 'AP_Translation', 'IS_Translation'
+    ])
+    
+    return df
 
-tib_centroids = np.array(tib_centroids)
-fem_centroids = np.array(fem_centroids)
+# Example usage:
+ds6_centroid_df = get_centroids_from_shapes('ds6_tib_auto', 'ds6_fem_auto')
+
 
 #%%
 
@@ -836,7 +917,7 @@ def process_shape_layers(viewer, dataset):
         centroids = []
         for frame in range(len(layer.data)):
             points = layer.data[frame][:, 1:]  # Exclude frame number, keep only y and x
-            centroid = get_robust_centroid(points)
+            centroid = compute_centroid(points)
             centroids.append(np.array([frame, centroid[0], centroid[1]]))
         centroids = np.array(centroids)
 
@@ -888,3 +969,7 @@ df_combined['AP_Translation'] = df_combined['AP_Translation'] * scaling_factor
 # Save the combined dataframe as a .pkl object
 df_combined.to_pickle('man_auto_translation_dataframe.pkl')
 
+#%%
+df_combined = pd.concat([ds1_centroid_df, ds2_centroid_df, ds3_centroid_df, ds4_centroid_df, ds5_centroid_df, ds6_centroid_df], ignore_index=True)
+
+df_combined.to_pickle('auto_centroid_dfs.pkl')
