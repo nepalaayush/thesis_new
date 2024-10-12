@@ -25,8 +25,8 @@ with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/JL_W_tib_info_s.pkl', 'rb') as file:
     JL_W_tib_info_s = pickle.load(file)    
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/tib_info_ds1.pkl', 'rb') as file:
-    tib_info_ds1 = pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/auto_centroid_dfs.pkl', 'rb') as file:
+    auto_centroid_dfs = pickle.load(file)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
     """
@@ -871,7 +871,7 @@ def get_centroids_from_shapes(layer_tib_name, layer_fem_name):
     return df
 
 # Example usage:
-ds6_centroid_df = get_centroids_from_shapes('ds6_tib_auto', 'ds6_fem_auto')
+ds1_centroid_df = get_centroids_from_shapes('ds1_tib_man', 'ds1_fem_man')
 
 
 #%%
@@ -956,20 +956,274 @@ def process_shape_layers(viewer, dataset):
     return df
 
 #%%
-df5 = process_shape_layers(viewer, 'ds5')
+df6 = process_shape_layers(viewer, 'ds6')
 
 #%%
 df_combined = pd.concat([df1, df2, df3, df4, df5], ignore_index=True)
-
+#%%
 # Multiply the IS_Translation and AP_Translation columns by the given value
 scaling_factor = 0.48484848484848486
-df_combined['IS_Translation'] = df_combined['IS_Translation'] * scaling_factor
-df_combined['AP_Translation'] = df_combined['AP_Translation'] * scaling_factor
+second_half_df['IS_Translation'] = second_half_df['IS_Translation'] * scaling_factor
+second_half_df['AP_Translation'] = second_half_df['AP_Translation'] * scaling_factor
 
 # Save the combined dataframe as a .pkl object
-df_combined.to_pickle('man_auto_translation_dataframe.pkl')
+second_half_df.to_pickle('second_half_df.pkl')
 
 #%%
 df_combined = pd.concat([ds1_centroid_df, ds2_centroid_df, ds3_centroid_df, ds4_centroid_df, ds5_centroid_df, ds6_centroid_df], ignore_index=True)
 
-df_combined.to_pickle('auto_centroid_dfs.pkl')
+second_half_df.to_pickle('second_half_df.pkl')
+#%%
+df_man_auto_centroid = pd.concat([df_combined, auto_centroid_dfs], ignore_index=True)
+
+#%%
+sns.lineplot(first_half_df, x='Frame Number', y='AP_Translation', hue='Method')
+#%%
+df_man_auto_centroid.rename(columns={"Frame":"Frame Number"})
+
+#%%
+
+df_no_5 = df_man_auto_centroid[df_man_auto_centroid['Dataset'] != 5]
+#%%
+
+def split_dataframes(df):
+    # Identify unique datasets
+    datasets = df['Dataset'].unique()
+    
+    first_half_rows = []
+    second_half_rows = []
+    
+    for dataset in datasets:
+        # Filter rows for the current dataset
+        dataset_df = df[df['Dataset'] == dataset]
+        
+        # Get the maximum Frame Number for this dataset
+        max_frame = dataset_df['Frame Number'].max()
+        
+        # Calculate the split point (half of the total frames)
+        split_point = max_frame // 2
+        
+        # Split the dataset
+        first_half = dataset_df[dataset_df['Frame Number'] <= split_point]
+        second_half = dataset_df[dataset_df['Frame Number'] > split_point]
+        
+        first_half_rows.append(first_half)
+        second_half_rows.append(second_half)
+    
+    # Combine all first halves and all second halves
+    first_half_df = pd.concat(first_half_rows, ignore_index=True)
+    second_half_df = pd.concat(second_half_rows, ignore_index=True)
+    
+    return first_half_df, second_half_df
+
+first_half_df , second_half_df = split_dataframes(df_no_5)
+
+#%%
+
+# so far, these dataframes, first_half_df and second_half_df store the values for just 5 datasets, with dataset number 5 of JL being replaced by dataset 6 of US. 
+
+# the first half has flexion percent starting from -100 to 0 and second half from 0 to 100. for plotting, the first half is once again converted to just 100% to 0% 
+
+first_half_df['Percent Flexed'] = first_half_df['Percent Flexed'] * -1 
+
+#%%
+
+
+# Method 1: Interpolation method
+def plot_interpolated_data(df, num_points=100):
+    plt.figure(figsize=(12, 6))
+    
+    for method in df['Method'].unique():
+        method_data = df[df['Method'] == method].sort_values('Percent Flexed')
+        
+        # Create evenly spaced points between 0 and 100
+        x_new = np.linspace(0, 100, num_points)
+        
+        # Interpolate AP_Translation values
+        y_new = np.interp(x_new, method_data['Percent Flexed'], method_data['AP_Translation'])
+        
+        plt.plot(x_new, y_new, label=method)
+    
+    plt.title(f'AP Translation vs Percent Flexed (Interpolated, points={num_points})')
+    plt.xlabel('Percent Flexed')
+    plt.ylabel('AP Translation')
+    plt.legend(title='Method')
+    plt.show()
+    
+    
+plot_interpolated_data(first_half_df, num_points=100)
+
+#%%
+def plot_binned_data(df, n_bins=20):
+    # Debug: Print unique methods
+    print("Unique methods:", df['Method'].unique())
+    
+    df['Flexion_Bin'] = pd.cut(df['Percent Flexed'], bins=n_bins, labels=False)
+    binned_data = df.groupby(['Method', 'Flexion_Bin'])['AP_Translation'].agg(['mean', 'std']).reset_index()
+    
+    # Debug: Print binned data shape and head
+    print("Binned data shape:", binned_data.shape)
+    print("Binned data head:")
+    print(binned_data.head())
+    
+    plt.figure(figsize=(12, 6))
+    
+    # Use Seaborn's lineplot with error bars
+    sns.lineplot(data=binned_data, x='Flexion_Bin', y='mean', 
+                 hue='Method', err_style='band', errorbar='sd')
+    
+    plt.title(f'AP Translation vs Percent Flexed (Binned, bins={n_bins})')
+    plt.xlabel('Percent Flexed (Binned)')
+    plt.ylabel('AP Translation')
+    plt.legend(title='Method')
+    plt.show()
+
+# Usage
+plot_binned_data(first_half_df, n_bins=20)
+#%%
+
+# Updated binning method with individual lines and error bars
+def plot_binned_data(df, n_bins=20):
+    df['Flexion_Bin'] = pd.cut(df['Percent Flexed'], bins=n_bins, labels=False)
+    
+    # Calculate mean and standard deviation for each bin and method
+    binned_data = df.groupby(['Method', 'Flexion_Bin']).agg({
+        'AP_Translation': ['mean', 'std']
+    }).reset_index()
+    binned_data.columns = ['Method', 'Flexion_Bin', 'AP_Translation_Mean', 'AP_Translation_Std']
+    
+    plt.figure(figsize=(12, 6))
+    
+    for method in df['Method'].unique():
+        method_data = binned_data[binned_data['Method'] == method]
+        plt.errorbar(method_data['Flexion_Bin'], method_data['AP_Translation_Mean'], 
+                     yerr=method_data['AP_Translation_Std'], 
+                     label=method, capsize=5, capthick=2, marker='o')
+    
+    plt.title(f'AP Translation vs Percent Flexed (Binned, bins={n_bins})')
+    plt.xlabel('Percent Flexed (Binned)')
+    plt.ylabel('AP Translation')
+    plt.legend(title='Method')
+    plt.show()
+    
+
+plot_binned_data(first_half_df, n_bins=10)
+
+
+#%%
+
+# Use seaborn's lineplot with automatic aggregation
+sns.lineplot(
+    data=first_half_df,
+    x='Percent Flexed',
+    y='AP_Translation',
+    hue='Method',
+    estimator='mean',  # Aggregates data points by calculating the mean
+    errorbar='sd'            # Shows the standard deviation as the confidence interval
+)
+plt.show()
+
+#%%
+import pingouin as pg
+
+def plot_binned_translation_data(df, translation_column, bin_width=10, figsize=(12, 8)):
+    # Make a copy of the DataFrame
+    df_copy = df.copy()
+    
+    # Define bin edges
+    bin_edges = list(range(0, 101, bin_width))
+    
+    # Bin 'Percent Flexed' and calculate bin centers
+    df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+    df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Group by 'Method', the new 'Custom_Bin', and 'Dataset' to calculate means
+    grouped = df_copy.groupby(['Method', 'Custom_Bin', 'Dataset'])[translation_column].mean().reset_index()
+    grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+    
+    # Replace 'Auto' with 'Semi-Auto' in the Method column
+    grouped['Method'] = grouped['Method'].replace('Auto', 'Semi-Auto')
+    
+    # Plotting the data
+    plt.figure(figsize=figsize)
+    
+    sns.lineplot(
+        data=grouped,
+        x='Bin_Center',
+        y=translation_column,
+        hue='Method',
+        marker="o",
+        ci='sd',
+        err_style="band",
+        err_kws={'alpha': 0.3}
+    )
+    
+    # Ensure 100 is shown on the x-axis
+    plt.xlim(0, 100)
+    
+    # Get current y-axis limits
+    y_min, y_max = plt.ylim()
+
+    # Add padding (10 units on each side)
+    padding = 10
+    plt.ylim(y_min - padding, y_max + padding)
+    
+    plt.xlabel("Flexion [%]", fontsize=14)
+    plt.ylabel(f"{translation_column} [mm]", fontsize=14)
+    plt.title(f"{translation_column} vs Flexion Percentage", fontsize=16)
+    plt.grid(True)
+    
+    # Increase font size for tick labels
+    plt.tick_params(axis='both', which='major', labelsize=12)
+    
+    # Increase legend font size
+    plt.legend(title='Method', fontsize=12, title_fontsize=14)
+    
+    
+    
+    # Calculate average number of frames across datasets
+    avg_frames = df.groupby('Dataset')['Frame Number'].max().mean()
+    
+    # Calculate approximate range of motion
+    approx_rom = avg_frames * 2  # 2 degrees per frame
+    
+    # Add text annotation to the plot
+    plt.text(0.05, 0.05, f"Range of Motion: ~{approx_rom:.0f}°", 
+         transform=plt.gca().transAxes, 
+         horizontalalignment='left', 
+         verticalalignment='bottom',
+         fontsize=10,
+         bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
+
+    
+    
+    plt.tight_layout()
+    plt.show()
+    
+    # Perform t-tests if there are exactly two methods
+    methods = grouped['Method'].unique()
+    if len(methods) == 2:
+        t_test_results = []
+        for name, group in grouped.groupby('Custom_Bin'):
+            method1 = group[group['Method'] == methods[0]][translation_column]
+            method2 = group[group['Method'] == methods[1]][translation_column]
+            t_test = pg.ttest(method1, method2, paired=False)
+            t_test_results.append((name, t_test['p-val'].values[0]))
+        
+        return pd.DataFrame(t_test_results, columns=['Bin', 'p-value'])
+    else:
+        print("T-tests not performed as there are not exactly two methods.")
+        return None
+
+# Usage examples
+result_ap = plot_binned_translation_data(first_half_df, 'AP_Translation', bin_width=10)
+result_is = plot_binned_translation_data(first_half_df, 'IS_Translation', bin_width=10)
+
+# If you want to see the t-test results (if applicable)
+if result_ap is not None:
+    print("T-test results for AP Translation:")
+    print(result_ap)
+
+if result_is is not None:
+    print("T-test results for IS Translation:")
+    print(result_is)
