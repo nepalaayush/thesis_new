@@ -741,8 +741,15 @@ modified_angle_df = apply_modification(combined_df)
 
 # to save shapes layer to niftis 
 
-ds1_tib_shape_auto = viewer.layers['ds1_tib_auto']
-ds1_fem_shape_auto  = viewer.layers['ds1_fem_auto']
+ds3_tib_shape_auto = viewer.layers['ds3_tib_auto']
+ds3_fem_shape_auto  = viewer.layers['ds3_fem_auto']
+
+#%%
+viewer.add_shapes(ds3_tib_shape_auto.data[0], shape_type='polygon', name='ds3_tib_man')
+viewer.add_shapes(ds3_fem_shape_auto.data[0], shape_type='polygon', name='ds3_fem_man')
+
+#%%
+
 
 ds1_tib_label = ds1_tib_shape_auto.to_labels((34,528,528))
 
@@ -871,7 +878,7 @@ def get_centroids_from_shapes(layer_tib_name, layer_fem_name):
     return df
 
 # Example usage:
-ds1_centroid_df = get_centroids_from_shapes('ds1_tib_man', 'ds1_fem_man')
+ds3_centroid_df_auto = get_centroids_from_shapes('ds3_tib_auto', 'ds3_fem_auto')
 
 
 #%%
@@ -956,23 +963,30 @@ def process_shape_layers(viewer, dataset):
     return df
 
 #%%
-df6 = process_shape_layers(viewer, 'ds6')
+df3 = process_shape_layers(viewer, 'ds3')
 
 #%%
-df_combined = pd.concat([df1, df2, df3, df4, df5], ignore_index=True)
+df3 = pd.concat([ds3_centroid_df_auto, ds3_centroid_df], ignore_index=True)
+
+#%%
+# adding the percent flexed for the new df3 
+
+df3 = df3.rename(columns= {'Frame': 'Frame Number'})
+
+df3 = add_percent_flexed(df3)
 #%%
 # Multiply the IS_Translation and AP_Translation columns by the given value
 scaling_factor = 0.48484848484848486
-second_half_df['IS_Translation'] = second_half_df['IS_Translation'] * scaling_factor
-second_half_df['AP_Translation'] = second_half_df['AP_Translation'] * scaling_factor
+df3['IS_Translation'] = df3['IS_Translation'] * scaling_factor
+df3['AP_Translation'] = df3['AP_Translation'] * scaling_factor
 
 # Save the combined dataframe as a .pkl object
-second_half_df.to_pickle('second_half_df.pkl')
+first_half_df.to_pickle('first_half_df.pkl')
 
 #%%
 df_combined = pd.concat([ds1_centroid_df, ds2_centroid_df, ds3_centroid_df, ds4_centroid_df, ds5_centroid_df, ds6_centroid_df], ignore_index=True)
 
-second_half_df.to_pickle('second_half_df.pkl')
+first_half_df.to_pickle('first_half_df.pkl')
 #%%
 df_man_auto_centroid = pd.concat([df_combined, auto_centroid_dfs], ignore_index=True)
 
@@ -1016,7 +1030,7 @@ def split_dataframes(df):
     
     return first_half_df, second_half_df
 
-first_half_df , second_half_df = split_dataframes(df_no_5)
+first_half_df3 , second_half_df3 = split_dataframes(df3)
 
 #%%
 
@@ -1024,7 +1038,7 @@ first_half_df , second_half_df = split_dataframes(df_no_5)
 
 # the first half has flexion percent starting from -100 to 0 and second half from 0 to 100. for plotting, the first half is once again converted to just 100% to 0% 
 
-first_half_df['Percent Flexed'] = first_half_df['Percent Flexed'] * -1 
+first_half_df3['Percent Flexed'] = first_half_df3['Percent Flexed'] * -1 
 
 #%%
 
@@ -1165,7 +1179,7 @@ def plot_binned_translation_data(df, translation_column, bin_width=10, figsize=(
     y_min, y_max = plt.ylim()
 
     # Add padding (10 units on each side)
-    padding = 10
+    padding = 30
     plt.ylim(y_min - padding, y_max + padding)
     
     plt.xlabel("Flexion [%]", fontsize=14)
@@ -1181,23 +1195,28 @@ def plot_binned_translation_data(df, translation_column, bin_width=10, figsize=(
     
     
     
-    # Calculate average number of frames across datasets
-    avg_frames = df.groupby('Dataset')['Frame Number'].max().mean()
+   # Count the number of frames for each dataset
+    frame_counts = df.groupby('Dataset').size() /2   # This counts the number of rows (frames) per dataset
     
-    # Calculate approximate range of motion
-    approx_rom = avg_frames * 2  # 2 degrees per frame
+    # Get the minimum and maximum number of frames
+    min_frames = frame_counts.min()
+    max_frames = frame_counts.max()
     
-    # Add text annotation to the plot
-    plt.text(0.05, 0.05, f"Range of Motion: ~{approx_rom:.0f}°", 
+    # Calculate the range of motion based on the frame counts
+    min_rom = min_frames * 2  # 1 frame = 2 degrees
+    max_rom = max_frames * 2  # 1 frame = 2 degrees
+    
+    # Add text annotation to the plot showing the range of motion
+    plt.text(0.05, 0.05, f"Range of Motion: {min_rom:.0f}° to {max_rom:.0f}°", 
          transform=plt.gca().transAxes, 
          horizontalalignment='left', 
          verticalalignment='bottom',
          fontsize=10,
          bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
-
     
     
     plt.tight_layout()
+    plt.savefig('first_half_is.svg', dpi=300)
     plt.show()
     
     # Perform t-tests if there are exactly two methods
@@ -1214,10 +1233,10 @@ def plot_binned_translation_data(df, translation_column, bin_width=10, figsize=(
     else:
         print("T-tests not performed as there are not exactly two methods.")
         return None
-
+#%%
 # Usage examples
-result_ap = plot_binned_translation_data(first_half_df, 'AP_Translation', bin_width=10)
-result_is = plot_binned_translation_data(first_half_df, 'IS_Translation', bin_width=10)
+result_ap = plot_binned_translation_data(second_half_df, 'AP_Translation', bin_width=8)
+result_is = plot_binned_translation_data(first_half_df, 'IS_Translation', bin_width=8)
 
 # If you want to see the t-test results (if applicable)
 if result_ap is not None:
@@ -1227,3 +1246,104 @@ if result_ap is not None:
 if result_is is not None:
     print("T-test results for IS Translation:")
     print(result_is)
+    
+#%%
+
+def plot_dataset_specific_translations(df):
+    # Function to create a single subplot
+    def create_subplot(ax, data, translation_column, dataset):
+        sns.lineplot(
+            data=data,
+            x='Percent Flexed',
+            y=translation_column,
+            hue='Method',
+            marker="o",
+            ax=ax
+        )
+        ax.set_title(f"{dataset}")
+        ax.set_xlabel("Flexion [%]")
+        ax.set_ylabel(f"{translation_column} [mm]")
+        ax.grid(True)
+        
+        # Ensure 100 is shown on the x-axis
+        ax.set_xlim(0, 100)
+        
+        # Add padding to y-axis (30 units on each side)
+        y_min, y_max = ax.get_ylim()
+        #ax.set_ylim(y_min - 30, y_max + 30)
+        
+        # Replace 'Auto' with 'Semi-Auto' in the legend
+        handles, labels = ax.get_legend_handles_labels()
+        labels = ['Semi-Auto' if label == 'Auto' else label for label in labels]
+        ax.legend(handles, labels, title='Method')
+
+    # Create two figures, one for AP and one for IS
+    fig_ap, axes_ap = plt.subplots(2, 3, figsize=(20, 12))
+    fig_is, axes_is = plt.subplots(2, 3, figsize=(20, 12))
+
+    # Flatten the axes arrays for easier iteration
+    axes_ap = axes_ap.flatten()
+    axes_is = axes_is.flatten()
+
+    # Get unique datasets
+    datasets = df['Dataset'].unique()
+
+    # Plot for each dataset
+    for i, dataset in enumerate(datasets):
+        dataset_df = df[df['Dataset'] == dataset]
+        
+        # AP Translation
+        create_subplot(axes_ap[i], dataset_df, 'AP_Translation', dataset)
+        
+        # IS Translation
+        create_subplot(axes_is[i], dataset_df, 'IS_Translation', dataset)
+
+    # Remove extra subplots if any
+    for i in range(len(datasets), 6):
+        axes_ap[i].remove()
+        axes_is[i].remove()
+
+    # Adjust layout and add super titles
+    fig_ap.suptitle("AP Translation vs Flexion Percentage for Each Dataset", fontsize=16)
+    fig_is.suptitle("IS Translation vs Flexion Percentage for Each Dataset", fontsize=16)
+    
+    fig_ap.tight_layout()
+    fig_is.tight_layout()
+
+    # Show plots
+    plt.show()
+
+# Usage example:
+plot_dataset_specific_translations(first_half_df)
+#%%
+df = first_half_df.copy()  # Create a copy to avoid modifying the original dataframe
+df['Dataset'] = df['Dataset'].replace(6, 5)
+
+#%%
+
+# Task 1: Rename Dataset 6 to 5
+def rename_dataset(df):
+    df.loc[df['Dataset'] == 6, 'Dataset'] = 5
+    return df
+
+first_half_df = rename_dataset(first_half_df)
+second_half_df = rename_dataset(second_half_df)
+
+# Task 2: Replace Dataset 3 with new data
+def replace_dataset_3(main_df, new_df):
+    # Remove existing Dataset 3 from main dataframe
+    main_df = main_df[main_df['Dataset'] != 3]
+    
+    # Concatenate the main dataframe with the new Dataset 3
+    result_df = pd.concat([main_df, new_df], ignore_index=True)
+    
+    # Sort the result by Dataset and Frame Number
+    result_df = result_df.sort_values(['Dataset', 'Frame Number'])
+    
+    return result_df
+
+# Apply the function to both halves
+first_half_df = replace_dataset_3(first_half_df, first_half_df3)
+second_half_df = replace_dataset_3(second_half_df, second_half_df3)
+
+
