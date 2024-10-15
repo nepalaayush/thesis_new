@@ -25,8 +25,8 @@ with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/JL/JL_W_tib_info_s.pkl', 'rb') as file:
     JL_W_tib_info_s = pickle.load(file)    
 #%%
-with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/auto_centroid_dfs.pkl', 'rb') as file:
-    auto_centroid_dfs = pickle.load(file)
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/manual_segmentation/master_df_inverted.pkl', 'rb') as file:
+    master_df_inverted = pickle.load(file)
 #%%
 def calculate_angle_between_bones(bone1, bone2, axis='long'):
     """
@@ -284,34 +284,7 @@ merged_df['Relative Translation'] = merged_df['Tibia_Trans'] - merged_df['Femur_
 rel_trans_df = merged_df[['Frame Number', 'Dataset', 'Condition', 'Type', 'Relative Translation']]
 
 #%%
-def add_percent_flexed(df):
-    df = df.copy()  # To avoid modifying the original dataframe
-    percent_flexed_values = {}  # To store first half values for mirroring
 
-    for dataset_id, group_data in df.groupby('Dataset'):
-        total_frames = group_data['Frame Number'].max() + 1  # Total number of frames
-        # Define halfway_point for the calculation, not for mirroring
-        halfway_calculation_point = (total_frames // 2) - 1
-
-        # Calculate 'Percent Flexed' for each frame
-        for index, row in group_data.iterrows():
-            frame = row['Frame Number']
-            if frame <= halfway_calculation_point:
-                # Before or at the halfway calculation point, scale from -100% to 0%
-                percent_flexed = ((frame / halfway_calculation_point) * 100) - 100
-                percent_flexed_values[dataset_id, frame] = percent_flexed
-            else:
-                # After the halfway point, mirror the value from the first half
-                # Check if it's the peak frame
-                if frame == halfway_calculation_point + 1:
-                    percent_flexed = 0
-                else:
-                    # Calculate mirror frame
-                    mirror_frame = halfway_calculation_point - (frame - halfway_calculation_point - 1)
-                    percent_flexed = -percent_flexed_values[dataset_id, mirror_frame]
-            df.at[index, 'Percent Flexed'] = percent_flexed
-
-    return df
 
 # creating a function out of the code, also tryingf to include the angles 
 def calculate_relative_translation_and_angle(master_df):
@@ -734,154 +707,8 @@ def apply_modification(df):
 
 modified_angle_df = apply_modification(combined_df)
 
-
 #%%
-# to calculate the  translations of the centroid for the segments .. NW comaprision manual vs auto . 
-
-
-# to save shapes layer to niftis 
-
-ds3_tib_shape_auto = viewer.layers['ds3_tib_auto']
-ds3_fem_shape_auto  = viewer.layers['ds3_fem_auto']
-
-#%%
-viewer.add_shapes(ds3_tib_shape_auto.data[0], shape_type='polygon', name='ds3_tib_man')
-viewer.add_shapes(ds3_fem_shape_auto.data[0], shape_type='polygon', name='ds3_fem_man')
-
-#%%
-
-
-ds1_tib_label = ds1_tib_shape_auto.to_labels((34,528,528))
-
-frame0_tib_image = ds1_tib_label[0]
-#%%
-# this is an attempt to get once and for all good way to get centroid from shape points: 
-
-# starting off with just a single frame .. so no frame info. 
-
-frame_0_points = ds1_tib_shape_auto.data[0][:,1:] # has shape (112,2)
-
-centroid_mean = np.mean(frame_0_points, axis=0)
-
-
-def calculate_centroid(points):
-    # Ensure points is a numpy array
-    points = np.array(points)
-    
-    # Calculate the area of the polygon
-    x = points[:, 0]
-    y = points[:, 1]
-    #area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
-    
-    # Calculate centroid coordinates
-    cx = np.mean(x)
-    cy = np.mean(y)
-    
-    return cx, cy
-
-centroid_one = calculate_centroid(frame_0_points)
-viewer.add_points(centroid_one)
-
-
-def compute_centroid(points):
-    # this isthe one that actually computes the correct centroid by using the points 
-    # Ensure the polygon is closed by appending the first point at the end
-    points = np.vstack([points, points[0]])
-    
-    # Separate the x and y coordinates
-    x = points[:, 0]
-    y = points[:, 1]
-    
-    # Calculate the area of the polygon
-    A = 0.5 * np.sum(x[:-1] * y[1:] - x[1:] * y[:-1])
-    
-    # Calculate the centroid coordinates
-    C_x = (1 / (6 * A)) * np.sum((x[:-1] + x[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1]))
-    C_y = (1 / (6 * A)) * np.sum((y[:-1] + y[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1]))
-    
-    return C_x, C_y
-
-# Example usage with a sample array
-centroid_two = compute_centroid(frame_0_points)
-viewer.add_points(centroid_two, face_color='blue')
-
-
-centroid_three = get_robust_centroid(frame_0_points)
-viewer.add_points(centroid_three, face_color='green')
-
-
-from skimage import measure
-
-centroid_four = measure.centroid(frame0_tib_image)
-
-viewer.add_points(centroid_four, face_color='yellow')
-#%%
-
-ds1_tib_shape_auto = viewer.layers['ds1_tib_auto']
-ds1_fem_shape_auto  = viewer.layers['ds1_fem_auto']
-
-def get_centroids(shapes_layer_tib, shapes_layer_fem):
-    # Calculate centroids for each frame
-    tib_centroids = []
-    fem_centroids = []
-    
-    for frame in range(len(shapes_layer_tib.data)):
-        tib_points = shapes_layer_tib.data[frame][:, 1:]  # Exclude frame number, keep only y and x
-        fem_points = shapes_layer_fem.data[frame][:, 1:]  # Exclude frame number, keep only y and x
-        
-        tib_centroid = compute_centroid(tib_points)
-        fem_centroid = compute_centroid(fem_points)
-        
-        # Add frame number as the first dimension
-        tib_centroids.append(np.array([frame, tib_centroid[0], tib_centroid[1]]))
-        fem_centroids.append(np.array([frame, fem_centroid[0], fem_centroid[1]]))
-        
-    return np.array(tib_centroids) , np.array ( fem_centroids ) 
-
-ds1_tib_auto_centroid , ds1_fem_auto_centroid = get_centroids(ds1_tib_shape_auto, ds1_fem_shape_auto)
-
-
-#%%
-# adaptiong this into a function 
-
-def get_centroids_from_shapes(layer_tib_name, layer_fem_name):
-    # Extract layers based on provided names
-    shapes_layer_tib = viewer.layers[layer_tib_name]
-    shapes_layer_fem = viewer.layers[layer_fem_name]
-    
-    # Determine the dataset number from the layer name
-    dataset_number = int(layer_tib_name.split('ds')[1][0])  # e.g. ds1 -> 1
-    method = 'Auto' if 'auto' in layer_tib_name else 'Manual'
-    
-    # Calculate centroids and translations for each frame
-    data = []
-    
-    for frame in range(len(shapes_layer_tib.data)):
-        tib_points = shapes_layer_tib.data[frame][:, 1:]  # Exclude frame number, keep only y and x
-        fem_points = shapes_layer_fem.data[frame][:, 1:]  # Exclude frame number, keep only y and x
-        
-        tib_centroid = compute_centroid(tib_points)
-        fem_centroid = compute_centroid(fem_points)
-        
-        # AP and IS translations
-        AP_translation = fem_centroid[1] - tib_centroid[1]  # AP (x-axis)
-        IS_translation = fem_centroid[0] - tib_centroid[0]  # IS (y-axis)
-        
-        # Append the data for this frame
-        data.append([dataset_number, frame, method, fem_centroid, tib_centroid, AP_translation, IS_translation])
-    
-    # Create a dataframe from the collected data
-    df = pd.DataFrame(data, columns=[
-        'Dataset', 'Frame', 'Method', 'Femur_Centroid', 'Tibia_Centroid', 'AP_Translation', 'IS_Translation'
-    ])
-    
-    return df
-
-# Example usage:
-ds3_centroid_df_auto = get_centroids_from_shapes('ds3_tib_auto', 'ds3_fem_auto')
-
-
-#%%
+# to do the relative centroid which we are not using nowadays: 
 
 # Calculate the initial position of the tibia relative to the femur
 initial_relative_position = tib_centroids[0] - fem_centroids[0]
@@ -965,39 +792,309 @@ def process_shape_layers(viewer, dataset):
 #%%
 df3 = process_shape_layers(viewer, 'ds3')
 
-#%%
-df3 = pd.concat([ds3_centroid_df_auto, ds3_centroid_df], ignore_index=True)
 
 #%%
-# adding the percent flexed for the new df3 
+# to calculate the  translations of the centroid for the segments .. NW comaprision manual vs auto . 
 
-df3 = df3.rename(columns= {'Frame': 'Frame Number'})
 
-df3 = add_percent_flexed(df3)
+# to save shapes layer to niftis 
+
+ds5_tib_shape_auto = viewer.layers['ds5_tib_auto']
+ds5_fem_shape_auto  = viewer.layers['ds5_fem_auto']
+
 #%%
-# Multiply the IS_Translation and AP_Translation columns by the given value
+viewer.add_shapes(ds5_tib_shape_auto.data[0], shape_type='polygon', name='ds5_tib_man')
+viewer.add_shapes(ds5_fem_shape_auto.data[0], shape_type='polygon', name='ds5_fem_man')
+
+#%%
+
+
+ds1_tib_label = ds1_tib_shape_auto.to_labels((34,528,528))
+
+frame0_tib_image = ds1_tib_label[0]
+#%%
+# this is an attempt to get once and for all good way to get centroid from shape points: 
+
+# starting off with just a single frame .. so no frame info. 
+
+frame_0_points = ds1_tib_shape_auto.data[0][:,1:] # has shape (112,2)
+
+centroid_mean = np.mean(frame_0_points, axis=0)
+
+
+def calculate_centroid(points):
+    # Ensure points is a numpy array
+    points = np.array(points)
+    
+    # Calculate the area of the polygon
+    x = points[:, 0]
+    y = points[:, 1]
+    #area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+    
+    # Calculate centroid coordinates
+    cx = np.mean(x)
+    cy = np.mean(y)
+    
+    return cx, cy
+
+centroid_one = calculate_centroid(frame_0_points)
+viewer.add_points(centroid_one)
+
+
+
+
+# Example usage with a sample array
+centroid_two = compute_centroid(frame_0_points)
+viewer.add_points(centroid_two, face_color='blue')
+
+
+centroid_three = get_robust_centroid(frame_0_points)
+viewer.add_points(centroid_three, face_color='green')
+
+
+from skimage import measure
+
+centroid_four = measure.centroid(frame0_tib_image)
+
+viewer.add_points(centroid_four, face_color='yellow')
+#%%
+
+ds1_tib_shape_auto = viewer.layers['ds1_tib_auto']
+ds1_fem_shape_auto  = viewer.layers['ds1_fem_auto']
+
+def get_centroids(shapes_layer_tib, shapes_layer_fem):
+    # Calculate centroids for each frame
+    tib_centroids = []
+    fem_centroids = []
+    
+    for frame in range(len(shapes_layer_tib.data)):
+        tib_points = shapes_layer_tib.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        fem_points = shapes_layer_fem.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        
+        tib_centroid = compute_centroid(tib_points)
+        fem_centroid = compute_centroid(fem_points)
+        
+        # Add frame number as the first dimension
+        tib_centroids.append(np.array([frame, tib_centroid[0], tib_centroid[1]]))
+        fem_centroids.append(np.array([frame, fem_centroid[0], fem_centroid[1]]))
+        
+    return np.array(tib_centroids) , np.array ( fem_centroids ) 
+
+ds1_tib_auto_centroid , ds1_fem_auto_centroid = get_centroids(ds1_tib_shape_auto, ds1_fem_shape_auto)
+
+
+
+#%%
+# until the function to compute centroids, we need to normalize the lengths of all the shapes. 
+
+viewer = napari.Viewer() 
+
+#%%
+
+from sklearn.decomposition import PCA
+from scipy.spatial import distance
+
+
+def cut_bone_shape(shapes_layer, bone_type, cutoff_distance=100):
+    """
+    Cut the bone shape along its principal axis in the row direction.
+    
+    :param shapes_layer: napari Shapes layer
+    :param bone_type: 'tibia' or 'femur'
+    :param cutoff_distance: distance along the principal axis to make the cut
+    :return: new Shapes layer with cut shapes
+    """
+    new_shapes = []
+    
+    for frame in range(len(shapes_layer.data)):
+        points = shapes_layer.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        
+        # Perform PCA
+        pca = PCA(n_components=2)
+        pca.fit(points)
+        
+        # Get the principal axis
+        principal_axis = pca.components_[0]
+        
+        # Ensure the principal axis points downwards for consistency
+        if principal_axis[0] < 0:
+            principal_axis = -principal_axis
+        
+        # Project points onto the principal axis
+        projected = np.dot(points - np.mean(points, axis=0), principal_axis)
+        
+        if bone_type == 'tibia':
+            # Tibia logic (unchanged)
+            extreme_index = np.argmin(points[:, 0])  # Lowest row value
+            extreme_point = points[extreme_index]
+            extreme_projected = projected[extreme_index]
+            
+            cutoff_projected = extreme_projected + cutoff_distance
+            
+            filtered_points = [point for point, proj in zip(points, projected) if proj <= cutoff_projected]
+        
+        else:  # femur
+            # Femur logic (corrected)
+            extreme_index = np.argmax(points[:, 0])  # Highest row value
+            extreme_point = points[extreme_index]
+            extreme_projected = projected[extreme_index]
+            
+            cutoff_projected = extreme_projected - cutoff_distance
+            
+            filtered_points = [point for point, proj in zip(points, projected) if proj >= cutoff_projected]
+        
+        # Add frame number back to the filtered points
+        filtered_points_with_frame = np.column_stack((np.full(len(filtered_points), frame), filtered_points))
+        
+        new_shapes.append(filtered_points_with_frame)
+    
+    # Create a new Shapes layer with the cut shapes
+    new_layer_name = f"{shapes_layer.name}_cut"
+    new_layer = viewer.add_shapes(new_shapes, name=new_layer_name, shape_type='polygon')
+    
+    return new_layer
+
+# Example usage:
+cut_tibia_layer = cut_bone_shape(viewer.layers['ds5_tib_auto'], 'tibia')
+cut_femur_layer = cut_bone_shape(viewer.layers['ds5_fem_auto'], 'femur')
+
+#%%
+# lets do manual, the autos should be the same anyways. 
+
+tib_points = viewer.layers['ds2_tib_man_cut'].data
+fem_points = viewer.layers['ds2_fem_man_cut'].data
+
+tib_centroids = []
+fem_centroids = []
+for frame in range(len(tib_points)):
+    tib_points_frame = tib_points[frame][:, 1:]  # Exclude frame number, keep only y and x
+    fem_points_frame = fem_points[frame][:, 1:]  # Exclude frame number, keep only y and x
+    
+    tib_centroid = compute_centroid(tib_points_frame)
+    fem_centroid = compute_centroid(fem_points_frame)
+    
+    tib_centroids.append(tib_centroid)
+    fem_centroids.append(fem_centroid)
+
+viewer.add_points(tib_centroids, face_color='green')
+viewer.add_points(fem_centroids, face_color='green')
+
+
+
+#%%
+
+
+
+# adaptiong this into a function - the one that does absolute distances, the one we'll use
+
+def compute_centroid(points):
+    # this isthe one that actually computes the correct centroid by using the points 
+    # Ensure the polygon is closed by appending the first point at the end
+    points = np.vstack([points, points[0]])
+    
+    # Separate the x and y coordinates
+    x = points[:, 0]
+    y = points[:, 1]
+    
+    # Calculate the area of the polygon
+    A = 0.5 * np.sum(x[:-1] * y[1:] - x[1:] * y[:-1])
+    
+    # Calculate the centroid coordinates
+    C_x = (1 / (6 * A)) * np.sum((x[:-1] + x[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1]))
+    C_y = (1 / (6 * A)) * np.sum((y[:-1] + y[1:]) * (x[:-1] * y[1:] - x[1:] * y[:-1]))
+    
+    return C_x, C_y
+
+
+def get_centroids_from_shapes(layer_tib_name, layer_fem_name):
+    # Extract layers based on provided names
+    shapes_layer_tib = viewer.layers[layer_tib_name]
+    shapes_layer_fem = viewer.layers[layer_fem_name]
+    
+    # Determine the dataset number from the layer name
+    dataset_number = int(layer_tib_name.split('ds')[1][0])  # e.g. ds1 -> 1
+    method = 'Auto' if 'auto' in layer_tib_name else 'Manual'
+    
+    # Calculate centroids and translations for each frame
+    data = []
+    
+    for frame in range(len(shapes_layer_tib.data)):
+        tib_points = shapes_layer_tib.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        fem_points = shapes_layer_fem.data[frame][:, 1:]  # Exclude frame number, keep only y and x
+        
+        tib_centroid = compute_centroid(tib_points)
+        fem_centroid = compute_centroid(fem_points)
+        
+        # AP and IS translations
+        AP_translation = fem_centroid[1] - tib_centroid[1]  # AP (x-axis)
+        IS_translation = fem_centroid[0] - tib_centroid[0]  # IS (y-axis)
+        
+        # Append the data for this frame
+        data.append([dataset_number, frame, method, fem_centroid, tib_centroid, AP_translation, IS_translation])
+    
+    # Create a dataframe from the collected data
+    df = pd.DataFrame(data, columns=[
+        'Dataset', 'Frame', 'Method', 'Femur_Centroid', 'Tibia_Centroid', 'AP_Translation', 'IS_Translation'
+    ])
+    
+    return df
+
+# Example usage:
+#ds5_centroid_man_cut = get_centroids_from_shapes('ds5_tib_man_cut', 'ds5_fem_man_cut')
+
+ds5_centroid_auto_cut = get_centroids_from_shapes('ds5_tib_auto_cut', 'ds5_fem_auto_cut')
+
+#%%
+ds5_cut_df = pd.concat([ds5_centroid_auto_cut, ds5_centroid_man_cut], ignore_index=True)
+
+#%%
+# once a singe dataset has been combined for both man and auto. first step is to add percent flexed by first renaming the Frame column 
+#%%
+def add_percent_flexed(df):
+    df = df.copy()  # To avoid modifying the original dataframe
+    percent_flexed_values = {}  # To store first half values for mirroring
+
+    for dataset_id, group_data in df.groupby('Dataset'):
+        total_frames = group_data['Frame Number'].max() + 1  # Total number of frames
+        # Define halfway_point for the calculation, not for mirroring
+        halfway_calculation_point = (total_frames // 2) - 1
+
+        # Calculate 'Percent Flexed' for each frame
+        for index, row in group_data.iterrows():
+            frame = row['Frame Number']
+            if frame <= halfway_calculation_point:
+                # Before or at the halfway calculation point, scale from -100% to 0%
+                percent_flexed = ((frame / halfway_calculation_point) * 100) - 100
+                percent_flexed_values[dataset_id, frame] = percent_flexed
+            else:
+                # After the halfway point, mirror the value from the first half
+                # Check if it's the peak frame
+                if frame == halfway_calculation_point + 1:
+                    percent_flexed = 0
+                else:
+                    # Calculate mirror frame
+                    mirror_frame = halfway_calculation_point - (frame - halfway_calculation_point - 1)
+                    percent_flexed = -percent_flexed_values[dataset_id, mirror_frame]
+            df.at[index, 'Percent Flexed'] = percent_flexed
+
+    return df
+
+df5_cut = ds5_cut_df.rename(columns= {'Frame': 'Frame Number'})
+
+df5_cut = add_percent_flexed(df5_cut)
+
+
+#%%
+df_cut_all = pd.concat([df1_cut, df2_cut, df3_cut, df4_cut, df5_cut], ignore_index=True)
+
+
+#%%
+df_cut_all.to_pickle('df_cut_all_nonscaled.pkl')
+
+#%%
 scaling_factor = 0.48484848484848486
-df3['IS_Translation'] = df3['IS_Translation'] * scaling_factor
-df3['AP_Translation'] = df3['AP_Translation'] * scaling_factor
-
-# Save the combined dataframe as a .pkl object
-first_half_df.to_pickle('first_half_df.pkl')
-
-#%%
-df_combined = pd.concat([ds1_centroid_df, ds2_centroid_df, ds3_centroid_df, ds4_centroid_df, ds5_centroid_df, ds6_centroid_df], ignore_index=True)
-
-first_half_df.to_pickle('first_half_df.pkl')
-#%%
-df_man_auto_centroid = pd.concat([df_combined, auto_centroid_dfs], ignore_index=True)
-
-#%%
-sns.lineplot(first_half_df, x='Frame Number', y='AP_Translation', hue='Method')
-#%%
-df_man_auto_centroid.rename(columns={"Frame":"Frame Number"})
-
-#%%
-
-df_no_5 = df_man_auto_centroid[df_man_auto_centroid['Dataset'] != 5]
+df_cut_all['IS_Translation'] = df_cut_all['IS_Translation'] * scaling_factor
+df_cut_all['AP_Translation'] = df_cut_all['AP_Translation'] * scaling_factor
 #%%
 
 def split_dataframes(df):
@@ -1030,15 +1127,22 @@ def split_dataframes(df):
     
     return first_half_df, second_half_df
 
-first_half_df3 , second_half_df3 = split_dataframes(df3)
+first_half_angle_df , second_half_angle_df = split_dataframes(master_df_inverted)
 
+first_half_angle_df['Percent Flexed'] = first_half_angle_df['Percent Flexed'] * -1 
 #%%
 
 # so far, these dataframes, first_half_df and second_half_df store the values for just 5 datasets, with dataset number 5 of JL being replaced by dataset 6 of US. 
 
 # the first half has flexion percent starting from -100 to 0 and second half from 0 to 100. for plotting, the first half is once again converted to just 100% to 0% 
+# Multiply the IS_Translation and AP_Translation columns by the given value
 
-first_half_df3['Percent Flexed'] = first_half_df3['Percent Flexed'] * -1 
+
+# Save the combined dataframe as a .pkl object
+first_half_df_cut.to_pickle('first_half_df_cut.pkl')
+
+second_half_df_cut.to_pickle('second_half_df_cut.pkl')
+
 
 #%%
 
@@ -1128,9 +1232,9 @@ plot_binned_data(first_half_df, n_bins=10)
 
 # Use seaborn's lineplot with automatic aggregation
 sns.lineplot(
-    data=first_half_df,
+    data=df2_cut,
     x='Percent Flexed',
-    y='AP_Translation',
+    y='IS_Translation',
     hue='Method',
     estimator='mean',  # Aggregates data points by calculating the mean
     errorbar='sd'            # Shows the standard deviation as the confidence interval
@@ -1216,7 +1320,7 @@ def plot_binned_translation_data(df, translation_column, bin_width=10, figsize=(
     
     
     plt.tight_layout()
-    plt.savefig('first_half_is.svg', dpi=300)
+    #plt.savefig('first_half_is.svg', dpi=300)
     plt.show()
     
     # Perform t-tests if there are exactly two methods
@@ -1234,10 +1338,252 @@ def plot_binned_translation_data(df, translation_column, bin_width=10, figsize=(
         print("T-tests not performed as there are not exactly two methods.")
         return None
 #%%
+from scipy.interpolate import interp1d
 # Usage examples
-result_ap = plot_binned_translation_data(second_half_df, 'AP_Translation', bin_width=8)
-result_is = plot_binned_translation_data(first_half_df, 'IS_Translation', bin_width=8)
+def combine_translation_angle_data(df_cut, df_angle):
+    combined_df = df_cut.copy()
+    combined_df['Angle'] = float('nan')
 
+    for dataset in combined_df['Dataset'].unique():
+        for method in combined_df['Method'].unique():
+            mask_cut = (combined_df['Dataset'] == dataset) & (combined_df['Method'] == method)
+            mask_angle = (df_angle['Dataset'] == dataset) & (df_angle['Method'] == method)
+            
+            df_cut_subset = combined_df[mask_cut].sort_values('Percent Flexed')
+            df_angle_subset = df_angle[mask_angle].sort_values('Percent Flexed')
+            
+            if len(df_cut_subset) == len(df_angle_subset):
+                combined_df.loc[mask_cut, 'Angle'] = df_angle_subset['Angle'].values
+            else:
+                # Interpolate angle values
+                angle_interp = interp1d(df_angle_subset['Percent Flexed'], df_angle_subset['Angle'], 
+                                        kind='linear', fill_value='extrapolate')
+                
+                combined_df.loc[mask_cut, 'Angle'] = angle_interp(df_cut_subset['Percent Flexed'])
+
+    return combined_df
+
+# Use the function
+first_half_combined = combine_translation_angle_data(first_half_df_cut, first_half_angle_df)
+second_half_combined = combine_translation_angle_data(second_half_df_cut, second_half_angle_df)
+
+
+#%%
+# its flipped for some reason: 
+first_half_combined['Angle'] = first_half_combined['Angle'] * -1 
+
+#%%
+
+def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
+    plt.rcParams.update({'font.size': 14})  # Increase default font size
+    fig, axs = plt.subplots(2, 3, figsize=figsize, dpi=dpi)
+    
+    def plot_data(df, ax, column, title, is_angle=False, is_is=False):
+        df_copy = df.copy()
+        bin_edges = list(range(0, 101, bin_width))
+        df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+        df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+        
+        grouped = df_copy.groupby(['Method', 'Custom_Bin', 'Dataset'])[column].mean().reset_index()
+        grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+        grouped['Method'] = grouped['Method'].replace('Auto', 'Semi-Auto')
+        
+        sns.lineplot(
+            data=grouped,
+            x='Bin_Center',
+            y=column,
+            hue='Method',
+            marker="o",
+            ci='sd',
+            err_style="band",
+            err_kws={'alpha': 0.3},
+            ax=ax
+        )
+        
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Flexion [%]", fontsize=16)
+        ax.set_ylabel("Angle [°]" if is_angle else "Translation [mm]", fontsize=16)
+        ax.set_title(title, fontsize=18, pad=20)
+        ax.grid(True)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.legend(title='Method', fontsize=14, title_fontsize=16)
+        
+        # Adjust y-axis limits with padding
+        y_min, y_max = ax.get_ylim()
+        y_range = y_max - y_min
+        padding = is_y_padding if is_is else y_padding
+        ax.set_ylim(y_min - y_range * padding, y_max + y_range * padding)
+        
+        # frame_counts = df.groupby('Dataset').size() / 2
+        # min_frames, max_frames = frame_counts.min(), frame_counts.max()
+        # min_rom, max_rom = min_frames * 2, max_frames * 2
+        
+        # ax.text(0.05, 0.95, f"Range of Motion: {min_rom:.0f}° to {max_rom:.0f}°", 
+        #         transform=ax.transAxes, 
+        #         horizontalalignment='left', 
+        #         verticalalignment='top',
+        #         fontsize=12,
+        #         bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
+    
+    # First half (Extension Phase)
+    plot_data(df_first_half, axs[0, 0], 'Angle', 'Angle', is_angle=True)
+    plot_data(df_first_half, axs[0, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
+    plot_data(df_first_half, axs[0, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True)
+    
+    # Second half (Flexion Phase)
+    plot_data(df_second_half, axs[1, 0], 'Angle', 'Angle', is_angle=True)
+    plot_data(df_second_half, axs[1, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
+    plot_data(df_second_half, axs[1, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True)
+    
+    # Add phase labels
+    fig.text(0.5, 0.98, 'Extension Phase (Flexed to Extended)', ha='center', va='center', fontsize=20, fontweight='bold')
+    fig.text(0.5, 0.51, 'Flexion Phase (Extended to Flexed)', ha='center', va='center', fontsize=20, fontweight='bold')
+    
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.93, bottom=0.07, left=0.05, right=0.95, hspace=0.3, wspace=0.3)
+    return fig
+
+# Call the function with the combined dataframes and save the figure
+fig = plot_six_panel_translation_and_angle(first_half_combined, second_half_combined, bin_width=12, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.6)
+fig.savefig('translation_and_angle_plot.png', dpi=300, bbox_inches='tight')
+
+#%%
+
+def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1):
+    plt.rcParams.update({'font.size': 14})  # Increase default font size
+    fig, axs = plt.subplots(2, 3, figsize=figsize, dpi=dpi)
+    
+    def plot_data(df, ax, column, title, is_angle=False):
+        df_copy = df.copy()
+        bin_edges = list(range(0, 101, bin_width))
+        df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+        df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+        
+        grouped = df_copy.groupby(['Method', 'Custom_Bin', 'Dataset'])[column].mean().reset_index()
+        grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+        grouped['Method'] = grouped['Method'].replace('Auto', 'Semi-Auto')
+        
+        sns.lineplot(
+            data=grouped,
+            x='Bin_Center',
+            y=column,
+            hue='Method',
+            marker="o",
+            ci='sd',
+            err_style="band",
+            err_kws={'alpha': 0.3},
+            ax=ax
+        )
+        
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Flexion [%]", fontsize=16)
+        ax.set_ylabel("Angle [°]" if is_angle else "Translation [mm]", fontsize=16)
+        ax.set_title(title, fontsize=18, pad=20)
+        ax.grid(True)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.legend(title='Method', fontsize=14, title_fontsize=16)
+        
+        # Adjust y-axis limits with padding
+        y_min, y_max = ax.get_ylim()
+        y_range = y_max - y_min
+        ax.set_ylim(y_min - y_range * y_padding, y_max + y_range * y_padding)
+        
+        frame_counts = df.groupby('Dataset').size() / 2
+        min_frames, max_frames = frame_counts.min(), frame_counts.max()
+        min_rom, max_rom = min_frames * 2, max_frames * 2
+        
+        ax.text(0.05, 0.95, f"Range of Motion: {min_rom:.0f}° to {max_rom:.0f}°", 
+                transform=ax.transAxes, 
+                horizontalalignment='left', 
+                verticalalignment='top',
+                fontsize=12,
+                bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
+    
+    # First half (Extension Phase)
+    plot_data(df_first_half, axs[0, 0], 'Angle', 'Angle', is_angle=True)
+    plot_data(df_first_half, axs[0, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
+    plot_data(df_first_half, axs[0, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
+    
+    # Second half (Flexion Phase)
+    plot_data(df_second_half, axs[1, 0], 'Angle', 'Angle', is_angle=True)
+    plot_data(df_second_half, axs[1, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
+    plot_data(df_second_half, axs[1, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
+    
+    # Add phase labels
+    fig.text(0.5, 0.98, 'Extension Phase (Flexed to Extended)', ha='center', va='center', fontsize=20, fontweight='bold')
+    fig.text(0.5, 0.51, 'Flexion Phase (Extended to Flexed)', ha='center', va='center', fontsize=20, fontweight='bold')
+    
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.93, bottom=0.07, left=0.05, right=0.95, hspace=0.3, wspace=0.3)
+    return fig
+
+# Call the function with the combined dataframes and save the figure
+fig = plot_six_panel_translation_and_angle(first_half_combined, second_half_combined, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1)
+fig.savefig('translation_and_angle_plot.png', dpi=300, bbox_inches='tight')
+#%%
+def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, figsize=(20, 16), y_padding=0.1):
+    fig, axs = plt.subplots(2, 2, figsize=figsize)
+    
+    def plot_translation_data(df, ax, translation_column, title):
+        df_copy = df.copy()
+        bin_edges = list(range(0, 101, bin_width))
+        df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+        df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+        
+        grouped = df_copy.groupby(['Method', 'Custom_Bin', 'Dataset'])[translation_column].mean().reset_index()
+        grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+        grouped['Method'] = grouped['Method'].replace('Auto', 'Semi-Auto')
+        
+        sns.lineplot(
+            data=grouped,
+            x='Bin_Center',
+            y=translation_column,
+            hue='Method',
+            marker="o",
+            ci='sd',
+            err_style="band",
+            err_kws={'alpha': 0.3},
+            ax=ax
+        )
+        
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Flexion [%]", fontsize=12)
+        ax.set_ylabel("Translation [mm]", fontsize=12)
+        ax.set_title(title, fontsize=14, pad=20)
+        ax.grid(True)
+        ax.tick_params(axis='both', which='major', labelsize=10)
+        ax.legend(title='Method', fontsize=10, title_fontsize=12)
+        
+        # Adjust y-axis limits with padding
+        y_min, y_max = ax.get_ylim()
+        y_range = y_max - y_min
+        ax.set_ylim(y_min - y_range * y_padding, y_max + y_range * y_padding)
+        
+        frame_counts = df.groupby('Dataset').size() / 2
+        min_frames, max_frames = frame_counts.min(), frame_counts.max()
+        min_rom, max_rom = min_frames * 2, max_frames * 2
+        
+        ax.text(0.05, 0.05, f"Range of Motion: {min_rom:.0f}° to {max_rom:.0f}°", 
+                transform=ax.transAxes, 
+                horizontalalignment='left', 
+                verticalalignment='bottom',
+                fontsize=8,
+                bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
+    
+    plot_translation_data(df_first_half, axs[0, 0], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
+    plot_translation_data(df_first_half, axs[0, 1], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
+    plot_translation_data(df_second_half, axs[1, 0], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
+    plot_translation_data(df_second_half, axs[1, 1], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
+    
+    # Add phase labels
+    fig.text(0.5, 0.98, 'Extension Phase (Flexed to Extended)', ha='center', va='center', fontsize=16, fontweight='bold')
+    fig.text(0.5, 0.51, 'Flexion Phase (Extended to Flexed)', ha='center', va='center', fontsize=16, fontweight='bold')
+    
+    plt.tight_layout()
+    plt.show()
+
+plot_four_panel_translation(first_half_df_cut, second_half_df_cut, bin_width=10, figsize=(20, 16), y_padding=1)
+#%%
 # If you want to see the t-test results (if applicable)
 if result_ap is not None:
     print("T-test results for AP Translation:")
@@ -1314,7 +1660,7 @@ def plot_dataset_specific_translations(df):
     plt.show()
 
 # Usage example:
-plot_dataset_specific_translations(first_half_df)
+plot_dataset_specific_translations(first_half_df_cut)
 #%%
 df = first_half_df.copy()  # Create a copy to avoid modifying the original dataframe
 df['Dataset'] = df['Dataset'].replace(6, 5)
@@ -1346,4 +1692,9 @@ def replace_dataset_3(main_df, new_df):
 first_half_df = replace_dataset_3(first_half_df, first_half_df3)
 second_half_df = replace_dataset_3(second_half_df, second_half_df3)
 
+#%%
+# Step 1: Replace 'Unloaded' with 'Auto' in the 'Condition' column
+master_df_inverted['Condition'] = master_df_inverted['Condition'].replace('Unloaded', 'Auto')
 
+# Step 2: Remove all rows where the 'Condition' column is 'Loaded'
+master_df_inverted = master_df_inverted[master_df_inverted['Condition'] != 'Loaded']

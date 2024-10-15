@@ -26,11 +26,11 @@ import pymri
     
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/stiched_analysis/US_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/stiched_analysis/US_NW_ai2_5e-2_pos_ngn.nii'
 #%%
-image_neg = path_to_image(path_neg)[1:]
-image_pos = path_to_image(path_pos)[1:]
+image_neg = path_to_image(path_neg)[2:]
+image_pos = path_to_image(path_pos)[2:]
 #%%
 # since our image goes from extened to flexed.. the direction means, pos is going down.. and neg is coming up 
 # which means. if we want to present our data as going up then coming down .. we have to reverse the neg, put it at the first half. 
@@ -41,7 +41,7 @@ full_image = np.concatenate( (image_neg, image_pos) , axis=0)
 #%%
 
 from napari_nifti._writer import write_single_image
-
+#%%
 
 #add the original image to napari
 viewer = napari.view_image(full_image,  name='ds1_NW_full')
@@ -254,7 +254,7 @@ viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
 tib_canny = viewer.layers['after_edge_detection_sigma_2'].data.astype(bool)
-#%%
+lts#%%
 #Step 7: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
     size_values = np.linspace(size_range[0], size_range[1], num_steps).astype(int)
