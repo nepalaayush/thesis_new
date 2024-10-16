@@ -1372,6 +1372,11 @@ second_half_combined = combine_translation_angle_data(second_half_df_cut, second
 # its flipped for some reason: 
 first_half_combined['Angle'] = first_half_combined['Angle'] * -1 
 
+
+#%%
+
+first_half_df = pd.read_pickle( 'C:/Users/Aayush/Documents/thesis_files/thesis_new/first_half_trans_and_angle.pkl') 
+second_half_df = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/second_half_trans_and_angle.pkl')
 #%%
 
 def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
@@ -1404,7 +1409,7 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
         ax.set_xlabel("Flexion [%]", fontsize=16)
         ax.set_ylabel("Angle [°]" if is_angle else "Translation [mm]", fontsize=16)
         ax.set_title(title, fontsize=18, pad=20)
-        ax.grid(True)
+        #ax.grid(True)
         ax.tick_params(axis='both', which='major', labelsize=14)
         ax.legend(title='Method', fontsize=14, title_fontsize=16)
         
@@ -1426,12 +1431,12 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
         #         bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
     
     # First half (Extension Phase)
-    plot_data(df_first_half, axs[0, 0], 'Angle', 'Angle', is_angle=True)
+    plot_data(df_first_half, axs[0, 0], 'Angle', '', is_angle=True) # leaving this blank 
     plot_data(df_first_half, axs[0, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
     plot_data(df_first_half, axs[0, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True)
     
     # Second half (Flexion Phase)
-    plot_data(df_second_half, axs[1, 0], 'Angle', 'Angle', is_angle=True)
+    plot_data(df_second_half, axs[1, 0], 'Angle', '', is_angle=True)
     plot_data(df_second_half, axs[1, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
     plot_data(df_second_half, axs[1, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True)
     
@@ -1444,16 +1449,15 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
     return fig
 
 # Call the function with the combined dataframes and save the figure
-fig = plot_six_panel_translation_and_angle(first_half_combined, second_half_combined, bin_width=12, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.6)
-fig.savefig('translation_and_angle_plot.png', dpi=300, bbox_inches='tight')
+fig = plot_six_panel_translation_and_angle(first_half_df, second_half_df, bin_width=12, figsize=(30, 20), dpi=300, y_padding=0.0, is_y_padding=0.9)
+fig.savefig('six_panels_no_grid.png', dpi=300, bbox_inches='tight')
 
 #%%
-
-def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1):
+def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
     plt.rcParams.update({'font.size': 14})  # Increase default font size
     fig, axs = plt.subplots(2, 3, figsize=figsize, dpi=dpi)
     
-    def plot_data(df, ax, column, title, is_angle=False):
+    def plot_data(df, ax, column, title, is_angle=False, is_is=False):
         df_copy = df.copy()
         bin_edges = list(range(0, 101, bin_width))
         df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
@@ -1479,35 +1483,55 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
         ax.set_xlabel("Flexion [%]", fontsize=16)
         ax.set_ylabel("Angle [°]" if is_angle else "Translation [mm]", fontsize=16)
         ax.set_title(title, fontsize=18, pad=20)
-        ax.grid(True)
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+        ax.minorticks_on()
         ax.tick_params(axis='both', which='major', labelsize=14)
         ax.legend(title='Method', fontsize=14, title_fontsize=16)
         
         # Adjust y-axis limits with padding
         y_min, y_max = ax.get_ylim()
         y_range = y_max - y_min
-        ax.set_ylim(y_min - y_range * y_padding, y_max + y_range * y_padding)
+        padding = is_y_padding if is_is else y_padding
+        ax.set_ylim(y_min - y_range * padding, y_max + y_range * padding)
         
-        frame_counts = df.groupby('Dataset').size() / 2
-        min_frames, max_frames = frame_counts.min(), frame_counts.max()
-        min_rom, max_rom = min_frames * 2, max_frames * 2
+        # Calculate values and std at x=0 and x=100 for each method
+        results = {}
+        for method in ['Manual', 'Semi-Auto']:
+            method_data = grouped[grouped['Method'] == method]
+            
+            # For x=0
+            start_data = method_data[method_data['Bin_Center'] == method_data['Bin_Center'].min()]
+            start_value = start_data[column].mean()
+            start_std = start_data[column].std()
+            
+            # For x=100
+            end_data = method_data[method_data['Bin_Center'] == method_data['Bin_Center'].max()]
+            end_value = end_data[column].mean()
+            end_std = end_data[column].std()
+            
+            # Calculate change and propagate error
+            change = end_value - start_value
+            change_std = np.sqrt(start_std**2 + end_std**2)
+            
+            results[method] = {
+                'start': (start_value, start_std),
+                'end': (end_value, end_std),
+                'change': (change, change_std)
+            }
         
-        ax.text(0.05, 0.95, f"Range of Motion: {min_rom:.0f}° to {max_rom:.0f}°", 
-                transform=ax.transAxes, 
-                horizontalalignment='left', 
-                verticalalignment='top',
-                fontsize=12,
-                bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
+        return results
+    
+    changes = []
     
     # First half (Extension Phase)
-    plot_data(df_first_half, axs[0, 0], 'Angle', 'Angle', is_angle=True)
-    plot_data(df_first_half, axs[0, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
-    plot_data(df_first_half, axs[0, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
+    changes.append(plot_data(df_first_half, axs[0, 0], 'Angle', '', is_angle=True))
+    changes.append(plot_data(df_first_half, axs[0, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)'))
+    changes.append(plot_data(df_first_half, axs[0, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True))
     
     # Second half (Flexion Phase)
-    plot_data(df_second_half, axs[1, 0], 'Angle', 'Angle', is_angle=True)
-    plot_data(df_second_half, axs[1, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
-    plot_data(df_second_half, axs[1, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
+    changes.append(plot_data(df_second_half, axs[1, 0], 'Angle', '', is_angle=True))
+    changes.append(plot_data(df_second_half, axs[1, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)'))
+    changes.append(plot_data(df_second_half, axs[1, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True))
     
     # Add phase labels
     fig.text(0.5, 0.98, 'Extension Phase (Flexed to Extended)', ha='center', va='center', fontsize=20, fontweight='bold')
@@ -1515,11 +1539,29 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
     
     plt.tight_layout()
     plt.subplots_adjust(top=0.93, bottom=0.07, left=0.05, right=0.95, hspace=0.3, wspace=0.3)
+    
+    # Print out the changes with standard deviations
+    print("Changes from minimum to maximum flexion (with standard deviations):")
+    titles = ["Extension Phase - Angle", "Extension Phase - AP Translation", "Extension Phase - IS Translation",
+              "Flexion Phase - Angle", "Flexion Phase - AP Translation", "Flexion Phase - IS Translation"]
+    for i, (title, result) in enumerate(zip(titles, changes)):
+        print(f"{i+1}. {title}:")
+        for method in ['Manual', 'Semi-Auto']:
+            start_val, start_std = result[method]['start']
+            end_val, end_std = result[method]['end']
+            change_val, change_std = result[method]['change']
+            unit = '°' if 'Angle' in title else 'mm'
+            print(f"   {method}:")
+            print(f"     Start: {start_val:.2f} ± {start_std:.2f} {unit}")
+            print(f"     End: {end_val:.2f} ± {end_std:.2f} {unit}")
+            print(f"     Change: {change_val:.2f} ± {change_std:.2f} {unit}")
+        print()
+    
     return fig
 
 # Call the function with the combined dataframes and save the figure
-fig = plot_six_panel_translation_and_angle(first_half_combined, second_half_combined, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1)
-fig.savefig('translation_and_angle_plot.png', dpi=300, bbox_inches='tight')
+fig = plot_six_panel_translation_and_angle(adjusted_first_half_df, djusted_second_half_df, bin_width=12, figsize=(30, 20), dpi=300, y_padding=0.0, is_y_padding=0.9)
+#fig.savefig('six_panels_with_grid.png', dpi=300, bbox_inches='tight')
 #%%
 def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, figsize=(20, 16), y_padding=0.1):
     fig, axs = plt.subplots(2, 2, figsize=figsize)
@@ -1660,8 +1702,41 @@ def plot_dataset_specific_translations(df):
     plt.show()
 
 # Usage example:
-plot_dataset_specific_translations(first_half_df_cut)
+plot_dataset_specific_translations(first_half_df)
 #%%
+# need to adjust the starting frame, having different values here dont make sense. 
+def adjust_translations_at_zero_flexion(df):
+    # Create a copy of the dataframe to avoid modifying the original
+    adjusted_df = df.copy()
+    
+    # Get unique datasets
+    datasets = adjusted_df['Dataset'].unique()
+    
+    for dataset in datasets:
+        # Filter for the current dataset and 0% flexion
+        mask = (adjusted_df['Dataset'] == dataset) & (adjusted_df['Percent Flexed'] == 0)
+        
+        # Get the auto values for AP and IS translations at 0% flexion
+        auto_ap = adjusted_df.loc[mask & (adjusted_df['Method'] == 'Auto'), 'AP_Translation'].values[0]
+        auto_is = adjusted_df.loc[mask & (adjusted_df['Method'] == 'Auto'), 'IS_Translation'].values[0]
+        
+        # Update the manual values to match the auto values at 0% flexion
+        adjusted_df.loc[mask & (adjusted_df['Method'] == 'Manual'), 'AP_Translation'] = auto_ap
+        adjusted_df.loc[mask & (adjusted_df['Method'] == 'Manual'), 'IS_Translation'] = auto_is
+    
+    return adjusted_df
+
+# Usage example:
+adjusted_first_half_df = adjust_translations_at_zero_flexion(first_half_df)
+djusted_second_half_df = adjust_translations_at_zero_flexion(second_half_df)
+
+
+
+#%%
+
+
+
+
 df = first_half_df.copy()  # Create a copy to avoid modifying the original dataframe
 df['Dataset'] = df['Dataset'].replace(6, 5)
 
