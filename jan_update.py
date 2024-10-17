@@ -26,11 +26,11 @@ import pymri
     
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/stiched_analysis/US_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos = 'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/US/stiched_analysis/US_NW_ai2_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
-image_neg = path_to_image(path_neg)[2:]
-image_pos = path_to_image(path_pos)[2:]
+image_neg = path_to_image(path_neg)[1:]
+image_pos = path_to_image(path_pos)[1:]
 #%%
 # since our image goes from extened to flexed.. the direction means, pos is going down.. and neg is coming up 
 # which means. if we want to present our data as going up then coming down .. we have to reverse the neg, put it at the first half. 
