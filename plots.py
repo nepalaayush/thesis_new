@@ -1826,3 +1826,36 @@ master_df_inverted['Condition'] = master_df_inverted['Condition'].replace('Unloa
 
 # Step 2: Remove all rows where the 'Condition' column is 'Loaded'
 master_df_inverted = master_df_inverted[master_df_inverted['Condition'] != 'Loaded']
+
+#%%
+# an attempt to do the points thing
+
+point_df = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/master_df_point.pkl')
+
+def add_points_to_viewer(point_df, viewer, voxel_size):
+    # Filter for Dataset 1 and unloaded condition
+    df_filtered = point_df[(point_df['Dataset'] == 1) & (point_df['Condition'] == 'Unloaded')]
+    
+    # Create lists to hold point coordinates
+    femur_points = []
+    tibia_points = []
+    
+    for _, row in df_filtered.iterrows():
+        frame = row['Frame Number']
+        
+        # Convert mm to voxel coordinates
+        fem_y = row['Femur_Y'] / voxel_size
+        fem_x = row['Femur_X'] / voxel_size
+        tib_y = row['Tibia_Y'] / voxel_size
+        tib_x = row['Tibia_X'] / voxel_size
+        
+        # Add points to respective lists
+        femur_points.append([frame, fem_y, fem_x])
+        tibia_points.append([frame, tib_y, tib_x])
+    
+    # Add points to viewer
+    viewer.add_points(femur_points, size=5, name='Femur Points', face_color='orange')
+    viewer.add_points(tibia_points, size=5, name='Tibia Points', face_color='orange') 
+
+# Usage example:
+add_points_to_viewer(point_df, viewer, voxel_size)

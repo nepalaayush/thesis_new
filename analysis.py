@@ -331,7 +331,7 @@ import os
 import imageio
 
 # Directory to save screenshots
-output_dir = "screenshots"
+output_dir = "C:\Users\Aayush\Documents\thesis_files\thesis_new\symposium+defense\defense"
 os.makedirs(output_dir, exist_ok=True)
 
 axis_index = 0
@@ -343,6 +343,20 @@ for frame_index in range(number_of_frames):
     screenshot_path = os.path.join(output_dir, f"frame_{frame_index:04d}.png")
     imageio.imwrite(screenshot_path, screenshot)
  
+#%%
+# Directory to save screenshots
+base_dir = r"C:\Users\Aayush\Documents\thesis_files\thesis_new\symposium+defense\defense"
+output_dir = os.path.join(base_dir, "screenshots")
+os.makedirs(output_dir, exist_ok=True)
+
+axis_index = 0
+number_of_frames = len(full_image)
+
+for frame_index in range(number_of_frames):
+    viewer.dims.set_point(axis_index, frame_index)
+    screenshot = viewer.screenshot()
+    screenshot_path = os.path.join(output_dir, f"frame_{frame_index:04d}.png")
+    imageio.imwrite(screenshot_path, screenshot)
 
 #%%
 ''' this should now take the directory containing the frames and create a gif  '''
@@ -352,10 +366,10 @@ from pathlib import Path
 
 
 # Directory containing the screenshots
-screenshots_dir = Path("/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_W_screenshots")
+screenshots_dir = Path("C:\Users\Aayush\Documents\thesis_files\thesis_new\symposium+defense\defense\screenshots")
 
 # Output GIF file
-output_gif = screenshots_dir / "ds1_angle.gif"
+output_gif = screenshots_dir / "points.gif"
 
 # Set the desired frames per second (adjust as needed)
 fps = 14  # This will show all 28 frames in 4 seconds
@@ -381,13 +395,53 @@ imageio.mimsave(output_gif, images, fps=fps, quantizer='wu', subrectangles=True)
 print(f"High-quality grayscale GIF created successfully at {output_gif}")
 print(f"GIF file size: {output_gif.stat().st_size / (1024 * 1024):.2f} MB")
 
+#%%
+import sys 
+# Use raw string for Windows path
+screenshots_dir = Path(r"C:\Users\Aayush\Documents\thesis_files\thesis_new\symposium+defense\defense\screenshots")
+output_gif = screenshots_dir / "points.gif"
+duration = 14
+
+try:
+    # Ensure the directory exists
+    if not screenshots_dir.exists():
+        raise FileNotFoundError(f"Directory not found: {screenshots_dir}")
+
+    # Get all PNG files in the directory, sorted
+    png_files = sorted(screenshots_dir.glob("*.png"))
+    if not png_files:
+        raise ValueError(f"No PNG files found in {screenshots_dir}")
+    print(f"Found {len(png_files)} PNG files.")
+
+    # Read images and create GIF
+    images = []
+    for png_file in png_files:
+        try:
+            # Read the image as grayscale using mode='L' # without this mode, it wont work. 
+            img = imageio.imread(png_file)
+            images.append(img)
+        except Exception as e:
+            print(f"Error reading file {png_file}: {e}")
+
+    if not images:
+        raise ValueError("No images could be read successfully")
+
+    # Create the GIF with optimized settings for grayscale
+    imageio.mimsave(output_gif, images, duration=duration, subrectangles=True)
+    print(f"High-quality grayscale GIF created successfully at {output_gif}")
+    print(f"GIF file size: {output_gif.stat().st_size / (1024 * 1024):.2f} MB")
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    print(f"Python version: {sys.version}")
+    print(f"Imageio version: {imageio.__version__}")
 
 #%%
 import cv2
 
 # to create a mp4 instead of gif because gif did not preserve the quality somehow. 
 
-screenshots_dir = Path("/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_W_screenshots")
+screenshots_dir = Path(r"C:\Users\Aayush\Documents\thesis_files\thesis_new\symposium+defense\defense\screenshots")
 
 # Output MP4 file
 output_mp4 = screenshots_dir / "ds1_angle.mp4"
