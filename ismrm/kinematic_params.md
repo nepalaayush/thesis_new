@@ -1,19 +1,19 @@
 Changes from minimum to maximum flexion (with standard deviations):
 1. Extension Phase - Angle:
    Manual:
-     Start: -22.95 ± 5.38 °
-     End: 2.91 ± 5.31 °
-     Change: 25.86 ± 7.56 °
+     Start: -4.05 ± 5.85 °
+     End: 20.94 ± 5.74 °
+     Change: 24.99 ± 8.20 °
    Semi-Auto:
-     Start: -23.61 ± 4.68 °
-     End: 1.55 ± 4.39 °
-     Change: 25.16 ± 6.41 °
+     Start: -2.73 ± 4.76 °
+     End: 21.37 ± 5.34 °
+     Change: 24.10 ± 7.15 °
 
 2. Extension Phase - AP Translation:
    Manual:
-     Start: -8.28 ± 2.83 mm
+     Start: -8.07 ± 2.95 mm
      End: -27.03 ± 2.74 mm
-     Change: -18.74 ± 3.94 mm
+     Change: -18.95 ± 4.03 mm
    Semi-Auto:
      Start: -8.33 ± 2.57 mm
      End: -27.10 ± 1.85 mm
@@ -21,9 +21,9 @@ Changes from minimum to maximum flexion (with standard deviations):
 
 3. Extension Phase - IS Translation:
    Manual:
-     Start: -57.32 ± 1.10 mm
+     Start: -56.97 ± 1.24 mm
      End: -56.44 ± 1.25 mm
-     Change: 0.88 ± 1.67 mm
+     Change: 0.53 ± 1.76 mm
    Semi-Auto:
      Start: -57.37 ± 0.71 mm
      End: -56.54 ± 1.12 mm
@@ -41,9 +41,9 @@ Changes from minimum to maximum flexion (with standard deviations):
 
 5. Flexion Phase - AP Translation:
    Manual:
-     Start: -8.50 ± 2.38 mm
+     Start: -8.40 ± 2.86 mm
      End: -26.84 ± 3.35 mm
-     Change: -18.34 ± 4.11 mm
+     Change: -18.44 ± 4.41 mm
    Semi-Auto:
      Start: -8.40 ± 2.20 mm
      End: -27.17 ± 1.86 mm
@@ -51,10 +51,20 @@ Changes from minimum to maximum flexion (with standard deviations):
 
 6. Flexion Phase - IS Translation:
    Manual:
-     Start: -57.04 ± 1.07 mm
+     Start: -56.66 ± 1.38 mm
      End: -56.55 ± 1.63 mm
-     Change: 0.49 ± 1.95 mm
+     Change: 0.12 ± 2.14 mm
    Semi-Auto:
      Start: -57.41 ± 0.76 mm
      End: -56.46 ± 1.16 mm
      Change: 0.95 ± 1.39 mm
+
+![alt text](six_panels_with_grid-1.png)
+
+
+
+     
+we cannot say with certainty the values for IS translations.      
+     
+     
+     
