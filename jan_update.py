@@ -254,7 +254,7 @@ viewer.add_image(tib_canny, name='after_edge_detection_sigma_2')
 #%%
 #Step 6: manually adjust some breaks, etc to make edge consistent 
 tib_canny = viewer.layers['after_edge_detection_sigma_2'].data.astype(bool)
-lts#%%
+#%%
 #Step 7: Use remove small objects at various ranges to find the most suitable
 def apply_remove_multiple_sizes(pixelarray, size_range, num_steps, connectivity):
     size_values = np.linspace(size_range[0], size_range[1], num_steps).astype(int)
@@ -278,7 +278,7 @@ removed_4d = apply_remove_multiple_sizes(tib_canny, size_range, num_steps, conne
 
 #%%
 # add it to the 4d viewer
-viewer3.add_image(removed_4d, name='multi_remove_small')
+viewer.add_image(removed_4d, name='multi_remove_small')
 #%%
 # step 8 pick the right index
 bone_canny = removed_4d[19] 
@@ -314,7 +314,7 @@ final_label_3d = (final_label_3d == 3)
 viewer.add_image(final_label_3d)
 #%%
 #final_label = viewer.layers['tibia_edges'].data  # when using 2d labelling. 
-final_label = viewer.layers['US_W_final_label_tib'].data  # or final_label_3d
+final_label = viewer.layers['MK_NW_final_label_tib_stiched'].data  # or final_label_3d
 #Step 11: once the final edge has been found, convert it to a list of arrays.
 #%% 
 tib_coords = boolean_to_coords(final_label) # use final_label_3d if that is used instead of tibia_edges
@@ -331,7 +331,7 @@ reference_frame_first = downsample_points(tib_coords, 0, 80, bone_type='tibia')
 #new_tib_coords_first = tib_coords.copy() 
 tib_coords[0] = reference_frame_first
 #new_tib_coords_first[0] = MM_NW_ref_frame_fem
-viewer.add_points(reference_frame_first, face_color='orange', size =1, name='reference_frame_first')
+viewer.add_points(reference_frame_first, face_color='orange', size =2, name='reference_frame_first')
 #viewer.add_points(MM_NW_ref_frame_fem, face_color='green', size =1, name='reference_frame_first_using_NW_fem')
 
 #%%
