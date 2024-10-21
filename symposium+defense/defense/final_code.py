@@ -419,3 +419,171 @@ def combined_consecutive_transform(data):
 tib_coords[0] = reference_frame_first # here we are replacing the binary edge of first frame with our downsampled and sorted set. 
 
 transformation_matrices_first, giant_list_first, cost_values_first = combined_consecutive_transform(tib_coords) # new_tib_coords_first
+
+#%%
+
+# trying to plot the cost values in a graph: 
+cost_fem = cost_fem.rename(columns= {'Frame': 'Frame Number'})    
+cost_fem = add_percent_flexed(cost_fem)
+
+
+#%%
+def plot_binned_datasets(cost_df, num_bins=10, figsize=(12, 7)):
+    # Create bins for Percent Flexed
+    cost_df['Percent Flexed Bins'] = pd.cut(cost_df['Percent Flexed'], bins=num_bins)
+    
+    # Group by the bins and Dataset, then calculate mean cost
+    binned_data = cost_df.groupby(['Dataset', 'Percent Flexed Bins'])['Average Cost'].mean().reset_index()
+    
+    # Calculate the midpoint of each bin for plotting
+    binned_data['Bin Midpoint'] = binned_data['Percent Flexed Bins'].apply(lambda x: x.mid)
+    
+    # Calculate the average across all datasets
+    average_data = binned_data.groupby('Bin Midpoint')['Average Cost'].mean().reset_index()
+    
+    # Create the plot
+    plt.figure(figsize=figsize)
+    
+    # Define a list of distinct markers
+    markers = ['o', 's', '^', 'D', 'v', 'p', '*', 'X', 'P', '8', 'h', 'H', '+', 'x']
+    
+    # Plot individual dataset lines with different markers
+    for i, dataset in enumerate(binned_data['Dataset'].unique()):
+        dataset_data = binned_data[binned_data['Dataset'] == dataset]
+        plt.plot(dataset_data['Bin Midpoint'], dataset_data['Average Cost'], 
+                 marker=markers[i % len(markers)], linestyle='-', 
+                 markersize=6, label=f'Dataset {dataset}')
+    
+    # Plot the average line (thick and opaque)
+    plt.plot(average_data['Bin Midpoint'], average_data['Average Cost'], 
+             color='red', linewidth=2, label='Average of All Datasets')
+    
+    plt.title('Average point to point cost function output (Binned)')
+    plt.xlabel('Percent Flexed')
+    plt.ylabel('Average Cost (au)')
+    plt.legend(title='Datasets', bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+    plt.show()
+
+# Example usage:
+plot_binned_datasets(cost_fem)
+#%%
+cost_all = 
+#%%
+
+def plot_binned_average_cost(cost_df, num_bins=15, datasets_to_exclude=[1, 3]):
+    # Filter out the specific datasets
+    filtered_df = cost_df[~cost_df['Dataset'].isin(datasets_to_exclude)]
+
+    # Create bins for Percent Flexed
+    filtered_df['Percent Flexed Bins'] = pd.cut(filtered_df['Percent Flexed'], bins=num_bins)
+
+    # Group by the bins and Dataset, then calculate mean cost
+    binned_data = filtered_df.groupby(['Dataset', 'Percent Flexed Bins'])['Average Cost'].mean().reset_index()
+
+    # Calculate the midpoint of each bin for plotting
+    binned_data['Bin Midpoint'] = binned_data['Percent Flexed Bins'].apply(lambda x: x.mid)
+
+    # Calculate the average and standard deviation across all datasets
+    avg_data = binned_data.groupby('Bin Midpoint').agg({
+        'Average Cost': ['mean', 'std']
+    }).reset_index()
+    avg_data.columns = ['Bin Midpoint', 'Mean Cost', 'Std Cost']
+
+    # Create the plot
+    plt.figure(figsize=(12, 7))
+
+    # Plot the average line
+    plt.plot(avg_data['Bin Midpoint'], avg_data['Mean Cost'], 
+             color='blue', linewidth=2, label='Average')
+
+    # Add shaded area for standard deviation
+    plt.fill_between(avg_data['Bin Midpoint'], 
+                     avg_data['Mean Cost'] - avg_data['Std Cost'],
+                     avg_data['Mean Cost'] + avg_data['Std Cost'],
+                     alpha=0.3, color='blue', label='Standard Deviation')
+
+    plt.title('Average point to point cost function output (Binned)')
+    plt.xlabel('Percent Flexed')
+    plt.ylabel('Average Cost (au)')
+    plt.margins(y=0.3)
+    overall_average = avg_data['Mean Cost'].mean()
+
+    # Add a horizontal dashed line for the overall average
+    plt.axhline(y=overall_average, color='r', linestyle='--', label='Overall Average')
+    plt.legend()
+    plt.savefig('average_cost.svg',dpi=300)
+    plt.show()
+
+    print(f"Excluded datasets: {', '.join(map(str, datasets_to_exclude))}")
+
+# Example usage:
+plot_binned_average_cost(cost_fem)
+
+#%%
+# Combine the two DataFrames and add a new column
+cost_df['Bone'] = 'Tibia'
+cost_fem['Bone'] = 'Femur'
+combined_df = pd.concat([cost_df, cost_fem], ignore_index=True)
+
+def plot_binned_average_cost(combined_df, num_bins=20):
+    # Define datasets to exclude for each bone
+    datasets_to_exclude = {'Tibia': [1, 3], 'Femur': [3, 7]}
+
+    # Create bins for Percent Flexed
+    combined_df['Percent Flexed Bins'] = pd.cut(combined_df['Percent Flexed'], bins=num_bins)
+
+    # Initialize an empty DataFrame to store filtered data
+    filtered_df = pd.DataFrame()
+
+    # Filter datasets for each bone separately and concatenate the results
+    for bone, exclude_list in datasets_to_exclude.items():
+        bone_df = combined_df[(combined_df['Bone'] == bone) & (~combined_df['Dataset'].isin(exclude_list))]
+        filtered_df = pd.concat([filtered_df, bone_df])
+
+    # Group by the bins, Dataset, and Bone, then calculate mean cost
+    binned_data = filtered_df.groupby(['Dataset', 'Bone', 'Percent Flexed Bins'])['Average Cost'].mean().reset_index()
+
+    # Calculate the midpoint of each bin for plotting
+    binned_data['Bin Midpoint'] = binned_data['Percent Flexed Bins'].apply(lambda x: x.mid)
+
+    # Calculate the average and standard deviation across all datasets for each bone
+    avg_data = binned_data.groupby(['Bone', 'Bin Midpoint']).agg({
+        'Average Cost': ['mean', 'std']
+    }).reset_index()
+    avg_data.columns = ['Bone', 'Bin Midpoint', 'Mean Cost', 'Std Cost']
+
+    # Create the plot
+    plt.figure(figsize=(12, 7))
+
+    # Define colors for each bone
+    colors = {'Tibia': 'blue', 'Femur': 'green'}
+
+    # Plot the average lines for Tibia and Femur
+    for bone in ['Tibia', 'Femur']:
+        bone_data = avg_data[avg_data['Bone'] == bone]
+        plt.plot(bone_data['Bin Midpoint'], bone_data['Mean Cost'], 
+                 color=colors[bone], linewidth=2, label=f'{bone} Average')
+        plt.fill_between(bone_data['Bin Midpoint'], 
+                         bone_data['Mean Cost'] - bone_data['Std Cost'],
+                         bone_data['Mean Cost'] + bone_data['Std Cost'],
+                         alpha=0.3, color=colors[bone], label=f'{bone} Standard Deviation')
+
+        # Calculate and plot the overall average for each bone
+        bone_average = bone_data['Mean Cost'].mean()
+        plt.axhline(y=bone_average, color=colors[bone], linestyle='--', 
+                    label=f'{bone} Overall Average')
+
+    plt.title('Average point to point cost function output (Binned)')
+    plt.xlabel('Percent Flexed')
+    plt.ylabel('Average Cost (au)')
+    plt.margins(y=0.3)
+    plt.legend()
+    plt.savefig('average_cost_both.svg',dpi=300)
+    plt.show()
+
+    # Print excluded datasets for each bone
+    for bone, exclude_list in datasets_to_exclude.items():
+        print(f"Excluded datasets for {bone}: {', '.join(map(str, exclude_list))}")
+
+plot_binned_average_cost(combined_df)
