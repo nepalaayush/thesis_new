@@ -8,7 +8,7 @@ import os
 os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
 #.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 
-
+#%%
 import pickle
 import numpy as np 
 import pandas as pd
@@ -1404,8 +1404,8 @@ def reverse_angle_column(df):
 reversed_df = reverse_angle_column(first_half_df)
 #%%
 
-first_half_df = pd.read_pickle( '/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/first_half_trans_and_angle.pkl') 
-second_half_df = pd.read_pickle('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new/second_half_trans_and_angle.pkl')
+first_half_df = pd.read_pickle( 'C:/Users/MSI/Documents/thesis_new/first_half_trans_and_angle.pkl') 
+second_half_df = pd.read_pickle('C:/Users/MSI/Documents/thesis_new/second_half_trans_and_angle.pkl')
 #%%
 
 def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
@@ -1478,12 +1478,12 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
     return fig
 
 # Call the function with the combined dataframes and save the figure
-fig = plot_six_panel_translation_and_angle(reversed_df, second_half_df, bin_width=12, figsize=(30, 20), dpi=300, y_padding=0.0, is_y_padding=0.9)
-fig.savefig('six_panels_no_grid.png', dpi=300, bbox_inches='tight')
+fig = plot_six_panel_translation_and_angle(first_half_df, second_half_df, bin_width=12, figsize=(30, 20), dpi=300, y_padding=0.0, is_y_padding=0.9)
+fig.savefig('six_panels_test.png', dpi=300, bbox_inches='tight')
 
 #%%
 def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
-    plt.rcParams.update({'font.size': 24})  # Increase default font size
+    #plt.rcParams.update({'font.size': 24})  # Increase default font size
     fig, axs = plt.subplots(2, 3, figsize=figsize, dpi=dpi)
     
     def plot_data(df, ax, column, title, is_angle=False, is_is=False):
@@ -1602,26 +1602,33 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
     return fig
 
 # Call the function with the combined dataframes and save the figure
-fig = plot_six_panel_translation_and_angle(adjusted_first_half_df, adjusted_second_half_df, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.3, is_y_padding=0.9)
-#fig.savefig('six_panels_with_grid.svg', dpi=300, bbox_inches='tight')
+fig = plot_six_panel_translation_and_angle(first_half_df, second_half_df, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.3, is_y_padding=0.9)
+fig.savefig('six_panels_with_grid_test.svg', dpi=300, bbox_inches='tight')
 #%%
-def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, figsize=(20, 16), y_padding=0.1):
-    fig, axs = plt.subplots(2, 2, figsize=figsize)
+def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
+    # Create figure with adjusted size
+    fig, axs = plt.subplots(2, 3, figsize=figsize, dpi=dpi)
     
-    def plot_translation_data(df, ax, translation_column, title):
+    # Set consistent font sizes
+    TITLE_SIZE = 16
+    LABEL_SIZE = 14
+    TICK_SIZE = 12
+    LEGEND_SIZE = 12
+    
+    def plot_data(df, ax, column, title, is_angle=False, is_is=False):
         df_copy = df.copy()
         bin_edges = list(range(0, 101, bin_width))
         df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
         df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
         
-        grouped = df_copy.groupby(['Method', 'Custom_Bin', 'Dataset'])[translation_column].mean().reset_index()
+        grouped = df_copy.groupby(['Method', 'Custom_Bin', 'Dataset'])[column].mean().reset_index()
         grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
         grouped['Method'] = grouped['Method'].replace('Auto', 'Semi-Auto')
         
         sns.lineplot(
             data=grouped,
             x='Bin_Center',
-            y=translation_column,
+            y=column,
             hue='Method',
             marker="o",
             ci='sd',
@@ -1631,42 +1638,97 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
         )
         
         ax.set_xlim(0, 100)
-        ax.set_xlabel("Flexion [%]", fontsize=12)
-        ax.set_ylabel("Translation [mm]", fontsize=12)
-        ax.set_title(title, fontsize=14, pad=20)
-        ax.grid(True)
-        ax.tick_params(axis='both', which='major', labelsize=10)
-        ax.legend(title='Method', fontsize=10, title_fontsize=12)
+        ax.set_xlabel("Flexion [%]", fontsize=LABEL_SIZE)
+        ax.set_ylabel("Angle [°]" if is_angle else "Translation [mm]", fontsize=LABEL_SIZE)
+        ax.set_title(title, fontsize=TITLE_SIZE, pad=10)  # Reduced pad value
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+        ax.minorticks_on()
+        ax.grid(True, which='major', linestyle='-')
+        ax.grid(True, which='minor', linestyle='--', alpha=0.4)
+        ax.tick_params(axis='both', which='major', labelsize=TICK_SIZE)
+        
+        # Adjust legend size and position
+        legend = ax.legend(title='Method', fontsize=LEGEND_SIZE, title_fontsize=LEGEND_SIZE)
+        legend.set_bbox_to_anchor((1.05, 1))  # Move legend outside plot
         
         # Adjust y-axis limits with padding
         y_min, y_max = ax.get_ylim()
         y_range = y_max - y_min
-        ax.set_ylim(y_min - y_range * y_padding, y_max + y_range * y_padding)
+        padding = is_y_padding if is_is else y_padding
+        ax.set_ylim(y_min - y_range * padding, y_max + y_range * padding)
         
-        frame_counts = df.groupby('Dataset').size() / 2
-        min_frames, max_frames = frame_counts.min(), frame_counts.max()
-        min_rom, max_rom = min_frames * 2, max_frames * 2
+        if is_angle:
+            ax.set_ylim([-25,35])
+            ax.set_yticks(np.linspace(-20, 30, 6))
+        elif is_is:
+            ax.set_ylim([-63,-51])
+            ax.set_yticks(np.linspace(-62, -52, 6))
+        else:
+            ax.set_ylim([-32.5,-2.5])        
+            ax.set_yticks(np.linspace(-30, -5, 6))
         
-        ax.text(0.05, 0.05, f"Range of Motion: {min_rom:.0f}° to {max_rom:.0f}°", 
-                transform=ax.transAxes, 
-                horizontalalignment='left', 
-                verticalalignment='bottom',
-                fontsize=8,
-                bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
+        # Calculate statistics (unchanged)
+        results = {}
+        for method in ['Manual', 'Semi-Auto']:
+            method_data = grouped[grouped['Method'] == method]
+            start_data = method_data[method_data['Bin_Center'] == method_data['Bin_Center'].min()]
+            start_value = start_data[column].mean()
+            start_std = start_data[column].std()
+            end_data = method_data[method_data['Bin_Center'] == method_data['Bin_Center'].max()]
+            end_value = end_data[column].mean()
+            end_std = end_data[column].std()
+            change = end_value - start_value
+            change_std = np.sqrt(start_std**2 + end_std**2)
+            results[method] = {
+                'start': (start_value, start_std),
+                'end': (end_value, end_std),
+                'change': (change, change_std)
+            }
+        return results
     
-    plot_translation_data(df_first_half, axs[0, 0], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
-    plot_translation_data(df_first_half, axs[0, 1], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
-    plot_translation_data(df_second_half, axs[1, 0], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)')
-    plot_translation_data(df_second_half, axs[1, 1], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)')
+    changes = []
     
-    # Add phase labels
-    fig.text(0.5, 0.98, 'Extension Phase (Flexed to Extended)', ha='center', va='center', fontsize=16, fontweight='bold')
-    fig.text(0.5, 0.51, 'Flexion Phase (Extended to Flexed)', ha='center', va='center', fontsize=16, fontweight='bold')
+    # First half (Extension Phase)
+    changes.append(plot_data(df_first_half, axs[0, 0], 'Angle', '', is_angle=True))
+    changes.append(plot_data(df_first_half, axs[0, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)'))
+    changes.append(plot_data(df_first_half, axs[0, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True))
     
+    # Second half (Flexion Phase)
+    changes.append(plot_data(df_second_half, axs[1, 0], 'Angle', '', is_angle=True))
+    changes.append(plot_data(df_second_half, axs[1, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)'))
+    changes.append(plot_data(df_second_half, axs[1, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True))
+    
+    # Add phase labels with adjusted font size
+    fig.text(0.5, 0.98, 'Extension Phase (Flexed to Extended)', ha='center', va='center', 
+             fontsize=TITLE_SIZE, fontweight='bold')
+    fig.text(0.5, 0.51, 'Flexion Phase (Extended to Flexed)', ha='center', va='center', 
+             fontsize=TITLE_SIZE, fontweight='bold')
+    
+    # Adjust layout with more space for legends
     plt.tight_layout()
-    plt.show()
+    plt.subplots_adjust(top=0.93, bottom=0.07, left=0.05, right=0.85, hspace=0.3, wspace=0.3)
+    
+    # Print statistics (unchanged)
+    print("Changes from minimum to maximum flexion (with standard deviations):")
+    titles = ["Extension Phase - Angle", "Extension Phase - AP Translation", "Extension Phase - IS Translation",
+              "Flexion Phase - Angle", "Flexion Phase - AP Translation", "Flexion Phase - IS Translation"]
+    for i, (title, result) in enumerate(zip(titles, changes)):
+        print(f"{i+1}. {title}:")
+        for method in ['Manual', 'Semi-Auto']:
+            start_val, start_std = result[method]['start']
+            end_val, end_std = result[method]['end']
+            change_val, change_std = result[method]['change']
+            unit = '°' if 'Angle' in title else 'mm'
+            print(f"   {method}:")
+            print(f"     Start: {start_val:.2f} ± {start_std:.2f} {unit}")
+            print(f"     End: {end_val:.2f} ± {end_std:.2f} {unit}")
+            print(f"     Change: {change_val:.2f} ± {change_std:.2f} {unit}")
+        print()
+    
+    return fig
 
-plot_four_panel_translation(first_half_df_cut, second_half_df_cut, bin_width=10, figsize=(20, 16), y_padding=1)
+fig = plot_six_panel_translation_and_angle(first_half_df, second_half_df, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.3, is_y_padding=0.9)
+fig.savefig('six_panels_with_grid_test.png', dpi=300, bbox_inches='tight')
 #%%
 # If you want to see the t-test results (if applicable)
 if result_ap is not None:
@@ -1677,6 +1739,152 @@ if result_is is not None:
     print("T-test results for IS Translation:")
     print(result_is)
     
+#%%
+
+def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
+    # Reset matplotlib params to default at the start
+    plt.rcParams.update(plt.rcParamsDefault)
+    
+    # Set the font family to a common system font
+    plt.rcParams['font.family'] = 'DejaVu Sans'
+    
+    # Explicitly set DPI for the figure and display
+    plt.rcParams['figure.dpi'] = dpi
+    plt.rcParams['savefig.dpi'] = dpi
+    
+    # Adjust font sizes based on screen DPI
+    base_size = 12  # Base font size
+    dpi_scale = dpi / 100.0  # Scale factor based on DPI
+    
+    TITLE_SIZE = int(base_size * 1.3 * dpi_scale)
+    LABEL_SIZE = int(base_size * 1.2 * dpi_scale)
+    TICK_SIZE = int(base_size * dpi_scale)
+    LEGEND_SIZE = int(base_size * dpi_scale)
+    
+    # Create figure with adjusted size
+    fig, axs = plt.subplots(2, 3, figsize=figsize)
+    
+    def plot_data(df, ax, column, title, is_angle=False, is_is=False):
+        df_copy = df.copy()
+        bin_edges = list(range(0, 101, bin_width))
+        df_copy['Custom_Bin'] = pd.cut(df_copy['Percent Flexed'], bins=bin_edges, include_lowest=True)
+        df_copy['Bin_Center'] = df_copy['Custom_Bin'].apply(lambda x: x.mid)
+        
+        grouped = df_copy.groupby(['Method', 'Custom_Bin', 'Dataset'])[column].mean().reset_index()
+        grouped['Bin_Center'] = grouped['Custom_Bin'].apply(lambda x: x.mid)
+        grouped['Method'] = grouped['Method'].replace('Auto', 'Semi-Auto')
+        
+        sns.lineplot(
+            data=grouped,
+            x='Bin_Center',
+            y=column,
+            hue='Method',
+            marker="o",
+            ci='sd',
+            err_style="band",
+            err_kws={'alpha': 0.3},
+            ax=ax
+        )
+        
+        ax.set_xlim(0, 100)
+        ax.set_xlabel("Flexion [%]", fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
+        ax.set_ylabel("Angle [°]" if is_angle else "Translation [mm]", 
+                     fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
+        ax.set_title(title, fontsize=TITLE_SIZE, pad=10, fontfamily='DejaVu Sans')
+        
+        # Set tick parameters
+        ax.tick_params(axis='both', which='major', labelsize=TICK_SIZE)
+        ax.tick_params(axis='both', which='minor', labelsize=TICK_SIZE)
+        
+        # Grid settings
+        ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+        ax.minorticks_on()
+        ax.grid(True, which='major', linestyle='-')
+        ax.grid(True, which='minor', linestyle='--', alpha=0.4)
+        
+        # Legend settings - FIXED THIS PART
+        legend = ax.legend(title='Method', fontsize=LEGEND_SIZE, title_fontsize=LEGEND_SIZE)
+        plt.setp(legend.get_title(), fontsize=LEGEND_SIZE)
+        
+        # Y-axis limits
+        y_min, y_max = ax.get_ylim()
+        y_range = y_max - y_min
+        padding = is_y_padding if is_is else y_padding
+        ax.set_ylim(y_min - y_range * padding, y_max + y_range * padding)
+        
+        if is_angle:
+            ax.set_ylim([-25,35])
+            ax.set_yticks(np.linspace(-20, 30, 6))
+        elif is_is:
+            ax.set_ylim([-63,-51])
+            ax.set_yticks(np.linspace(-62, -52, 6))
+        else:
+            ax.set_ylim([-32.5,-2.5])        
+            ax.set_yticks(np.linspace(-30, -5, 6))
+        
+        # Calculate statistics (unchanged)
+        results = {}
+        for method in ['Manual', 'Semi-Auto']:
+            method_data = grouped[grouped['Method'] == method]
+            start_data = method_data[method_data['Bin_Center'] == method_data['Bin_Center'].min()]
+            start_value = start_data[column].mean()
+            start_std = start_data[column].std()
+            end_data = method_data[method_data['Bin_Center'] == method_data['Bin_Center'].max()]
+            end_value = end_data[column].mean()
+            end_std = end_data[column].std()
+            change = end_value - start_value
+            change_std = np.sqrt(start_std**2 + end_std**2)
+            results[method] = {
+                'start': (start_value, start_std),
+                'end': (end_value, end_std),
+                'change': (change, change_std)
+            }
+        return results
+    
+    changes = []
+    
+    # Plot the panels
+    changes.append(plot_data(df_first_half, axs[0, 0], 'Angle', '', is_angle=True))
+    changes.append(plot_data(df_first_half, axs[0, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)'))
+    changes.append(plot_data(df_first_half, axs[0, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True))
+    changes.append(plot_data(df_second_half, axs[1, 0], 'Angle', '', is_angle=True))
+    changes.append(plot_data(df_second_half, axs[1, 1], 'AP_Translation', 'Anterior (+ve) / Posterior (-ve)'))
+    changes.append(plot_data(df_second_half, axs[1, 2], 'IS_Translation', 'Superior (+ve) / Inferior (-ve)', is_is=True))
+    
+    # Add phase labels
+    fig.text(0.5, 0.98, 'Extension Phase (Flexed to Extended)', 
+             ha='center', va='center', fontsize=TITLE_SIZE, 
+             fontweight='bold', fontfamily='DejaVu Sans')
+    fig.text(0.5, 0.51, 'Flexion Phase (Extended to Flexed)', 
+             ha='center', va='center', fontsize=TITLE_SIZE, 
+             fontweight='bold', fontfamily='DejaVu Sans')
+    
+    # Adjust layout
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.93, bottom=0.07, left=0.05, right=0.95, hspace=0.3, wspace=0.3)
+    
+    # Print statistics (unchanged)
+    print("Changes from minimum to maximum flexion (with standard deviations):")
+    titles = ["Extension Phase - Angle", "Extension Phase - AP Translation", "Extension Phase - IS Translation",
+              "Flexion Phase - Angle", "Flexion Phase - AP Translation", "Flexion Phase - IS Translation"]
+    for i, (title, result) in enumerate(zip(titles, changes)):
+        print(f"{i+1}. {title}:")
+        for method in ['Manual', 'Semi-Auto']:
+            start_val, start_std = result[method]['start']
+            end_val, end_std = result[method]['end']
+            change_val, change_std = result[method]['change']
+            unit = '°' if 'Angle' in title else 'mm'
+            print(f"   {method}:")
+            print(f"     Start: {start_val:.2f} ± {start_std:.2f} {unit}")
+            print(f"     End: {end_val:.2f} ± {end_std:.2f} {unit}")
+            print(f"     Change: {change_val:.2f} ± {change_std:.2f} {unit}")
+        print()
+    
+    return fig
+
+fig = plot_six_panel_translation_and_angle(first_half_df, second_half_df, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.3, is_y_padding=0.9)
+fig.savefig('six_panels_with_grid_test.svg', bbox_inches='tight')
+
 #%%
 
 def plot_dataset_specific_translations(df):
