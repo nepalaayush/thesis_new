@@ -180,3 +180,17 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
 #%%
 fig = plot_six_panel_translation_and_angle(first_half_df, second_half_df, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.3, is_y_padding=0.9)
 fig.savefig('six_panels_with_grid_test.svg', bbox_inches='tight')
+
+#%%
+cost_df = pd.read_pickle('C:/Users/MSI/Documents/thesis_new/tib_fem_cost_dfs.pkl')
+
+#%%
+tibia_avg = cost_df[cost_df['Bone'] == 'Tibia']['Average Cost'].mean()
+femur_avg = cost_df[cost_df['Bone'] == 'Femur']['Average Cost'].mean()
+
+print(f"Tibia average cost: {tibia_avg:.2f}")
+print(f"Femur average cost: {femur_avg:.2f}")
+
+#%%
+means = cost_df.groupby(['Dataset', 'Bone'])['Average Cost'].mean() * 0.48484848484848486
+print(means)
