@@ -9,14 +9,14 @@ Created on Fri Jan  5 14:31:24 2024
 #%%
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import napari 
 import time 
 from scipy import ndimage
-
+import matplotlib.pyplot as plt 
 from utils import (path_to_image, apply_canny, apply_remove, apply_skeleton, points_for_napari,
                    boolean_to_coords, apply_label, find_tibia_edges, find_array_with_min_n, downsample_points,
                    combined_consecutive_transform, coords_to_boolean)
@@ -26,8 +26,11 @@ import pymri
     
 #%%
 # Step 1: load the image from directory and normalize it
-path_neg = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
+#path_neg = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
+#path_pos = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
+
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
 image_neg = path_to_image(path_neg)[1:]
 image_pos = path_to_image(path_pos)[1:]
@@ -102,7 +105,7 @@ def create_mosaic_with_masks(full_image, tib_binary, fem_binary, ncols=4, nrows=
             #ax.imshow(tib_mask, cmap=tibia_cmap, alpha=0.6)
             #ax.imshow(fem_mask, cmap=femur_cmap, alpha=0.6)
 
-            ax.set_title(f"Frame {frame}", color='white', fontsize=14)
+            ax.set_title(f"Frame {frame}", color='white', fontsize=12)
         else:
             ax.axis('off')
 
@@ -122,8 +125,43 @@ def create_mosaic_with_masks(full_image, tib_binary, fem_binary, ncols=4, nrows=
 fig = create_mosaic_with_masks(full_image, tib_binary, fem_binary)
 
 # Save the figure
-plt.savefig('mosaic_without_masks.svg', facecolor='black', edgecolor='none', dpi=300)
+plt.savefig('mosaic_without_masks_brighter.svg', facecolor='black', edgecolor='none', dpi=300)
 plt.show()
+
+
+#%%
+def create_mosaic(full_image, ncols=4, nrows=2):
+    # Calculate the number of frames to display
+    n_frames = ncols * nrows
+    frame_idx = np.linspace(0, full_image.shape[0]-1, n_frames, dtype=int)
+    
+    # Create the figure with gridspec
+    fig = plt.figure(figsize=(ncols*3.5, nrows*3.5), facecolor='black')
+    gs = fig.add_gridspec(nrows, ncols, wspace=0, hspace=0.12)  # Set spacing to 0
+    
+    for i in range(nrows):
+        for j in range(ncols):
+            idx = i * ncols + j
+            if idx < len(frame_idx):
+                frame = frame_idx[idx]
+                ax = fig.add_subplot(gs[i, j])
+                
+                # Select the region of interest
+                img = full_image[frame, 80:480, 85:400]
+                
+                # Plot the image
+                vmin, vmax = np.percentile(img, [0, 99])
+                ax.imshow(img, cmap='gray', vmin=vmin, vmax=vmax)
+                ax.set_title(f"Frame {frame}", color='white', fontsize=17)
+                ax.set_xticks([])
+                ax.set_yticks([])
+                ax.set_facecolor('black')
+    
+    return fig
+
+# Use with just the full image
+fig = create_mosaic(full_image)
+plt.savefig('mosaic_without_masks_brighter.svg', facecolor='black', edgecolor='none', dpi=300, bbox_inches='tight')
 
 #%%
 

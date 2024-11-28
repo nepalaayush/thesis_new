@@ -235,7 +235,12 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
         ax.set_xlim(0, 100)
         ax.set_xlabel("Flexion [%]", fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
         ax.set_ylabel("Displacement [mm]", fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
-        ax.set_title(title, fontsize=SUBTITLE_SIZE, pad=10, fontfamily='DejaVu Sans')
+        #ax.set_title(title, fontsize=SUBTITLE_SIZE, pad=10, fontfamily='DejaVu Sans')
+        
+        if ax in [axs[0,0], axs[0,1]]:
+            ax.set_title(title, fontsize=SUBTITLE_SIZE, pad=2, fontfamily='DejaVu Sans')
+        else:
+            ax.set_title(title, fontsize=SUBTITLE_SIZE, pad=3, fontfamily='DejaVu Sans')
         
         # Set major and minor ticks for x-axis
         ax.xaxis.set_major_locator(plt.MultipleLocator(20))    # Major ticks every 20
@@ -287,7 +292,7 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
     plt.tight_layout()
     
     # Add phase labels with adjusted positions
-    fig.text(0.5, 0.94, 'Extension Phase (Flexed to Extended)', 
+    fig.text(0.5, 0.96, 'Extension Phase (Flexed to Extended)', 
              ha='center', va='center', fontsize=TITLE_SIZE, 
              fontweight='bold', fontfamily='DejaVu Sans')
     fig.text(0.5, 0.47, 'Flexion Phase (Extended to Flexed)', 
@@ -295,11 +300,14 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
              fontweight='bold', fontfamily='DejaVu Sans')
     
     # Final layout adjustments
-    plt.subplots_adjust(top=0.90, bottom=0.07, left=0.05, right=0.90, hspace=0.4, wspace=0.3)
+    plt.subplots_adjust(top=0.90, bottom=0.07, left=0.05, right=0.90, hspace=0.5, wspace=0.3)
     
     return fig
 
 # Usage
 fig = plot_four_panel_translation(first_half_df, second_half_df, bin_width=10, figsize=(20, 15), dpi=300, y_padding=0.3, is_y_padding=0.9)
-fig.savefig('ismrm_final/Figure_4_Panel.svg', bbox_inches='tight')
-fig.savefig('ismrm_final/Figure_4_Panel.png', bbox_inches='tight', dpi=300)
+fig.savefig('Figure_4_Panel.svg', bbox_inches='tight')
+fig.savefig('Figure_4_Panel.png', bbox_inches='tight', dpi=300)
+plt.show()
+
+#%%

@@ -13,8 +13,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 #%%
-first_half_df = pd.read_pickle('C:/Users/MSI/Documents/thesis_new/first_half_trans_and_angle.pkl') 
-second_half_df = pd.read_pickle('C:/Users/MSI/Documents/thesis_new/second_half_trans_and_angle.pkl')
+first_half_df = pd.read_pickle('first_half_trans_and_angle.pkl') 
+second_half_df = pd.read_pickle('second_half_trans_and_angle.pkl')
 
 #%%
 def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
