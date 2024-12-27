@@ -1,0 +1,57 @@
+Studying the relative motion (i.e., osteokinematics) between the femur and tibia during knee joint movement is essential not only for understanding normal knee function and diagnosing pathological conditions [1–3] but also for guiding therapeutic interventions [4], informing rehabilitation strategies [5,6], and improving the design and optimization of knee prostheses and other orthopedic implants [7–10].
+
+Accurate assessment of tibiofemoral osteokinematics aids in diagnosing and treating various knee disorders involving altered joint biomechanics—such as anterior cruciate ligament (ACL) injuries [11–13], meniscal tears [14], and osteoarthritis [15,16]—which may result from joint malalignment, increased laxity and instability, and compromised congruency of articulating surfaces [17].
+
+Suggested References (Examples):
+(Adjust or replace as needed with your own references.)
+
+    Grood ES, Suntay WJ. A joint coordinate system for the clinical description of three-dimensional motions: application to the knee. J Biomech Eng. 1983;105(2):136–144.
+    Andriacchi TP, Alexander EJ, Toney MK, Dyrby C, Sum J. A point-cluster method for in vivo motion analysis: applied to a study of knee kinematics. J Biomech Eng. 1998;120(6):743–749.
+    Koo S, Andriacchi TP. The knee joint center of rotation is predominantly on the lateral side during normal walking. J Biomech. 2008;41(6):1269–1273.
+    Andriacchi TP, Mundermann A. The role of ambulatory mechanics in the initiation and progression of knee osteoarthritis. Curr Opin Rheumatol. 2006;18(5):514–518.
+    Beard DJ, Dodd CA. Proprioception enhancement for anterior cruciate ligament deficiency. Knee Surg Sports Traumatol Arthrosc. 1998;6(2):81–88.
+    Wojtys EM, Huston LJ, Schock HJ, Boylan JP, Ashton-Miller JA. Gender differences in knee stiffness and laxity in healthy volunteers. Am J Sports Med. 2003;31(5):717–721.
+    Komistek RD, Mahfouz MR, Abdel-Rahman E, et al. In vivo determination of the kinematics of the healthy knee during normal gait. J Biomech. 2005;38(2):243–248.
+    Banks SA, Markovich GD, Hodge WA. In vivo kinematics of cruciate-retaining and -substituting knee arthroplasties. J Arthroplasty. 1997;12(3):297–304.
+    Victor J, Ghena D, Vandenneucker H, Bellemans J. A new measurement technique for evaluation of axial rotation of the knee. Knee Surg Sports Traumatol Arthrosc. 2009;17(5):502–507.
+    Fitz W, et al. In vivo tibial polyethylene insert analysis in total knee arthroplasty. Clin Orthop Relat Res. 2005;(440):65–73.
+    Butler DL, Noyes FR, Grood ES. Ligamentous restraints to anterior-posterior drawer in the human knee. A biomechanical study. J Bone Joint Surg Am. 1980;62(2):259–270.
+    Chaudhari AMW, Lindenfeld TN, Andriacchi TP, Hewett TE. The mechanics of the knee during landing. In: Noyes’ Knee Disorders: Surgery, Rehabilitation, Clinical Outcomes. Saunders; 2009.
+    Logan M, Williams A, Lavelle J, Gedroyc WM, Freeman M. The effect of posterior cruciate ligament deficiency on femorotibial articulation during flexion. Knee Surg Sports Traumatol Arthrosc. 2004;12(1):60–66.
+    Netravali NA, Giori NJ, Andriacchi TP. Partial medial meniscectomy and rotational aspects of the knee during walking. J Biomech. 2010;43(6):995–1000.
+    Andriacchi TP, Koo S, Scanlan SF. Gait mechanics influence healthy cartilage morphology and osteoarthritis of the knee. J Bone Joint Surg Am. 2009;91 Suppl 1:95–101.
+    Lohmander LS, Englund PM, Dahl LL, Roos EM. The long-term consequence of anterior cruciate ligament and meniscus injuries: osteoarthritis. Am J Sports Med. 2007;35(10):1756–1769.
+    Stergiou N, Bates BT, James CR. Asynchrony between subtalar and knee joint function during running. Med Sci Sports Exerc. 1999;31(11):1645–1655.
+
+
+
+
+Andriacchi TP, Dyrby CO. Interactions between kinematics and loading during walking for the normal and ACL deficient knee. Journal of Biomechanics. 2005;38(2):293–298.
+
+    Demonstrates the importance of studying joint motion (kinematics) to understand pathology and function.
+
+Tashman S, Anderst W. In-vivo measurement of dynamic joint motion using high-speed biplane radiography and CT: application to canine ACL deficiency. Journal of Biomechanical Engineering. 2003;125(2):238–245.
+
+    Illustrates how advanced imaging can quantify bone motion and inform clinical decisions and prosthetic design.
+
+Logan MC, Williams A, Lavelle J, Gedroyc W, Freeman M. Tibiofemoral kinematics of the ACL‐intact knee measured by dynamic MRI. Journal of Orthopaedic Research. 2004;22(2):369–374.
+
+    Addresses how ACL status influences femoral–tibial translation and overall knee kinematics.
+
+Lohmander LS, Englund PM, Dahl LL, Roos EM. The long-term consequence of anterior cruciate ligament and meniscus injuries: osteoarthritis. The American Journal of Sports Medicine. 2007;35(10):1756–1769.
+
+    Documents how traumatic knee injuries (including ACL tears) are associated with the development of osteoarthritis.
+
+Daniel DM, Stone ML, Sachs R, Malcom L. Instrumented measurement of anterior knee laxity in patients with acute anterior cruciate ligament disruption. The American Journal of Sports Medicine. 1985;13(6):401–407.
+
+    Classic study on knee laxity and instability following ACL injury.
+
+Noyes FR, Barber-Westin SD. ACL Injuries in the Female Athlete: Causes, Impacts, and Conditioning Programs. Springer Science & Business Media; 2012.
+
+    Reviews mechanisms and instability issues, especially in populations at high risk for ACL injuries.
+
+Sharma L, Lou C, Felson DT, et al. Laxity in healthy and osteoarthritic knees. Arthritis & Rheumatism. 2003;48(2):614–619.
+
+    Examines how laxity (and thus altered congruency) can contribute to joint pathology and malalignment.
+
+
