@@ -22,3 +22,36 @@ Suggested References (Examples):
     Andriacchi TP, Koo S, Scanlan SF. Gait mechanics influence healthy cartilage morphology and osteoarthritis of the knee. J Bone Joint Surg Am. 2009;91 Suppl 1:95–101.
     Lohmander LS, Englund PM, Dahl LL, Roos EM. The long-term consequence of anterior cruciate ligament and meniscus injuries: osteoarthritis. Am J Sports Med. 2007;35(10):1756–1769.
     Stergiou N, Bates BT, James CR. Asynchrony between subtalar and knee joint function during running. Med Sci Sports Exerc. 1999;31(11):1645–1655.
+
+
+
+
+Andriacchi TP, Dyrby CO. Interactions between kinematics and loading during walking for the normal and ACL deficient knee. Journal of Biomechanics. 2005;38(2):293–298.
+
+    Demonstrates the importance of studying joint motion (kinematics) to understand pathology and function.
+
+Tashman S, Anderst W. In-vivo measurement of dynamic joint motion using high-speed biplane radiography and CT: application to canine ACL deficiency. Journal of Biomechanical Engineering. 2003;125(2):238–245.
+
+    Illustrates how advanced imaging can quantify bone motion and inform clinical decisions and prosthetic design.
+
+Logan MC, Williams A, Lavelle J, Gedroyc W, Freeman M. Tibiofemoral kinematics of the ACL‐intact knee measured by dynamic MRI. Journal of Orthopaedic Research. 2004;22(2):369–374.
+
+    Addresses how ACL status influences femoral–tibial translation and overall knee kinematics.
+
+Lohmander LS, Englund PM, Dahl LL, Roos EM. The long-term consequence of anterior cruciate ligament and meniscus injuries: osteoarthritis. The American Journal of Sports Medicine. 2007;35(10):1756–1769.
+
+    Documents how traumatic knee injuries (including ACL tears) are associated with the development of osteoarthritis.
+
+Daniel DM, Stone ML, Sachs R, Malcom L. Instrumented measurement of anterior knee laxity in patients with acute anterior cruciate ligament disruption. The American Journal of Sports Medicine. 1985;13(6):401–407.
+
+    Classic study on knee laxity and instability following ACL injury.
+
+Noyes FR, Barber-Westin SD. ACL Injuries in the Female Athlete: Causes, Impacts, and Conditioning Programs. Springer Science & Business Media; 2012.
+
+    Reviews mechanisms and instability issues, especially in populations at high risk for ACL injuries.
+
+Sharma L, Lou C, Felson DT, et al. Laxity in healthy and osteoarthritic knees. Arthritis & Rheumatism. 2003;48(2):614–619.
+
+    Examines how laxity (and thus altered congruency) can contribute to joint pathology and malalignment.
+
+
