@@ -55,3 +55,12 @@ Sharma L, Lou C, Felson DT, et al. Laxity in healthy and osteoarthritic knees. A
     Examines how laxity (and thus altered congruency) can contribute to joint pathology and malalignment.
 
 
+
+
+
+edited abstract: 
+Here, we present a semi-automated pipeline to measure the relative motion between the distal femur and proximal tibia in the sagittal plane from CINE MRI images. Our method combines Canny edge detection6 and connected-component labeling7 to track the bone segments across frames, enabling quantification of the relative horizontal and vertical distances between segments during flexion and extension movements. We demonstrate improved measurement precision and reduced processing time compared to manual approaches, and validate our results against manual segmentations. Our developed approach represents an efficient tool for analyzing relative bone motion from dynamic MRI data, with potential application in both research and clinical settings.
+
+edited manuscript last para: 
+
+Here, we present a semi-automated pipeline to measure the relative motion between the distal femur and proximal tibia in the sagittal plane from CINE MRI images acquired during controlled knee flexion and extension using a custom MRI-compatible knee motion and loading device. Our method combines Canny edge detection and connected-component labeling to track the bone segments across frames, enabling quantification of their relative horizontal and vertical displacements. Unlike approaches requiring 3D bone models, our technique operates directly on dynamic MRI data without the need for additional static scans, streamlining the analysis process. The primary objective is to reliably track the bone segments so that clinically relevant motion parameters can be derived. We also evaluate measurement precision and processing time by comparing our pipeline with manual segmentation approaches. Overall, this semi-automated method has the potential to serve as an efficient tool for analyzing relative bone motion from dynamic MRI data, with broad applications in both research and clinical settings.
