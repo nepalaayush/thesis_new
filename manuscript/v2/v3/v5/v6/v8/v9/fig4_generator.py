@@ -6,15 +6,19 @@ Created on Mon Nov  4 09:45:45 2024
 """
 
 
-import pickle
+#import pickle
 import numpy as np 
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
+#from matplotlib.ticker import AutoMinorLocator
 #%%
-first_half_df = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/manuscript/v2/v3/v5/v6/v8/v9/first_half_trans_and_angle.pkl') 
-second_half_df = pd.read_pickle('C:/Users/Aayush/Documents/thesis_files/thesis_new/manuscript/v2/v3/v5/v6/v8/v9/second_half_trans_and_angle.pkl')
+
+import os 
+
+os.chdir('C:/Users/MSI/Documents/thesis_new/manuscript/v2/v3/v5/v6/v8/v9')
+first_half_df = pd.read_pickle('first_half_trans_and_angle.pkl') 
+second_half_df = pd.read_pickle('second_half_trans_and_angle.pkl')
 
 #%%
 def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_width=10, figsize=(30, 20), dpi=300, y_padding=0.1, is_y_padding=0.3):
@@ -241,14 +245,16 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
         )
         
         ax.set_xlim(0, 100)
-        ax.set_xlabel("Flexion [% cycle]", fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
+        ax.set_xlabel("% Extension-Flexion Cycle", fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
         
+        ylabel = "Horizontal Displacement (mm)" if column == 'AP_Translation' else "Vertical Displacement (mm)"
+
         if show_ylabel:
-            ax.set_ylabel("Relative Displacement [mm]", fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
+            ax.set_ylabel(ylabel, fontsize=LABEL_SIZE, fontfamily='DejaVu Sans')
         else:
             ax.set_ylabel("")
         
-        ax.set_title(title, fontsize=SUBTITLE_SIZE, pad=10, fontfamily='DejaVu Sans')
+        #ax.set_title(title, fontsize=SUBTITLE_SIZE, pad=10, fontfamily='DejaVu Sans')
         
         # Set major and minor ticks for x-axis
         ax.xaxis.set_major_locator(plt.MultipleLocator(20))    # Major ticks every 20
@@ -312,10 +318,10 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
     changes = []
     
     # Plot the panels with updated titles
-    changes.append(plot_data(df_first_half, axs[0, 0], 'AP_Translation', 'Horizontal Displacement', show_ylabel=True))
-    changes.append(plot_data(df_first_half, axs[0, 1], 'IS_Translation', 'Vertical Displacement', is_is=True, show_ylabel=False))
-    changes.append(plot_data(df_second_half, axs[1, 0], 'AP_Translation', 'Horizontal Displacement ', show_ylabel=True))
-    changes.append(plot_data(df_second_half, axs[1, 1], 'IS_Translation', 'Vertical Displacement ', is_is=True, show_ylabel=False))
+    changes.append(plot_data(df_first_half, axs[0, 0], 'AP_Translation', '', show_ylabel=True))
+    changes.append(plot_data(df_first_half, axs[0, 1], 'IS_Translation', '', is_is=True, show_ylabel=True))
+    changes.append(plot_data(df_second_half, axs[1, 0], 'AP_Translation', '', show_ylabel=True))
+    changes.append(plot_data(df_second_half, axs[1, 1], 'IS_Translation', ' ', is_is=True, show_ylabel=True))
     
     # Adjust layout first
     plt.tight_layout()
@@ -351,6 +357,6 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
 
 
 fig = plot_four_panel_translation(first_half_df, second_half_df, bin_width=10, figsize=(20, 20), dpi=300, y_padding=0.3, is_y_padding=0.9)
-fig.savefig('Figure 4_positive.svg', bbox_inches='tight')
-fig.savefig('Figure 4_positive.png', bbox_inches='tight', dpi=300)
+fig.savefig('v11_Figure 4_positive.svg', bbox_inches='tight')
+fig.savefig('v11_Figure 4_positive.png', bbox_inches='tight', dpi=300)
 
