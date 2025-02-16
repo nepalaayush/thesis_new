@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 import os 
 
-os.chdir('C:/Users/MSI/Documents/thesis_new/manuscript/v2/v3/v5/v6/v8/v9')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new/manuscript/v2/v3/v5/v6/v8/v9')
 first_half_df = pd.read_pickle('first_half_trans_and_angle.pkl') 
 second_half_df = pd.read_pickle('second_half_trans_and_angle.pkl')
 
@@ -101,7 +101,7 @@ def plot_six_panel_translation_and_angle(df_first_half, df_second_half, bin_widt
         # Place legend inside the plot
         if show_legend:
             ax.legend(title='Method', fontsize=LEGEND_SIZE, title_fontsize=LEGEND_SIZE,
-                     loc='lower left')
+                     loc='upper left')
         else:
             ax.legend().remove()
         
@@ -279,7 +279,7 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
         # Place legend inside the plot
         if show_legend:
             ax.legend(title='Method', fontsize=LEGEND_SIZE, title_fontsize=LEGEND_SIZE,
-                     loc='lower left')
+                     loc='upper left')
         else:
             ax.legend().remove()
         
@@ -318,7 +318,7 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
     changes = []
     
     # Plot the panels with updated titles
-    changes.append(plot_data(df_first_half, axs[0, 0], 'AP_Translation', '', show_ylabel=True))
+    changes.append(plot_data(df_first_half, axs[0, 0], 'AP_Translation', '', show_ylabel=True, show_legend=True))
     changes.append(plot_data(df_first_half, axs[0, 1], 'IS_Translation', '', is_is=True, show_ylabel=True))
     changes.append(plot_data(df_second_half, axs[1, 0], 'AP_Translation', '', show_ylabel=True))
     changes.append(plot_data(df_second_half, axs[1, 1], 'IS_Translation', ' ', is_is=True, show_ylabel=True))
@@ -357,6 +357,7 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
 
 
 fig = plot_four_panel_translation(first_half_df, second_half_df, bin_width=10, figsize=(20, 20), dpi=300, y_padding=0.3, is_y_padding=0.9)
-fig.savefig('v11_Figure 4_positive.svg', bbox_inches='tight')
-fig.savefig('v11_Figure 4_positive.png', bbox_inches='tight', dpi=300)
-
+fig.savefig('v12_Figure 4_positive.svg', bbox_inches='tight')
+fig.savefig('v12_Figure 4_positive.png', bbox_inches='tight', dpi=300)
+fig.savefig('v12_Figure 4_positive.pdf', bbox_inches='tight')
+fig.savefig('v12_Figure 4_positive.eps', bbox_inches='tight')
