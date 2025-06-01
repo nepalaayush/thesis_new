@@ -7,8 +7,8 @@ Created on Fri Jan  5 11:47:23 2024
 """
 import pickle
 import os 
-#os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
-os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
+os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new')
+#os.chdir('/data/projects/ma-nepal-segmentation/scripts/git/thesis_new')
 #%%
 import numpy as np 
 import pandas as pd
@@ -331,8 +331,8 @@ import os
 import imageio
 
 # Directory to save screenshots
-base_dir = r"C:\Users\Aayush\Documents\thesis_files\thesis_new\symposium+defense\defense"
-output_dir = os.path.join(base_dir, "screenshots")
+base_dir = r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work'
+output_dir = os.path.join(base_dir, "screenshots_overlay")
 os.makedirs(output_dir, exist_ok=True)
 
 axis_index = 0 # change this to pick which axis to iterate over. switched 0 to 1 to go from the sigma slider to low high slider. 
@@ -353,13 +353,13 @@ from pathlib import Path
 
 # to create a mp4 instead of gif because gif did not preserve the quality somehow. 
 
-screenshots_dir = Path(r"C:\Users\Aayush\Documents\thesis_files\thesis_new\symposium+defense\defense\screenshots_sigma")
+screenshots_dir = Path(r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work/screenshots_overlay')
 
 # Output MP4 file
-output_mp4 = screenshots_dir / "ds1_sigma.mp4"
+output_mp4 = screenshots_dir / "ds1_overlay.mp4"
 
 # Set the desired frames per second
-fps = 14
+fps = 3.5
 
 # Get all PNG files in the directory, sorted
 png_files = sorted(screenshots_dir.glob("*.png"))
@@ -388,6 +388,69 @@ video.release()
 print(f"Color MP4 video created successfully at {output_mp4}")
 print(f"MP4 file size: {output_mp4.stat().st_size / (1024 * 1024):.2f} MB")
 
+
+#%%
+''' the csv files are added as shapes laer.. but they need to be given color as well as opacity  ''' 
+
+
+fem_layer = viewer.layers['MK_NW_fem_shape_stiched']
+tib_layer = viewer.layers['MK_NW_tib_shape_stiched']
+
+fem_layer.face_color = 'orange'
+fem_layer.edge_color = 'orange'
+fem_layer.opacity = 0.4  # adjust as needed for transparency
+
+tib_layer.face_color = 'blue'
+tib_layer.edge_color = 'blue'
+tib_layer.opacity = 0.4
+
+#%%
+
+''' now we load the info for the centroids  '''
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_NW_fem_info_stiched.pkl', 'rb') as file:
+    fem_info =  pickle.load(file)
+   
+with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_NW_tib_info_stiched.pkl', 'rb') as file:
+    tib_info =  pickle.load(file) 
+
+#%%
+
+# Extract centroids - using [frame, x, y] order (same as your working manual example)
+fem_centroids = []
+tib_centroids = []
+
+for frame_num in sorted(fem_info.keys()):
+    if 'centroid' in fem_info[frame_num]:
+        # [frame, x, y] - same order as your working manual example
+        fem_centroids.append([frame_num, fem_info[frame_num]['centroid'][0], fem_info[frame_num]['centroid'][1]])
+
+for frame_num in sorted(tib_info.keys()):
+    if 'centroid' in tib_info[frame_num]:
+        # [frame, x, y] - same order as your working manual example
+        tib_centroids.append([frame_num, tib_info[frame_num]['centroid'][0], tib_info[frame_num]['centroid'][1]])
+
+# Convert to numpy arrays
+fem_centroids = np.array(fem_centroids)
+tib_centroids = np.array(tib_centroids)
+
+# Add points layers
+fem_points = viewer.add_points(
+    fem_centroids, 
+    symbol='cross',
+    face_color='orange',
+    edge_color='darkorange',
+    size=15,
+    name='Femur_Centroids'
+)
+
+tib_points = viewer.add_points(
+    tib_centroids,
+    symbol='cross', 
+    face_color='blue',
+    edge_color='darkblue',
+    size=15,
+    name='Tibia_Centroids'
+)
 
 #%%
 def track_origin(all_frame_info, point_name, bone_name, new_figure,  marker, label):

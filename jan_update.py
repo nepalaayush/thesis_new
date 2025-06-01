@@ -29,8 +29,8 @@ import pymri
 #path_neg = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
 #path_pos = '/data/projects/ma-nepal-segmentation/data/Kraemer^Martin/2024-03-01/119_MK_Radial_NW_CINE_30bpm_CGA/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
 
-path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
-path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_for_thesis/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
+path_neg = 'C:/Users/Aayush/Documents/thesis_files/data_20_03/MK_NW_ai2_tgv_5e-2_neg_ngn.nii'
+path_pos = 'C:/Users/Aayush/Documents/thesis_files/data_20_03/MK_NW_ai2_tgv_5e-2_pos_ngn.nii'
 #%%
 image_neg = path_to_image(path_neg)[1:]
 image_pos = path_to_image(path_pos)[1:]
@@ -47,8 +47,8 @@ from napari_nifti._writer import write_single_image
 #%%
 
 #add the original image to napari
-viewer = napari.view_image(full_image,  name='ds1_NW_full')
-
+#viewer = napari.view_image(full_image,  name='ds1_NW_full')
+viewer.add_image(full_image)
 
 #%%
 
