@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 import os 
 
-os.chdir('C:/Users/Aayush/Documents/thesis_files/thesis_new/manuscript/v2/v3/v5/v6/v8/v9')
+os.chdir("/home/nepal/thesis_new/manuscript/v2/v3/v5/v6/v8/v9/")
 first_half_df = pd.read_pickle('first_half_trans_and_angle.pkl') 
 second_half_df = pd.read_pickle('second_half_trans_and_angle.pkl')
 
@@ -235,6 +235,7 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
             x='Bin_Center',
             y=column,
             hue='Method',
+            palette={'Manual': 'lime', 'Semi-Auto': '#ec008c'},
             marker="o",
             markersize=12,
             ci='sd',
@@ -266,7 +267,7 @@ def plot_four_panel_translation(df_first_half, df_second_half, bin_width=10, fig
             ax.yaxis.set_minor_locator(plt.MultipleLocator(0.5)) # Minor ticks every 0.5
         else:
             ax.yaxis.set_major_locator(plt.MultipleLocator(5))   # Major ticks every 5
-            ax.yaxis.set_minor_locator(plt.MultipleLocator(1.25))# Minor ticks every 1.25
+            ax.yaxis.set_minor_locator(plt.MultipleLocator(2.5))# Minor ticks every 1.25
         
         # Grid settings - show both major and minor grid with same style
         ax.grid(True, which='major', linestyle='-', linewidth=0.5, alpha=0.4)  # Show major grid
