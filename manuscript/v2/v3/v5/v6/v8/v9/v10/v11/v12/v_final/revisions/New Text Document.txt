@@ -1,0 +1,39 @@
+Lachman = passive “manual-laxity” test
+
+The Lachman test is performed with the knee flexed ~ 20-30 °. The examiner stabilises the distal femur with one hand and pulls the proximal tibia forward with the other; the patient stays relaxed. Any excessive anterior translation or a “soft” endpoint indicates ACL insufficiency. It is therefore passive (force comes from the examiner, not from the patient) and belongs to the same family as the classic anterior-drawer manoeuvre.
+physio-pedia.com
+physio-pedia.com
+Other passive manual-laxity tests in the same family
+Primary structure stressed	Typical knee position	Examiner-applied force / torque
+Anterior drawer – ACL	90 ° flexion	Straight anterior pull on tibia
+physio-pedia.com
+Posterior drawer – PCL	90 ° flexion	Straight posterior push on tibia
+physio-pedia.com
+Slocum drawers – antero-lat / antero-med bundles	90 ° flexion, tibia internally / externally rotated	Anterior pull in rotated position
+Lever (Lelli) sign – ACL	Supine, knee extended	Downward femoral push leverages tibia anteriorly
+Pivot-shift / Jerk – ACL + anterolateral complex	Start full ext., apply valgus + internal-rot, flex to 30-40 °	Combined valgus & IR torque; tibia subluxes then reduces
+pmc.ncbi.nlm.nih.gov
+Dial test – posterolateral corner (PLC)	30 ° and 90 ° flexion, prone or supine	External-rotation torque on the foot
+physio-pedia.com
+Varus / Valgus stress – LCL or MCL	0 ° and 30 ° flexion	Lateral or medial bending moment
+physio-pedia.com
+Reverse pivot-shift – PLC	90 ° flexion to extension	External-rot + valgus torque causes posterolateral reduction
+Posterior-sag sign – PCL	90 ° flexion	Gravity lets tibia sag posteriorly (still passive)
+KT-1000 / -2000 (instrumented drawer)	20-30 ° flexion	Device applies graded AP force, reads displacement
+
+All of these rely on an external force or torque while the patient’s musculature remains passive.
+Active tests (patient generates the force) for comparison
+Test	What the patient does	Main structure assessed
+Active-quadriceps test	Isometric quad contraction from 90 ° flexion	PCL: quad pull reduces posterior sag
+Step-down / single-leg squat kinematics	Functional eccentric loading	Dynamic valgus, patellofemoral tracking, etc.
+
+Your current protocol falls into this active category: subjects actively flex/extend against an axial load that your device supplies.
+Implication for your reply
+
+    The reviewer’s examples sit squarely in the passive manual-laxity group (drawer, Lachman).
+
+    Your device, as configured, supplies only axial resistance during an active motion, so it cannot reproduce these passive AP-force tests without adding an anterior-posterior actuator or letting an examiner pull on the tibia inside the bore.
+
+    The algorithm itself could still quantify the resulting translation once that external AP force is introduced.
+
+Emphasising this active-vs-passive distinction—and listing a few other passive manual tests as shown above—makes clear why the present set-up cannot yet “measure drawer/Lachman,” while still underlining the algorithm’s potential if the hardware evolves.
