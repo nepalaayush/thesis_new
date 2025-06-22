@@ -351,6 +351,63 @@ for frame_index in range(number_of_frames):
 import cv2
 from pathlib import Path
 
+# CROPPING PARAMETERS - Adjust these values as needed
+CROP_LEFT = 250    # Amount to crop from left side (in pixels)
+CROP_RIGHT = 250   # Amount to crop from right side (in pixels)
+CROP_TOP = 0       # Amount to crop from top
+CROP_BOTTOM = 0    # Amount to crop from bottom 
+
+def crop_frame(frame, crop_left, crop_right, crop_top, crop_bottom):
+    """Crop frame by specified amounts from each side"""
+    height, width = frame.shape[:2]
+    
+    # Calculate new boundaries
+    left = crop_left
+    right = width - crop_right
+    top = crop_top  
+    bottom = height - crop_bottom
+    
+    # Crop the frame
+    cropped_frame = frame[top:bottom, left:right]
+    return cropped_frame
+
+# to create a mp4 instead of gif because gif did not preserve the quality somehow. 
+screenshots_dir = Path(r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work/screenshots_overlay')
+# Output MP4 file
+output_mp4 = screenshots_dir / "ds1_overlay_cropped.mp4"
+# Set the desired frames per second
+fps = 3.5
+# Get all PNG files in the directory, sorted
+png_files = sorted(screenshots_dir.glob("*.png"))
+if not png_files:
+    raise ValueError(f"No PNG files found in {screenshots_dir}")
+print(f"Found {len(png_files)} PNG files.")
+
+# Read the first image and crop it to get final dimensions
+first_image = cv2.imread(str(png_files[0]))
+cropped_first = crop_frame(first_image, CROP_LEFT, CROP_RIGHT, CROP_TOP, CROP_BOTTOM)
+height, width = cropped_first.shape[:2]
+print(f"Original dimensions: {first_image.shape[:2]}")
+print(f"Cropped dimensions: {height} x {width}")
+
+# Create VideoWriter object with cropped dimensions
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+video = cv2.VideoWriter(str(output_mp4), fourcc, fps, (width, height))
+
+# Read images, crop them, and add to video
+for png_file in png_files:
+    img = cv2.imread(str(png_file))
+    # Crop the frame before adding to video
+    cropped_img = crop_frame(img, CROP_LEFT, CROP_RIGHT, CROP_TOP, CROP_BOTTOM)
+    video.write(cropped_img)
+
+# Release the video writer
+video.release()
+print(f"Cropped MP4 video created successfully at {output_mp4}")
+print(f"MP4 file size: {output_mp4.stat().st_size / (1024 * 1024):.2f} MB")
+
+
+#%%
 # to create a mp4 instead of gif because gif did not preserve the quality somehow. 
 
 screenshots_dir = Path(r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work/screenshots_overlay')
@@ -405,6 +462,44 @@ tib_layer.edge_color = 'blue'
 tib_layer.opacity = 0.4
 
 #%%
+def calculate_centroids_from_shapes(shape_layer):
+    """Calculate centroids for each shape in a napari shape layer"""
+    centroids = []
+    
+    for i, shape_data in enumerate(shape_layer.data):
+        if len(shape_data) > 0:  # Make sure shape has points
+            # Your data format is [frame, y, x] - so we need columns 1 and 2
+            centroid_frame = shape_data[0, 0]  # Frame number (should be i)
+            centroid_y = np.mean(shape_data[:, 1])  # y coordinates
+            centroid_x = np.mean(shape_data[:, 2])  # x coordinates
+            
+            # Keep in napari 3D format [frame, y, x]
+            centroids.append([centroid_frame, centroid_y, centroid_x])
+    
+    return np.array(centroids)
+
+# Calculate centroids from your shape layers
+fem_centroids_new = calculate_centroids_from_shapes(fem_layer)
+tib_centroids_new = calculate_centroids_from_shapes(tib_layer)
+
+fem_points = viewer.add_points(
+    fem_centroids_new, 
+    symbol='cross',
+    face_color='orange',
+    border_colormap='darkorange',
+    size=15,
+    name='Femur_Centroids_New'
+)
+
+tib_points = viewer.add_points(
+    tib_centroids_new,
+    symbol='cross', 
+    face_color='blue',
+    border_colormap='darkblue',
+    size=15,
+    name='Tibia_Centroids_New'
+)
+#%%
 
 ''' now we load the info for the centroids  '''
 with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/MK_NW_fem_info_stiched.pkl', 'rb') as file:
@@ -415,7 +510,7 @@ with open('C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK
 
 #%%
 
-# Extract centroids - using [frame, x, y] order (same as your working manual example)
+# Extract centroids - using [frame, x, y] order
 fem_centroids = []
 tib_centroids = []
 
@@ -438,7 +533,7 @@ fem_points = viewer.add_points(
     fem_centroids, 
     symbol='cross',
     face_color='orange',
-    edge_color='darkorange',
+    #edge_color='darkorange',
     size=15,
     name='Femur_Centroids'
 )
@@ -447,7 +542,7 @@ tib_points = viewer.add_points(
     tib_centroids,
     symbol='cross', 
     face_color='blue',
-    edge_color='darkblue',
+    #edge_color='darkblue',
     size=15,
     name='Tibia_Centroids'
 )
