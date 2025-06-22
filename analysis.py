@@ -332,7 +332,7 @@ import imageio
 
 # Directory to save screenshots
 base_dir = r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work'
-output_dir = os.path.join(base_dir, "screenshots_overlay")
+output_dir = os.path.join(base_dir, "screenshots_overlay_2")
 os.makedirs(output_dir, exist_ok=True)
 
 axis_index = 0 # change this to pick which axis to iterate over. switched 0 to 1 to go from the sigma slider to low high slider. 
@@ -372,7 +372,7 @@ def crop_frame(frame, crop_left, crop_right, crop_top, crop_bottom):
     return cropped_frame
 
 # to create a mp4 instead of gif because gif did not preserve the quality somehow. 
-screenshots_dir = Path(r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work/screenshots_overlay')
+screenshots_dir = Path(r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work/screenshots_overlay_2')
 # Output MP4 file
 output_mp4 = screenshots_dir / "ds1_overlay_cropped.mp4"
 # Set the desired frames per second
@@ -410,7 +410,7 @@ print(f"MP4 file size: {output_mp4.stat().st_size / (1024 * 1024):.2f} MB")
 #%%
 # to create a mp4 instead of gif because gif did not preserve the quality somehow. 
 
-screenshots_dir = Path(r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work/screenshots_overlay')
+screenshots_dir = Path(r'C:/Users/Aayush/Documents/thesis_files/thesis_new/new_analysis_all/MK/01.03_d1/stiched_analysis/revision_work/screenshots_overlay_2')
 
 # Output MP4 file
 output_mp4 = screenshots_dir / "ds1_overlay.mp4"
@@ -462,6 +462,9 @@ tib_layer.edge_color = 'blue'
 tib_layer.opacity = 0.4
 
 #%%
+tib_layer.translate = [0, -1, +1]  # or [1, 1] for 2D data
+
+#%%
 def calculate_centroids_from_shapes(shape_layer):
     """Calculate centroids for each shape in a napari shape layer"""
     centroids = []
@@ -478,9 +481,31 @@ def calculate_centroids_from_shapes(shape_layer):
     
     return np.array(centroids)
 
+def calculate_centroids_from_shapes_hull(shape_layer):
+    """Calculate centroids using convex hull"""
+    centroids = []
+    
+    for i, shape_data in enumerate(shape_layer.data):
+        if len(shape_data) > 0:
+            centroid_frame = shape_data[0, 0]
+            points_2d = shape_data[:, 1:3]  # Just y,x coordinates
+            
+            try:
+                hull = ConvexHull(points_2d)
+                # Centroid of convex hull vertices
+                hull_points = points_2d[hull.vertices]
+                center_y = np.mean(hull_points[:, 0])
+                center_x = np.mean(hull_points[:, 1])
+                centroids.append([centroid_frame, center_y, center_x])
+            except:
+                # Fallback to median
+                centroids.append([centroid_frame, np.median(shape_data[:, 1]), np.median(shape_data[:, 2])])
+    
+    return np.array(centroids)
+
 # Calculate centroids from your shape layers
-fem_centroids_new = calculate_centroids_from_shapes(fem_layer)
-tib_centroids_new = calculate_centroids_from_shapes(tib_layer)
+fem_centroids_new = calculate_centroids_from_shapes_hull(fem_layer)
+tib_centroids_new = calculate_centroids_from_shapes_hull(tib_layer)
 
 fem_points = viewer.add_points(
     fem_centroids_new, 

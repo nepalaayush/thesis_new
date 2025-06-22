@@ -47,8 +47,8 @@ from napari_nifti._writer import write_single_image
 #%%
 
 #add the original image to napari
-#viewer = napari.view_image(full_image,  name='ds1_NW_full')
-viewer.add_image(full_image)
+viewer = napari.view_image(full_image,  name='ds1_NW_full')
+#viewer.add_image(full_image)
 
 #%%
 
