@@ -1,0 +1,10 @@
+1. Query 1 -> article to be published in the regular issue 
+2. The captilization of the title. -> check zmedphys
+our version: Semi-Automated Bone Tracking in Dynamic CINE MRI during Controlled Knee Motion
+capitalised all the words except 'in' and 'during' 
+journal version: Semi-Automated bone tracking in dynamic CINE MRI during controlled knee motion
+3. Further analysis revealed that the semi-automated method demonstrated improved precision with smaller standard deviations (SDs) in displacement measurements compared to the manual approach, with horizontal displacements of 1.7–2.7 mm vs. 2.2–3.3 mm and vertical displacements of 0.7–1.2 mm vs. 0.9–1.7 mm. 
+the last line of the results subsection in the preamble. could we add with horizontal displacement SDs of yada yada and vertical displacemt SDs of yada yada.. 
+4. knee device hyperlink? 
+5. CRediT authorship contribution statement -> weird typeface
+6. citation 29 and 35 Wood T versus TC Wood 
